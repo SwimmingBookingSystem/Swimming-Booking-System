@@ -1,0 +1,6 @@
+@SBS.Api_HostAddress = http://localhost:5216
+
+GET {{SBS.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
