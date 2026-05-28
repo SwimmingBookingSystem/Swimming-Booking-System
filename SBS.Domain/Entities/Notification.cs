@@ -2,29 +2,16 @@ using System;
 
 namespace SBS.Domain.Entities;
 
-public class Notification : BaseEntity
+public class Notification
 {
-    public Guid UserId { get; private set; }
-    public string Message { get; private set; }
-    public string Type { get; private set; }
-    public bool IsRead { get; private set; }
+    public int NotificationId { get; set; }
+    public string Title { get; set; } = null!;
+    public string Content { get; set; } = null!;
+    public int CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int? TargetRoleId { get; set; }
+    public int? TargetBranchId { get; set; }
 
     // Navigation properties
-    public virtual AppUser User { get; private set; }
-
-    protected Notification() { }
-
-    public Notification(Guid userId, string message, string type)
-    {
-        UserId = userId;
-        Message = message;
-        Type = type;
-        IsRead = false;
-    }
-
-    public void MarkAsRead()
-    {
-        IsRead = true;
-        UpdateTimestamp();
-    }
+    public virtual Branch? Branch { get; set; }
 }

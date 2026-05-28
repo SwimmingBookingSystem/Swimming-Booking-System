@@ -1,48 +1,29 @@
-using SBS.Domain.Enums;
 using System;
 using System.Collections.Generic;
 
 namespace SBS.Domain.Entities;
 
-public class Booking : BaseEntity
+public class Booking
 {
-    public Guid CustomerId { get; private set; }
-    public DateTime BookingDate { get; private set; }
-    public decimal TotalAmount { get; private set; }
-    public string Notes { get; private set; }
-    public string CancellationReason { get; private set; }
-    public BookingStatus Status { get; private set; }
+    public int BookingId { get; set; }
+    public int? UserId { get; set; }
+    public int PoolId { get; set; }
+    public int? DiscountId { get; set; }
+    public DateOnly BookingDate { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+    public int SlotCount { get; set; }
+    public string BookingStatus { get; set; } = null!;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual AppUser Customer { get; private set; }
-    public virtual ICollection<BookingDetail> BookingDetails { get; private set; }
-    public virtual Payment Payment { get; private set; }
-    public virtual CheckIn CheckIn { get; private set; }
-
-    protected Booking() 
-    {
-        BookingDetails = new HashSet<BookingDetail>();
-    }
-
-    public Booking(Guid customerId, decimal totalAmount, string notes = null) : this()
-    {
-        CustomerId = customerId;
-        BookingDate = DateTime.UtcNow;
-        TotalAmount = totalAmount;
-        Notes = notes;
-        Status = BookingStatus.Pending;
-    }
-
-    public void Cancel(string reason)
-    {
-        Status = BookingStatus.Cancelled;
-        CancellationReason = reason;
-        UpdateTimestamp();
-    }
-
-    public void UpdateStatus(BookingStatus status)
-    {
-        Status = status;
-        UpdateTimestamp();
-    }
+    public virtual Pool Pool { get; set; } = null!;
+    public virtual Discount? Discount { get; set; }
+    public virtual ICollection<BookingService> BookingServices { get; set; } = new HashSet<BookingService>();
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new HashSet<Feedback>();
+    public virtual ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
+    public virtual ICollection<Ticket> Tickets { get; set; } = new HashSet<Ticket>();
+    public virtual ICollection<CustomerCheckin> CustomerCheckins { get; set; } = new HashSet<CustomerCheckin>();
+    public virtual ICollection<SaleTicketDirectly> SaleTicketDirectlys { get; set; } = new HashSet<SaleTicketDirectly>();
 }

@@ -1,38 +1,19 @@
-using SBS.Domain.Enums;
 using System;
 
 namespace SBS.Domain.Entities;
 
-public class Payment : BaseEntity
+public class Payment
 {
-    public Guid BookingId { get; private set; }
-    public decimal Amount { get; private set; }
-    public PaymentMethod PaymentMethod { get; private set; }
-    public string TransactionId { get; private set; }
-    public DateTime? PaymentDate { get; private set; }
-    public PaymentStatus Status { get; private set; }
+    public int PaymentId { get; set; }
+    public int BookingId { get; set; }
+    public string PaymentMethod { get; set; } = null!;
+    public string PaymentStatus { get; set; } = null!;
+    public DateTime? PaymentDate { get; set; }
+    public decimal? TotalAmount { get; set; }
+    public decimal? DiscountAmount { get; set; }
+    public string? TransactionReference { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual Booking Booking { get; private set; }
-
-    protected Payment() { }
-
-    public Payment(Guid bookingId, decimal amount, PaymentMethod paymentMethod)
-    {
-        BookingId = bookingId;
-        Amount = amount;
-        PaymentMethod = paymentMethod;
-        Status = PaymentStatus.Pending;
-    }
-
-    public void ProcessPayment(PaymentStatus status, string transactionId = null)
-    {
-        Status = status;
-        if (status == PaymentStatus.Success)
-        {
-            PaymentDate = DateTime.UtcNow;
-            TransactionId = transactionId;
-        }
-        UpdateTimestamp();
-    }
+    public virtual Booking Booking { get; set; } = null!;
 }

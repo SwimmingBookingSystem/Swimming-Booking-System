@@ -15,3 +15,6 @@ D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\obj\Debug\net8.0\re
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\obj\Debug\net8.0\SBS.Infrastructure.pdb
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\obj\Debug\net8.0\SBS.Infrastructure.genruntimeconfig.cache
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\obj\Debug\net8.0\ref\SBS.Infrastructure.dll
+D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\bin\Debug\net8.0\SBS.Application.dll
+D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\bin\Debug\net8.0\SBS.Application.pdb
+D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Infrastructure\obj\Debug\net8.0\SBS.Infrastructure.sourcelink.json

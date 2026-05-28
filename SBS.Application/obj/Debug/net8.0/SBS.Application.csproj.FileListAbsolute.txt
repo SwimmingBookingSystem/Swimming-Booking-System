@@ -13,3 +13,4 @@ D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Application\obj\Debug\net8.0\SBS.A
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Application\obj\Debug\net8.0\refint\SBS.Application.dll
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Application\obj\Debug\net8.0\SBS.Application.pdb
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Application\obj\Debug\net8.0\ref\SBS.Application.dll
+D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Application\obj\Debug\net8.0\SBS.Application.sourcelink.json
