@@ -34,6 +34,11 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IReadOnlyUnitOfWork, ReadOnlyUnitOfWork>();
 
+        // 4. Identity & Current User Services
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
+        services.AddScoped<IIdentityService, Services.IdentityService>();
+
         return services;
     }
 }
