@@ -10,10 +10,10 @@ public class BookingServicesDto
     public DateOnly BookingDate { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
-    public List<BookingServiceItemDto> Services { get; set; } = new();
+    public List<ServiceStaffBookingServiceItemDto> Services { get; set; } = new();
 }
 
-public class BookingServiceItemDto
+public class ServiceStaffBookingServiceItemDto
 {
     public int BookingServiceId { get; set; }
     public int PoolServiceId { get; set; }

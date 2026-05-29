@@ -59,7 +59,7 @@ public sealed class GetBookingServicesQueryHandler : IRequestHandler<GetBookingS
             BookingDate = booking.BookingDate,
             StartTime = booking.StartTime,
             EndTime = booking.EndTime,
-            Services = booking.BookingServices.Select(bs => new BookingServiceItemDto
+            Services = booking.BookingServices.Select(bs => new ServiceStaffBookingServiceItemDto
             {
                 BookingServiceId = bs.BookingServiceId,
                 PoolServiceId = bs.PoolServiceId,
