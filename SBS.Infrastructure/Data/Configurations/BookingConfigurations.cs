@@ -115,7 +115,7 @@ public class BookingServiceConfiguration : IEntityTypeConfiguration<BookingServi
         builder.HasOne(bs => bs.PoolService)
             .WithMany(ps => ps.BookingServices)
             .HasForeignKey(bs => bs.PoolServiceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
 

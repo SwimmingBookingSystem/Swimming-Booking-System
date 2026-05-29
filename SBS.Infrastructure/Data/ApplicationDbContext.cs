@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common.Interfaces;
 using SBS.Domain.Entities;
 using SBS.Infrastructure.Identity;
 
 namespace SBS.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, int>
+public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, int>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

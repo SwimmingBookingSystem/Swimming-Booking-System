@@ -30,12 +30,12 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
         builder.HasOne(f => f.Pool)
             .WithMany(p => p.Feedbacks)
             .HasForeignKey(f => f.PoolId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(f => f.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
 
