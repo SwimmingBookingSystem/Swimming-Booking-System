@@ -13,7 +13,7 @@ public class ServiceReport
     public string Status { get; set; } = null!;
     public string? ManagerNote { get; set; }
     public DateTime? ProcessedAt { get; set; }
-    public int? ProcessedBy { get; set; }
+    public Guid? ProcessedBy { get; set; }
 
     // Navigation properties
     public virtual Staff Staff { get; set; } = null!;

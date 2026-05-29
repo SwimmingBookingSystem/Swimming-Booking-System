@@ -6,7 +6,7 @@ namespace SBS.Domain.Entities;
 public class Booking
 {
     public int BookingId { get; set; }
-    public int? UserId { get; set; }
+    public Guid? UserId { get; set; }
     public int PoolId { get; set; }
     public int? DiscountId { get; set; }
     public DateOnly BookingDate { get; set; }

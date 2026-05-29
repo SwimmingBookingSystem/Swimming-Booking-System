@@ -5,7 +5,7 @@ namespace SBS.Domain.Entities;
 public class Feedback
 {
     public int FeedbackId { get; set; }
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
     public int PoolId { get; set; }
     public int BookingId { get; set; }
     public int Rating { get; set; }

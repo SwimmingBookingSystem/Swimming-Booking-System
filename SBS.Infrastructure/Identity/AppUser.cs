@@ -3,7 +3,7 @@ using System;
 
 namespace SBS.Infrastructure.Identity;
 
-public class AppUser : IdentityUser<int>
+public class AppUser : IdentityUser<Guid>
 {
     public string FullName { get; set; } = null!;
     public string? Images { get; set; }
@@ -11,7 +11,7 @@ public class AppUser : IdentityUser<int>
     public string? Gender { get; set; }
     public string? Address { get; set; }
     public bool Status { get; set; } = true;
-    public int RoleId { get; set; }
+    public Guid RoleId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

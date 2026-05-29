@@ -15,7 +15,7 @@ public class Discount
     public bool? Status { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-    public int CreatedBy { get; set; }
+    public Guid CreatedBy { get; set; }
 
     // Navigation properties
     public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();

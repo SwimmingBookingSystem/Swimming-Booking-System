@@ -115,7 +115,7 @@ public class BookingServiceConfiguration : IEntityTypeConfiguration<BookingServi
         builder.HasOne(bs => bs.PoolService)
             .WithMany(ps => ps.BookingServices)
             .HasForeignKey(bs => bs.PoolServiceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -181,7 +181,7 @@ public class PoolTicketTypeConfiguration : IEntityTypeConfiguration<PoolTicketTy
         builder.HasOne(pt => pt.TicketType)
             .WithMany(tt => tt.PoolTicketTypes)
             .HasForeignKey(pt => pt.TicketTypeId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -209,7 +209,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasOne(t => t.TicketType)
             .WithMany(tt => tt.Tickets)
             .HasForeignKey(t => t.TicketTypeId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<AppUser>()
             .WithMany()

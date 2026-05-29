@@ -7,9 +7,9 @@ public class Notification
     public int NotificationId { get; set; }
     public string Title { get; set; } = null!;
     public string Content { get; set; } = null!;
-    public int CreatedBy { get; set; }
+    public Guid CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public int? TargetRoleId { get; set; }
+    public Guid? TargetRoleId { get; set; }
     public int? TargetBranchId { get; set; }
 
     // Navigation properties

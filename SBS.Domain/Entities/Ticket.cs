@@ -9,7 +9,7 @@ public class Ticket
     public int TicketTypeId { get; set; }
     public decimal TicketPrice { get; set; }
     public string TicketCode { get; set; } = null!;
-    public int? IssuedBy { get; set; }
+    public Guid? IssuedBy { get; set; }
     public DateTime? IssuedAt { get; set; }
 
     // Navigation properties

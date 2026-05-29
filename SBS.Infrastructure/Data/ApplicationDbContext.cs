@@ -5,7 +5,7 @@ using SBS.Infrastructure.Identity;
 
 namespace SBS.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, int>
+public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, Guid>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

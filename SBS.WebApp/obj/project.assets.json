@@ -1217,7 +1217,10 @@
         },
         "runtime": {
           "bin/placeholder/SBS.Infrastructure.dll": {}
-        }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },

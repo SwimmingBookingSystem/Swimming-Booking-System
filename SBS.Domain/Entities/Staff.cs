@@ -5,7 +5,7 @@ namespace SBS.Domain.Entities;
 public class Staff
 {
     public int StaffId { get; set; }
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
     public int BranchId { get; set; }
     public int PoolId { get; set; }
     public int StaffTypeId { get; set; }

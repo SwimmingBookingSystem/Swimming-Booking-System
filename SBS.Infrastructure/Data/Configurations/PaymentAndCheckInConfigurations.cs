@@ -52,6 +52,6 @@ public class CustomerCheckinConfiguration : IEntityTypeConfiguration<CustomerChe
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

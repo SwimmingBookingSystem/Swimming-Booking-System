@@ -8,7 +8,7 @@ public class SaleTicketDirectly
     public string? CustomerName { get; set; }
     public string? CustomerPhone { get; set; }
     public string? CustomerEmail { get; set; }
-    public int? UserId { get; set; }
+    public Guid? UserId { get; set; }
     public int StaffId { get; set; }
     public int BookingId { get; set; }
     public decimal TotalAmount { get; set; }

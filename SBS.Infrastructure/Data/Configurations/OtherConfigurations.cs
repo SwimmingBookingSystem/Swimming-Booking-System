@@ -30,12 +30,12 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
         builder.HasOne(f => f.Pool)
             .WithMany(p => p.Feedbacks)
             .HasForeignKey(f => f.PoolId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(f => f.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -85,7 +85,7 @@ public class ContactResponseConfiguration : IEntityTypeConfiguration<ContactResp
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(cr => cr.ResponderId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -118,7 +118,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(n => n.CreatedBy)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -147,7 +147,7 @@ public class DiscountAuditLogConfiguration : IEntityTypeConfiguration<DiscountAu
         builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(dal => dal.ManagerId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -178,7 +178,7 @@ public class ServiceReportConfiguration : IEntityTypeConfiguration<ServiceReport
         builder.HasOne(sr => sr.PoolService)
             .WithMany(ps => ps.ServiceReports)
             .HasForeignKey(sr => sr.ServiceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<AppUser>()
             .WithMany()

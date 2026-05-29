@@ -6,7 +6,7 @@ public class DiscountAuditLog
 {
     public int LogId { get; set; }
     public int DiscountId { get; set; }
-    public int ManagerId { get; set; }
+    public Guid ManagerId { get; set; }
     public string ActionType { get; set; } = null!;
     public DateTime ActionTime { get; set; } = DateTime.UtcNow;
     public string? OldValues { get; set; }

@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace SBS.Infrastructure.Identity;
 
-public class AppRole : IdentityRole<int>
+public class AppRole : IdentityRole<Guid>
 {
     public AppRole() { }
 
