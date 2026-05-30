@@ -3,16 +3,12 @@
   "WorkspaceRootPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|e:\\hk_8_su2026\\prn232\\sbs\\swimming-booking-system\\sbs.infrastructure\\migrations\\20260529181058_addunitpricetopooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\migrations\\20260529181058_addunitpricetopooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{32FC9452-3400-4DD0-90E3-11943D3546C1}|SBS.Domain\\SBS.Domain.csproj|e:\\hk_8_su2026\\prn232\\sbs\\swimming-booking-system\\sbs.domain\\entities\\pooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{32FC9452-3400-4DD0-90E3-11943D3546C1}|SBS.Domain\\SBS.Domain.csproj|solutionrelative:sbs.domain\\entities\\pooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|e:\\hk_8_su2026\\prn232\\sbs\\swimming-booking-system\\sbs.infrastructure\\migrations\\applicationdbcontextmodelsnapshot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\migrations\\applicationdbcontextmodelsnapshot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{32FC9452-3400-4DD0-90E3-11943D3546C1}|SBS.Domain\\SBS.Domain.csproj|e:\\hk_8_su2026\\prn232\\sbs\\swimming-booking-system\\sbs.domain\\entities\\pooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{32FC9452-3400-4DD0-90E3-11943D3546C1}|SBS.Domain\\SBS.Domain.csproj|solutionrelative:sbs.domain\\entities\\pooldevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|e:\\hk_8_su2026\\prn232\\sbs\\swimming-booking-system\\sbs.infrastructure\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -991,32 +987,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "20260529181058_AddUnitPriceToPoolDevice.cs",
-              "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Migrations\\20260529181058_AddUnitPriceToPoolDevice.cs",
-              "RelativeDocumentMoniker": "SBS.Infrastructure\\Migrations\\20260529181058_AddUnitPriceToPoolDevice.cs",
-              "ToolTip": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Migrations\\20260529181058_AddUnitPriceToPoolDevice.cs",
-              "RelativeToolTip": "SBS.Infrastructure\\Migrations\\20260529181058_AddUnitPriceToPoolDevice.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T18:10:58.739Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "PoolDevice.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\PoolDevice.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\PoolDevice.cs",
               "ToolTip": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\PoolDevice.cs",
               "RelativeToolTip": "SBS.Domain\\Entities\\PoolDevice.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAgAAAAAAAAAAAA3wBQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-29T18:05:15.727Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 6,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Application\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "SBS.Application\\DependencyInjection.cs",
@@ -1024,38 +1007,35 @@
               "RelativeToolTip": "SBS.Application\\DependencyInjection.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:48:17.076Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:48:17.076Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "SBS.Api",
+              "DocumentIndex": 7,
+              "Title": "SBS.Api.csproj",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\SBS.Api.csproj",
               "RelativeDocumentMoniker": "SBS.Api\\SBS.Api.csproj",
               "ToolTip": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\SBS.Api.csproj",
               "RelativeToolTip": "SBS.Api\\SBS.Api.csproj",
               "ViewState": "AgIAAAkAAAAAAAAAAAAcwBoAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-05-29T17:27:48.348Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:27:48.348Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "SBS.WebApp",
+              "DocumentIndex": 8,
+              "Title": "SBS.WebApp.csproj",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.WebApp\\SBS.WebApp.csproj",
               "RelativeDocumentMoniker": "SBS.WebApp\\SBS.WebApp.csproj",
               "ToolTip": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.WebApp\\SBS.WebApp.csproj",
               "RelativeToolTip": "SBS.WebApp\\SBS.WebApp.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-05-29T17:27:46.33Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:27:46.33Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "SBS.Infrastructure\\DependencyInjection.cs",
@@ -1063,12 +1043,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\DependencyInjection.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:22:18.558Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:22:18.558Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\Program.cs",
               "RelativeDocumentMoniker": "SBS.Api\\Program.cs",
@@ -1076,8 +1055,7 @@
               "RelativeToolTip": "SBS.Api\\Program.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:19:08.823Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:19:08.823Z"
             },
             {
               "$type": "Document",
@@ -1089,12 +1067,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\Migrations\\ApplicationDbContextModelSnapshot.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:03:01.573Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:03:01.573Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 9,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
@@ -1102,12 +1079,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
               "ViewState": "AgIAAB0AAAAAAAAAAAA2wCcAAABBAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:17:40.878Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:17:40.878Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 10,
               "Title": "ReadDbContext.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Data\\ReadDbContext.cs",
               "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\ReadDbContext.cs",
@@ -1115,12 +1091,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\Data\\ReadDbContext.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAowEAAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:17:22.195Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:17:22.195Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "appsettings.json",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\appsettings.json",
               "RelativeDocumentMoniker": "SBS.Api\\appsettings.json",
@@ -1128,12 +1103,11 @@
               "RelativeToolTip": "SBS.Api\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-05-14T15:23:05.226Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-14T15:23:05.226Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 5,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.WebApp\\Program.cs",
               "RelativeDocumentMoniker": "SBS.WebApp\\Program.cs",
@@ -1141,12 +1115,11 @@
               "RelativeToolTip": "SBS.WebApp\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:18:58.927Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:18:58.927Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 11,
               "Title": "ReadOnlyUnitOfWork.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Data\\Repositories\\ReadOnlyUnitOfWork.cs",
               "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\Repositories\\ReadOnlyUnitOfWork.cs",
@@ -1154,12 +1127,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\Data\\Repositories\\ReadOnlyUnitOfWork.cs",
               "ViewState": "AgIAACYAAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:20:28.369Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:20:28.369Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 12,
               "Title": "20260529103220_InitialCreate.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\Migrations\\20260529103220_InitialCreate.cs",
               "RelativeDocumentMoniker": "SBS.Infrastructure\\Migrations\\20260529103220_InitialCreate.cs",
@@ -1167,12 +1139,11 @@
               "RelativeToolTip": "SBS.Infrastructure\\Migrations\\20260529103220_InitialCreate.cs",
               "ViewState": "AgIAALgAAAAAAAAAAAAgwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T17:03:05.736Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T17:03:05.736Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 13,
               "Title": "ProfileController.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\Controllers\\ProfileController.cs",
               "RelativeDocumentMoniker": "SBS.Api\\Controllers\\ProfileController.cs",
@@ -1180,12 +1151,11 @@
               "RelativeToolTip": "SBS.Api\\Controllers\\ProfileController.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T16:55:05.75Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T16:55:05.75Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 14,
               "Title": "GetProfileQuery.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
               "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
@@ -1193,12 +1163,11 @@
               "RelativeToolTip": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-29T16:54:51.408Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-29T16:54:51.408Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 15,
               "Title": "AppUser.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\AppUser.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\AppUser.cs",
@@ -1207,7 +1176,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 16,
               "Title": "SBS.Domain.csproj",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\SBS.Domain.csproj",
               "RelativeDocumentMoniker": "SBS.Domain\\SBS.Domain.csproj",
@@ -1215,12 +1184,11 @@
               "RelativeToolTip": "SBS.Domain\\SBS.Domain.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-05-15T08:40:17.132Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-15T08:40:17.132Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 17,
               "Title": "PoolImage.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\PoolImage.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\PoolImage.cs",
@@ -1232,7 +1200,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 22,
               "Title": "StaffShift.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\StaffShift.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\StaffShift.cs",
@@ -1242,7 +1210,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 23,
               "Title": "PoolSchedule.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\PoolSchedule.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\PoolSchedule.cs",
@@ -1252,7 +1220,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 19,
               "Title": "Pool.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\Pool.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\Pool.cs",
@@ -1264,7 +1232,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 21,
               "Title": "Notification.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\Notification.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\Notification.cs",
@@ -1276,7 +1244,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 24,
               "Title": "MaintenanceRequest.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\MaintenanceRequest.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\MaintenanceRequest.cs",
@@ -1286,7 +1254,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 25,
               "Title": "CheckIn.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\CheckIn.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\CheckIn.cs",
@@ -1296,7 +1264,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 26,
               "Title": "BookingDetail.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\BookingDetail.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\BookingDetail.cs",
@@ -1306,7 +1274,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 27,
               "Title": "BaseEntity.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\BaseEntity.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\BaseEntity.cs",
@@ -1316,7 +1284,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 18,
               "Title": "Booking.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\Booking.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\Booking.cs",
@@ -1328,7 +1296,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 20,
               "Title": "Payment.cs",
               "DocumentMoniker": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\Entities\\Payment.cs",
               "RelativeDocumentMoniker": "SBS.Domain\\Entities\\Payment.cs",
@@ -1340,7 +1308,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 28,
               "Title": "AppRole.cs",
               "DocumentMoniker": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\AppRole.cs",
               "ToolTip": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\Entities\\AppRole.cs",

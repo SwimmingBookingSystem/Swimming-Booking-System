@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SBS.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+712a50125dec6eaa9f8338e0a83dbc820a9ac356")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fdd7bda906a036bc863beb9ed61a6bde168088b1")]
 [assembly: System.Reflection.AssemblyProductAttribute("SBS.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SBS.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
