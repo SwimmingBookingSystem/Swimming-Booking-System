@@ -10,3 +10,15 @@ D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Domain\obj\Debug\net8.0\refint\SBS
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Domain\obj\Debug\net8.0\SBS.Domain.pdb
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Domain\obj\Debug\net8.0\ref\SBS.Domain.dll
 D:\8rd_Semester_FPTU\PRN232\Final_Project\SBS.Domain\obj\Debug\net8.0\SBS.Domain.sourcelink.json
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\bin\Debug\net8.0\SBS.Domain.deps.json
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\bin\Debug\net8.0\SBS.Domain.dll
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\bin\Debug\net8.0\SBS.Domain.pdb
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.AssemblyInfoInputs.cache
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.AssemblyInfo.cs
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.csproj.CoreCompileInputs.cache
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.sourcelink.json
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.dll
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\refint\SBS.Domain.dll
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\SBS.Domain.pdb
+E:\HK_8_SU2026\PRN232\SBS\Swimming-Booking-System\SBS.Domain\obj\Debug\net8.0\ref\SBS.Domain.dll

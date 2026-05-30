@@ -4557,23 +4557,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Lenovo\\.nuget\\packages\\": {},
+    "C:\\Users\\nguye\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Api\\SBS.Api.csproj",
+      "projectUniqueName": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\SBS.Api.csproj",
       "projectName": "SBS.Api",
-      "projectPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Api\\SBS.Api.csproj",
-      "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-      "outputPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Api\\obj\\",
+      "projectPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\SBS.Api.csproj",
+      "packagesPath": "C:\\Users\\nguye\\.nuget\\packages\\",
+      "outputPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\nguye\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4582,21 +4582,20 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Application\\SBS.Application.csproj": {
-              "projectPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Application\\SBS.Application.csproj"
+            "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Application\\SBS.Application.csproj": {
+              "projectPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Application\\SBS.Application.csproj"
             },
-            "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj": {
-              "projectPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj"
+            "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\SBS.Domain.csproj": {
+              "projectPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Domain\\SBS.Domain.csproj"
             },
-            "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Infrastructure\\SBS.Infrastructure.csproj": {
-              "projectPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Infrastructure\\SBS.Infrastructure.csproj"
+            "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\SBS.Infrastructure.csproj": {
+              "projectPath": "E:\\HK_8_SU2026\\PRN232\\SBS\\Swimming-Booking-System\\SBS.Infrastructure\\SBS.Infrastructure.csproj"
             }
           }
         }
@@ -4647,7 +4646,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

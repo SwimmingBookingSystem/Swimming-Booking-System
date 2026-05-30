@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SBS.Domain.Entities;
 
@@ -9,6 +9,8 @@ public class PoolDevice
     public string? DeviceImage { get; set; }
     public string DeviceName { get; set; } = null!;
     public int Quantity { get; set; }
+
+    public decimal UnitPrice { get; set; }  // Tuấn Anh thêm 
     public string DeviceStatus { get; set; } = null!;
     public string? Notes { get; set; }
 
