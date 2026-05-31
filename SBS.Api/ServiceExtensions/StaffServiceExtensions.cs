@@ -18,12 +18,12 @@ public static class StaffServiceExtensions
 {
     public static IServiceCollection AddStaffServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // 1. Database Context
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
+        // 1. Database Context (CQRS: Writer connection dùng cho EF Core - ghi + đọc qua ORM)
+        var writerConnection = configuration.GetConnectionString("WriterConnection") 
+            ?? throw new InvalidOperationException("Connection string 'WriterConnection' not found in configuration.");
         
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString, b => b.MigrationsAssembly("SBS.Infrastructure")));
+            options.UseSqlServer(writerConnection, b => b.MigrationsAssembly("SBS.Infrastructure")));
 
         services.AddScoped<IApplicationDbContext>(provider => 
             provider.GetRequiredService<ApplicationDbContext>());
