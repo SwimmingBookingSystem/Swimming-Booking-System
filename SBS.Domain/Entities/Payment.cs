@@ -6,12 +6,11 @@ public class Payment
 {
     public int PaymentId { get; set; }
     public int BookingId { get; set; }
-    public string PaymentMethod { get; set; } = null!;
-    public string PaymentStatus { get; set; } = null!;
+    public string PaymentMethod { get; set; } = null!; // Online, Cash
+    public string? TransactionId { get; set; }
+    public decimal Amount { get; set; }
+    public string Status { get; set; } = "Pending";
     public DateTime? PaymentDate { get; set; }
-    public decimal? TotalAmount { get; set; }
-    public decimal? DiscountAmount { get; set; }
-    public string? TransactionReference { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties

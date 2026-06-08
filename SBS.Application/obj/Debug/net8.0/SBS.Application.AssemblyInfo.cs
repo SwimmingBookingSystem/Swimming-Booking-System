@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SBS.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+445e34acbbb2fafaefa65afd1af09e311bdec6ee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1a45950efe9ee787a96f225c9b57b51e417ca01")]
 [assembly: System.Reflection.AssemblyProductAttribute("SBS.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SBS.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

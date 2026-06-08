@@ -6,12 +6,8 @@ using System.Security.Claims;
 
 namespace SBS.Infrastructure.Services;
 
-/// <summary>
-/// Dịch vụ lấy thông tin người dùng đang đăng nhập hiện tại.
-/// Thiết kế lai (Hybrid): Tự động đọc UserId từ JWT Claim nếu có.
-/// Nếu không có (chưa đăng nhập / đang kiểm thử), tự động mock lấy user "customer1".
-/// Giúp teammate tích hợp chức năng Login mà không cần sửa đổi bất kỳ dòng code nào ở đây.
-/// </summary>
+
+// Dịch vụ lấy thông tin người dùng đang đăng nhập hiện tại.
 public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

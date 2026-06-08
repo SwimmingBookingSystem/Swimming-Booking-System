@@ -12,7 +12,7 @@ public class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileComm
             .MaximumLength(100).WithMessage("Họ và tên không được vượt quá 100 ký tự.");
 
         RuleFor(x => x.PhoneNumber)
-            .Matches(@"^\d{10,11}$").WithMessage("Số điện thoại không hợp lệ (phải gồm 10 đến 11 chữ số).")
+            .Matches(@"^0\d{9,10}$").WithMessage("Số điện thoại không hợp lệ.")
             .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 
         RuleFor(x => x.Dob)

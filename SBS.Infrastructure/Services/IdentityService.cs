@@ -15,17 +15,19 @@ public class IdentityService : IIdentityService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly ApplicationDbContext _context;
+    private readonly ReadDbContext _readContext;
 
-    public IdentityService(UserManager<AppUser> userManager, ApplicationDbContext context)
+    public IdentityService(UserManager<AppUser> userManager, ApplicationDbContext context, ReadDbContext readContext)
     {
         _userManager = userManager;
         _context = context;
+        _readContext = readContext;
     }
 
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Query database trực tiếp bằng DbContext để tối ưu hiệu năng
-        var user = await _context.Users
+        var user = await _readContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
@@ -43,7 +45,7 @@ public class IdentityService : IIdentityService
             Address = user.Address,
             Dob = user.Dob,
             Gender = user.Gender,
-            Images = user.Images,
+            Images = user.AvatarUrl,
             CreatedAt = user.CreatedAt
         };
     }
@@ -76,7 +78,7 @@ public class IdentityService : IIdentityService
             return false;
         }
 
-        user.Images = avatarUrl;
+        user.AvatarUrl = avatarUrl;
         user.UpdatedAt = DateTime.UtcNow;
 
         var result = await _userManager.UpdateAsync(user);
