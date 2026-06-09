@@ -6,24 +6,22 @@ namespace SBS.Domain.Entities;
 public class Booking
 {
     public int BookingId { get; set; }
-    public Guid? UserId { get; set; }
-    public int PoolId { get; set; }
-    public int? DiscountId { get; set; }
+    public string BookingCode { get; set; } = null!;
+    public Guid UserId { get; set; }
+    public int PoolSlotId { get; set; }
     public DateOnly BookingDate { get; set; }
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-    public int SlotCount { get; set; }
-    public string BookingStatus { get; set; } = null!;
+    public string Status { get; set; } = "PendingPayment";
+    public decimal TotalAmount { get; set; }
+    public string? QrCodeData { get; set; }
+    public string BookingType { get; set; } = "Online";
+    public DateTime? PaymentDeadline { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
-    // Navigation properties
-    public virtual Pool Pool { get; set; } = null!;
-    public virtual Discount? Discount { get; set; }
-    public virtual ICollection<BookingService> BookingServices { get; set; } = new HashSet<BookingService>();
-    public virtual ICollection<Feedback> Feedbacks { get; set; } = new HashSet<Feedback>();
-    public virtual ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
-    public virtual ICollection<Ticket> Tickets { get; set; } = new HashSet<Ticket>();
-    public virtual ICollection<CustomerCheckin> CustomerCheckins { get; set; } = new HashSet<CustomerCheckin>();
-    public virtual ICollection<SaleTicketDirectly> SaleTicketDirectlys { get; set; } = new HashSet<SaleTicketDirectly>();
+    // Navigation properties (domain entities only, no AppUser)
+    public virtual PoolSlot PoolSlot { get; set; } = null!;
+    public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
+    public virtual Payment? Payment { get; set; }
+    public virtual CheckIn? CheckIn { get; set; }
+    public virtual Feedback? Feedback { get; set; }
 }

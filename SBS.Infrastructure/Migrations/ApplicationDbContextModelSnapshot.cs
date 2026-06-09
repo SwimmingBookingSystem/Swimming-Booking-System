@@ -125,1207 +125,551 @@ namespace SBS.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.AccountBanLog", b =>
-                {
-                    b.Property<int>("BanId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ban_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BanId"));
-
-                    b.Property<Guid>("BannedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("banned_by");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<bool?>("IsPermanent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_permanent");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("reason");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("BanId");
-
-                    b.HasIndex("BannedBy");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Account_Ban_Log", (string)null);
-                });
-
             modelBuilder.Entity("SBS.Domain.Entities.Booking", b =>
                 {
                     b.Property<int>("BookingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<DateOnly>("BookingDate")
-                        .HasColumnType("date")
-                        .HasColumnName("booking_date");
-
-                    b.Property<string>("BookingStatus")
+                    b.Property<string>("BookingCode")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("booking_status");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateOnly>("BookingDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("BookingType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Online");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int?>("DiscountId")
-                        .HasColumnType("int")
-                        .HasColumnName("discount_id");
+                    b.Property<DateTime?>("PaymentDeadline")
+                        .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time")
-                        .HasColumnName("end_time");
+                    b.Property<int>("PoolSlotId")
+                        .HasColumnType("int");
 
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
+                    b.Property<string>("QrCodeData")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("SlotCount")
-                        .HasColumnType("int")
-                        .HasColumnName("slot_count");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PendingPayment");
 
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time")
-                        .HasColumnName("start_time");
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at");
+                        .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("BookingId");
 
-                    b.HasIndex("DiscountId");
+                    b.HasIndex("BookingCode")
+                        .IsUnique();
 
-                    b.HasIndex("PoolId");
+                    b.HasIndex("PoolSlotId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Booking", (string)null);
+                    b.ToTable("Bookings", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.BookingService", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.BookingDetail", b =>
                 {
-                    b.Property<int>("BookingServiceId")
+                    b.Property<int>("BookingDetailId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("booking_service_id");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingServiceId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingDetailId"));
 
                     b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
+                        .HasColumnType("int");
 
-                    b.Property<int>("PoolServiceId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_service_id");
+                    b.Property<int>("PoolTicketTypeId")
+                        .HasColumnType("int");
 
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("TotalServicePrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("total_service_price");
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("BookingServiceId");
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("BookingDetailId");
 
                     b.HasIndex("BookingId");
 
-                    b.HasIndex("PoolServiceId");
+                    b.HasIndex("PoolTicketTypeId");
 
-                    b.ToTable("BookingService", (string)null);
+                    b.ToTable("BookingDetails", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Branch", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.CheckIn", b =>
                 {
-                    b.Property<int>("BranchId")
+                    b.Property<int>("CheckInId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("branch_id");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BranchId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CheckInId"));
 
-                    b.Property<string>("BranchName")
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CheckInMethod")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("branch_name");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<Guid?>("ManagerId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("manager_id");
+                    b.Property<DateTime>("CheckInTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.HasKey("BranchId");
+                    b.Property<Guid>("CheckedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasIndex("ManagerId")
-                        .IsUnique()
-                        .HasFilter("[manager_id] IS NOT NULL");
+                    b.HasKey("CheckInId");
 
-                    b.ToTable("Branchs", (string)null);
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.HasIndex("CheckedByUserId");
+
+                    b.ToTable("CheckIns", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.ComboDetail", b =>
                 {
-                    b.Property<int>("ComboTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("combo_type_id");
+                    b.Property<int>("ComboDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<int>("IncludedTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("included_type_id");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComboDetailId"));
+
+                    b.Property<int>("ComboTicketTypeId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
+                        .HasColumnType("int");
 
-                    b.HasKey("ComboTypeId", "IncludedTypeId");
+                    b.Property<int>("SingleTicketTypeId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("IncludedTypeId");
+                    b.HasKey("ComboDetailId");
 
-                    b.ToTable("ComboDetail", (string)null);
+                    b.HasIndex("ComboTicketTypeId");
+
+                    b.HasIndex("SingleTicketTypeId");
+
+                    b.ToTable("ComboDetails", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Contact", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.ContactRequest", b =>
                 {
-                    b.Property<int>("ContactId")
+                    b.Property<int>("ContactRequestId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("contact_id");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("content");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactRequestId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("email");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool?>("IsResolved")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_resolved");
+                    b.Property<DateTime?>("HandledAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("Name")
+                    b.Property<Guid?>("HandledByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("subject");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("ContactId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Contact", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.ContactResponse", b =>
-                {
-                    b.Property<int>("ResponseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("response_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ResponseId"));
-
-                    b.Property<int>("ContactId")
-                        .HasColumnType("int")
-                        .HasColumnName("contact_id");
-
-                    b.Property<Guid>("ResponderId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("responder_id");
-
-                    b.Property<string>("ResponseContent")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("response_content");
-
-                    b.Property<DateTime>("ResponseTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("response_time")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.HasKey("ResponseId");
-
-                    b.HasIndex("ContactId");
-
-                    b.HasIndex("ResponderId");
-
-                    b.ToTable("ContactResponse", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.CustomerCheckin", b =>
-                {
-                    b.Property<int>("CheckinId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("checkin_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CheckinId"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
-
-                    b.Property<byte?>("CheckinStatus")
-                        .HasColumnType("tinyint")
-                        .HasColumnName("checkin_status");
-
-                    b.Property<DateTime?>("CheckinTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("checkin_time")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("CheckinId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CustomerCheckin", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.DeviceReport", b =>
-                {
-                    b.Property<int>("ReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("report_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
-
-                    b.Property<int?>("DeviceId")
-                        .HasColumnType("int")
-                        .HasColumnName("device_id");
-
-                    b.Property<string>("ManagerNote")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("manager_note");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("processed_at");
-
-                    b.Property<Guid?>("ProcessedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("processed_by");
-
-                    b.Property<DateTime>("ReportDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("report_date")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<string>("ReportReason")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("report_reason");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int")
-                        .HasColumnName("staff_id");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Suggestion")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("suggestion");
-
-                    b.HasKey("ReportId");
-
-                    b.HasIndex("DeviceId");
-
-                    b.HasIndex("ProcessedBy");
-
-                    b.HasIndex("StaffId");
-
-                    b.ToTable("DeviceReport", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Discount", b =>
-                {
-                    b.Property<int>("DiscountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("discount_id");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DiscountId"));
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                    b.HasKey("ContactRequestId");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("created_by");
+                    b.HasIndex("HandledByUserId");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("description");
+                    b.HasIndex("UserId");
 
-                    b.Property<string>("DiscountCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("discount_code");
-
-                    b.Property<decimal>("DiscountPercent")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("discount_percent");
-
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
-
-                    b.Property<bool?>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("status");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at");
-
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("valid_from");
-
-                    b.Property<DateTime>("ValidTo")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("valid_to");
-
-                    b.HasKey("DiscountId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.ToTable("Discount", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.DiscountAuditLog", b =>
-                {
-                    b.Property<int>("LogId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("log_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LogId"));
-
-                    b.Property<DateTime>("ActionTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("action_time")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<string>("ActionType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("action_type");
-
-                    b.Property<int>("DiscountId")
-                        .HasColumnType("int")
-                        .HasColumnName("discount_id");
-
-                    b.Property<Guid>("ManagerId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("manager_id");
-
-                    b.Property<string>("NewValues")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("new_values");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("notes");
-
-                    b.Property<string>("OldValues")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("old_values");
-
-                    b.HasKey("LogId");
-
-                    b.HasIndex("DiscountId");
-
-                    b.HasIndex("ManagerId");
-
-                    b.ToTable("DiscountAuditLog", (string)null);
+                    b.ToTable("ContactRequests", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Feedback", b =>
                 {
                     b.Property<int>("FeedbackId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("feedback_id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
 
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Comment")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)")
-                        .HasColumnName("comment");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
+                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
-                        .HasColumnType("int")
-                        .HasColumnName("rating");
-
-                    b.Property<bool?>("Replied")
-                        .HasColumnType("bit")
-                        .HasColumnName("replied");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("FeedbackId");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex("BookingId")
+                        .IsUnique()
+                        .HasFilter("[BookingId] IS NOT NULL");
 
                     b.HasIndex("PoolId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Feedback", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("notification_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("created_by");
-
-                    b.Property<int?>("TargetBranchId")
-                        .HasColumnType("int")
-                        .HasColumnName("target_branch_id");
-
-                    b.Property<Guid?>("TargetRoleId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("target_role_id");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("title");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("TargetBranchId");
-
-                    b.HasIndex("TargetRoleId");
-
-                    b.ToTable("Notification", (string)null);
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Payment", b =>
                 {
                     b.Property<int>("PaymentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("payment_id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<decimal?>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("discount_amount");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("payment_date");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("payment_method");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("PaymentStatus")
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("payment_status");
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
 
-                    b.Property<decimal?>("TotalAmount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("total_amount");
-
-                    b.Property<string>("TransactionReference")
+                    b.Property<string>("TransactionId")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("transaction_reference");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("PaymentId");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex("BookingId")
+                        .IsUnique();
 
-                    b.ToTable("Payment", (string)null);
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Pool", b =>
                 {
                     b.Property<int>("PoolId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolId"));
 
-                    b.Property<int>("BranchId")
-                        .HasColumnType("int")
-                        .HasColumnName("branch_id");
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<TimeSpan>("CloseTime")
-                        .HasColumnType("time")
-                        .HasColumnName("close_time");
+                    b.Property<TimeSpan>("ClosingTime")
+                        .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("MaxSlot")
-                        .HasColumnType("int")
-                        .HasColumnName("max_slot");
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
-                    b.Property<TimeSpan>("OpenTime")
-                        .HasColumnType("time")
-                        .HasColumnName("open_time");
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("PoolAddress")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("pool_address");
-
-                    b.Property<string>("PoolDescription")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("pool_description");
-
-                    b.Property<string>("PoolImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("pool_image");
+                    b.Property<TimeSpan>("OpeningTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("PoolName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("pool_name");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("PoolRoad")
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("pool_road");
-
-                    b.Property<bool?>("PoolStatus")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("pool_status");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Active");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("PoolId");
-
-                    b.HasIndex("BranchId");
 
                     b.ToTable("Pools", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.PoolDevice", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
                 {
-                    b.Property<int>("DeviceId")
+                    b.Property<int>("PoolSlotId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("device_id");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeviceId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolSlotId"));
 
-                    b.Property<string>("DeviceImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("device_image");
-
-                    b.Property<string>("DeviceName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("device_name");
-
-                    b.Property<string>("DeviceStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("device_status");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("notes");
-
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
-
-                    b.HasKey("DeviceId");
-
-                    b.HasIndex("PoolId");
-
-                    b.ToTable("Pool_Device", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
-                {
-                    b.Property<int>("ImageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("image_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
-
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
-
-                    b.Property<string>("PoolImageLink")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("pool_image");
-
-                    b.HasKey("ImageId");
-
-                    b.HasIndex("PoolId");
-
-                    b.ToTable("PoolImage", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolService", b =>
-                {
-                    b.Property<int>("PoolServiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("pool_service_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolServiceId"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("description");
-
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("price");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
-
-                    b.Property<string>("ServiceImage")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("service_image");
-
-                    b.Property<string>("ServiceName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("service_name");
-
-                    b.Property<string>("ServiceStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("service_status");
-
-                    b.HasKey("PoolServiceId");
-
-                    b.HasIndex("PoolId");
-
-                    b.ToTable("PoolService", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
-                {
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
-
-                    b.Property<int>("TicketTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("ticket_type_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("status");
-
-                    b.HasKey("PoolId", "TicketTypeId");
-
-                    b.HasIndex("TicketTypeId");
-
-                    b.ToTable("PoolTicketType", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.SaleTicketDirectly", b =>
-                {
-                    b.Property<int>("SaleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("sale_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SaleId"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("CustomerEmail")
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("PoolId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("SlotDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SlotName")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("customer_email");
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("CustomerName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("customer_name");
-
-                    b.Property<string>("CustomerPhone")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)")
-                        .HasColumnName("customer_phone");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("notes");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("payment_method");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("payment_status");
-
-                    b.Property<DateTime>("SaleDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("sale_date")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int")
-                        .HasColumnName("staff_id");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("total_amount");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("SaleId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("StaffId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SaleTicketDirectly", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.ServiceReport", b =>
-                {
-                    b.Property<int>("ReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("report_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
-
-                    b.Property<string>("ManagerNote")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("manager_note");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("processed_at");
-
-                    b.Property<Guid?>("ProcessedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("processed_by");
-
-                    b.Property<DateTime>("ReportDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("report_date")
-                        .HasDefaultValueSql("GETDATE()");
-
-                    b.Property<string>("ReportReason")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("report_reason");
-
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int")
-                        .HasColumnName("service_id");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int")
-                        .HasColumnName("staff_id");
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Suggestion")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("suggestion");
-
-                    b.HasKey("ReportId");
-
-                    b.HasIndex("ProcessedBy");
-
-                    b.HasIndex("ServiceId");
-
-                    b.HasIndex("StaffId");
-
-                    b.ToTable("ServiceReport", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Staff", b =>
-                {
-                    b.Property<int>("StaffId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("staff_id");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Open");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StaffId"));
-
-                    b.Property<int>("BranchId")
-                        .HasColumnType("int")
-                        .HasColumnName("branch_id");
-
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int")
-                        .HasColumnName("pool_id");
-
-                    b.Property<int>("StaffTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("staff_type_id");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("StaffId");
-
-                    b.HasIndex("BranchId");
+                    b.HasKey("PoolSlotId");
 
                     b.HasIndex("PoolId");
 
-                    b.HasIndex("StaffTypeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Staffs", (string)null);
+                    b.ToTable("PoolSlots", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.StaffType", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
-                    b.Property<int>("StaffTypeId")
+                    b.Property<int>("PoolTicketTypeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("staff_type_id");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StaffTypeId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolTicketTypeId"));
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("description");
+                    b.Property<int>("PoolId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TypeName")
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("type_name");
-
-                    b.HasKey("StaffTypeId");
-
-                    b.ToTable("Staff_Types", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Ticket", b =>
-                {
-                    b.Property<int>("TicketId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ticket_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TicketId"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int")
-                        .HasColumnName("booking_id");
-
-                    b.Property<DateTime?>("IssuedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("issued_at");
-
-                    b.Property<Guid?>("IssuedBy")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("issued_by");
-
-                    b.Property<string>("TicketCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("ticket_code");
-
-                    b.Property<decimal>("TicketPrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("ticket_price");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Active");
 
                     b.Property<int>("TicketTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("ticket_type_id");
+                        .HasColumnType("int");
 
-                    b.HasKey("TicketId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("IssuedBy");
+                    b.HasKey("PoolTicketTypeId");
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("Ticket", (string)null);
+                    b.HasIndex("PoolId", "TicketTypeId")
+                        .IsUnique();
+
+                    b.ToTable("PoolTicketTypes", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
                 {
                     b.Property<int>("TicketTypeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ticket_type_id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TicketTypeId"));
 
                     b.Property<decimal>("BasePrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("base_price");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("description");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal?>("DiscountPercent")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("discount_percent");
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
 
-                    b.Property<bool?>("IsCombo")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_combo");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Active");
 
-                    b.Property<string>("TypeCode")
+                    b.Property<string>("TicketCode")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("type_code");
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("TypeName")
+                    b.Property<string>("TicketName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("type_name");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("TicketTypeId");
 
-                    b.ToTable("TicketType", (string)null);
+                    b.HasIndex("TicketCode")
+                        .IsUnique();
+
+                    b.HasIndex("TicketName")
+                        .IsUnique();
+
+                    b.ToTable("TicketTypes", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.WaitlistEntry", b =>
+                {
+                    b.Property<int>("WaitlistEntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WaitlistEntryId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime?>("Deadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NotifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PoolSlotId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Waiting");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("WaitlistEntryId");
+
+                    b.HasIndex("PoolSlotId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WaitlistEntries", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Infrastructure.Identity.AppRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("role_id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("role_name");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
@@ -1339,16 +683,17 @@ namespace SBS.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("address");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -1357,18 +702,14 @@ namespace SBS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<DateOnly?>("Dob")
-                        .HasColumnType("date")
-                        .HasColumnName("dob");
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("email");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
@@ -1376,18 +717,10 @@ namespace SBS.Infrastructure.Migrations
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("full_name");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("gender");
-
-                    b.Property<string>("Images")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("images");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -1404,49 +737,35 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("password");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)")
-                        .HasColumnName("phone");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("role_id");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("status");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Active");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("username");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1455,11 +774,6 @@ namespace SBS.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("UserName")
-                        .IsUnique();
 
                     b.ToTable("Users", (string)null);
                 });
@@ -1515,188 +829,97 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.AccountBanLog", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.Booking", b =>
                 {
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("BannedBy")
+                    b.HasOne("SBS.Domain.Entities.PoolSlot", "PoolSlot")
+                        .WithMany("Bookings")
+                        .HasForeignKey("PoolSlotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Booking", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Discount", "Discount")
-                        .WithMany("Bookings")
-                        .HasForeignKey("DiscountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany("Bookings")
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Discount");
-
-                    b.Navigation("Pool");
+                    b.Navigation("PoolSlot");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.BookingService", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.BookingDetail", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("BookingServices")
+                        .WithMany("BookingDetails")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SBS.Domain.Entities.PoolService", "PoolService")
-                        .WithMany("BookingServices")
-                        .HasForeignKey("PoolServiceId")
+                    b.HasOne("SBS.Domain.Entities.PoolTicketType", "PoolTicketType")
+                        .WithMany("BookingDetails")
+                        .HasForeignKey("PoolTicketTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Booking");
 
-                    b.Navigation("PoolService");
+                    b.Navigation("PoolTicketType");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Branch", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.CheckIn", b =>
                 {
+                    b.HasOne("SBS.Domain.Entities.Booking", "Booking")
+                        .WithOne("CheckIn")
+                        .HasForeignKey("SBS.Domain.Entities.CheckIn", "BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany("CheckIns")
+                        .HasForeignKey("CheckedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.ComboDetail", b =>
                 {
-                    b.HasOne("SBS.Domain.Entities.TicketType", "ComboType")
-                        .WithMany("ComboDetails")
-                        .HasForeignKey("ComboTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Domain.Entities.TicketType", "IncludedType")
-                        .WithMany()
-                        .HasForeignKey("IncludedTypeId")
+                    b.HasOne("SBS.Domain.Entities.TicketType", "ComboTicketType")
+                        .WithMany("ComboItems")
+                        .HasForeignKey("ComboTicketTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ComboType");
+                    b.HasOne("SBS.Domain.Entities.TicketType", "SingleTicketType")
+                        .WithMany("IncludedInCombos")
+                        .HasForeignKey("SingleTicketTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("IncludedType");
+                    b.Navigation("ComboTicketType");
+
+                    b.Navigation("SingleTicketType");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Contact", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.ContactRequest", b =>
                 {
                     b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
+                        .WithMany("HandledContacts")
+                        .HasForeignKey("HandledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
+                        .WithMany("ContactRequests")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.ContactResponse", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Contact", "Contact")
-                        .WithMany("ContactResponses")
-                        .HasForeignKey("ContactId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ResponderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Contact");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.CustomerCheckin", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("CustomerCheckins")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.DeviceReport", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.PoolDevice", "PoolDevice")
-                        .WithMany("DeviceReports")
-                        .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ProcessedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Domain.Entities.Staff", "Staff")
-                        .WithMany("DeviceReports")
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PoolDevice");
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Discount", b =>
-                {
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.DiscountAuditLog", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Discount", "Discount")
-                        .WithMany("DiscountAuditLogs")
-                        .HasForeignKey("DiscountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Discount");
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Feedback", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("Feedbacks")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithOne("Feedback")
+                        .HasForeignKey("SBS.Domain.Entities.Feedback", "BookingId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
                         .WithMany("Feedbacks")
@@ -1705,7 +928,7 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
+                        .WithMany("Feedbacks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1715,77 +938,23 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Pool");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Notification", b =>
-                {
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Domain.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("TargetBranchId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppRole", null)
-                        .WithMany()
-                        .HasForeignKey("TargetRoleId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Branch");
-                });
-
             modelBuilder.Entity("SBS.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingId")
+                        .WithOne("Payment")
+                        .HasForeignKey("SBS.Domain.Entities.Payment", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.Pool", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Branch", "Branch")
-                        .WithMany("Pools")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Branch");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolDevice", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany("PoolDevices")
+                        .WithMany("PoolSlots")
                         .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Pool");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany("PoolImages")
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Pool");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolService", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany("PoolServices")
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Pool");
@@ -1796,7 +965,7 @@ namespace SBS.Infrastructure.Migrations
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
                         .WithMany("PoolTicketTypes")
                         .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SBS.Domain.Entities.TicketType", "TicketType")
@@ -1810,204 +979,77 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("TicketType");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.SaleTicketDirectly", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.WaitlistEntry", b =>
                 {
-                    b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("SaleTicketDirectlys")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Domain.Entities.Staff", "Staff")
-                        .WithMany("SaleTicketDirectlys")
-                        .HasForeignKey("StaffId")
+                    b.HasOne("SBS.Domain.Entities.PoolSlot", "PoolSlot")
+                        .WithMany("WaitlistEntries")
+                        .HasForeignKey("PoolSlotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
+                        .WithMany("WaitlistEntries")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.ServiceReport", b =>
-                {
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ProcessedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Domain.Entities.PoolService", "PoolService")
-                        .WithMany("ServiceReports")
-                        .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SBS.Domain.Entities.Staff", "Staff")
-                        .WithMany("ServiceReports")
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PoolService");
-
-                    b.Navigation("Staff");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Staff", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Branch", "Branch")
-                        .WithMany("Staffs")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany("Staffs")
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Domain.Entities.StaffType", "StaffType")
-                        .WithMany("Staffs")
-                        .HasForeignKey("StaffTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Branch");
-
-                    b.Navigation("Pool");
-
-                    b.Navigation("StaffType");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Ticket", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Booking", "Booking")
-                        .WithMany("Tickets")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("IssuedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SBS.Domain.Entities.TicketType", "TicketType")
-                        .WithMany("Tickets")
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("TicketType");
-                });
-
-            modelBuilder.Entity("SBS.Infrastructure.Identity.AppUser", b =>
-                {
-                    b.HasOne("SBS.Infrastructure.Identity.AppRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("PoolSlot");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Booking", b =>
                 {
-                    b.Navigation("BookingServices");
+                    b.Navigation("BookingDetails");
 
-                    b.Navigation("CustomerCheckins");
+                    b.Navigation("CheckIn");
 
-                    b.Navigation("Feedbacks");
+                    b.Navigation("Feedback");
 
-                    b.Navigation("Payments");
-
-                    b.Navigation("SaleTicketDirectlys");
-
-                    b.Navigation("Tickets");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Branch", b =>
-                {
-                    b.Navigation("Pools");
-
-                    b.Navigation("Staffs");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Contact", b =>
-                {
-                    b.Navigation("ContactResponses");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Discount", b =>
-                {
-                    b.Navigation("Bookings");
-
-                    b.Navigation("DiscountAuditLogs");
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.Pool", b =>
                 {
-                    b.Navigation("Bookings");
-
                     b.Navigation("Feedbacks");
 
-                    b.Navigation("PoolDevices");
-
-                    b.Navigation("PoolImages");
-
-                    b.Navigation("PoolServices");
+                    b.Navigation("PoolSlots");
 
                     b.Navigation("PoolTicketTypes");
-
-                    b.Navigation("Staffs");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.PoolDevice", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
                 {
-                    b.Navigation("DeviceReports");
+                    b.Navigation("Bookings");
+
+                    b.Navigation("WaitlistEntries");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.PoolService", b =>
+            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
-                    b.Navigation("BookingServices");
-
-                    b.Navigation("ServiceReports");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.Staff", b =>
-                {
-                    b.Navigation("DeviceReports");
-
-                    b.Navigation("SaleTicketDirectlys");
-
-                    b.Navigation("ServiceReports");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.StaffType", b =>
-                {
-                    b.Navigation("Staffs");
+                    b.Navigation("BookingDetails");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
                 {
-                    b.Navigation("ComboDetails");
+                    b.Navigation("ComboItems");
+
+                    b.Navigation("IncludedInCombos");
 
                     b.Navigation("PoolTicketTypes");
+                });
 
-                    b.Navigation("Tickets");
+            modelBuilder.Entity("SBS.Infrastructure.Identity.AppUser", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("CheckIns");
+
+                    b.Navigation("ContactRequests");
+
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("HandledContacts");
+
+                    b.Navigation("WaitlistEntries");
                 });
 #pragma warning restore 612, 618
         }
