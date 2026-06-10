@@ -39,6 +39,9 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
 
+        // 5. Staff-specific Services (isolated — no conflict with auth team)
+        services.AddScoped<IStaffUserService, Services.StaffUserService>();
+
         return services;
     }
 }
