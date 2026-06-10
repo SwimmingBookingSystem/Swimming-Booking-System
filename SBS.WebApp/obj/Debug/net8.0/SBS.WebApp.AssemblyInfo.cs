@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SBS.WebApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1a45950efe9ee787a96f225c9b57b51e417ca01")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf84b03b63e3011a12374c804368cd5fd60f7b22")]
 [assembly: System.Reflection.AssemblyProductAttribute("SBS.WebApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SBS.WebApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

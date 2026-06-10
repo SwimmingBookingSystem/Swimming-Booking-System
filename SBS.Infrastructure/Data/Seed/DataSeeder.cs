@@ -17,7 +17,7 @@ public static class DataSeeder
         RoleManager<AppRole> roleManager)
     {
         // Prevent duplicate seeding
-        if (await roleManager.Roles.AnyAsync())
+        if (!context.Pools.Any())
         {
             return;
         }
