@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using SBS.Api.Middleware;
 using SBS.Application;
 using SBS.Infrastructure;
 using SBS.Infrastructure.Data;
@@ -36,6 +37,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//TA Global exception handling
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthorization();
 
