@@ -23,18 +23,8 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            // 1. Lấy UserId từ JWT Claim nếu người dùng đã đăng nhập (khi đã hoàn thành chức năng Login)
-            var userIdFromClaim = _httpContextAccessor.HttpContext?.User?
+            return _httpContextAccessor.HttpContext?.User?
                 .FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!string.IsNullOrEmpty(userIdFromClaim))
-            {
-                return userIdFromClaim;
-            }
-
-            // 2. Fallback (Mock): Trả về ID của tài khoản customer1 đã seed trong DB phục vụ việc kiểm thử
-            return _context.Users
-                .FirstOrDefault(u => u.UserName == "customer1")?.Id.ToString();
         }
     }
 }
