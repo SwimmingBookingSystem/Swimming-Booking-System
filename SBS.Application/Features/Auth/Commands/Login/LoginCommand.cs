@@ -14,15 +14,15 @@ public record LoginCommand : IRequest<AuthResultDto>
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
 {
-    private readonly IIdentityService _identityService;
+    private readonly IAuthService _authService;
 
-    public LoginCommandHandler(IIdentityService identityService)
+    public LoginCommandHandler(IAuthService authService)
     {
-        _identityService = identityService;
+        _authService = authService;
     }
 
     public async Task<AuthResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        return await _identityService.LoginAsync(request.UserName, request.Password, cancellationToken);
+        return await _authService.LoginAsync(request.UserName, request.Password, cancellationToken);
     }
 }

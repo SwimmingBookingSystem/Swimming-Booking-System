@@ -81,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
         services.AddScoped<ITokenService, Services.TokenService>();
+        services.AddScoped<IAuthService, Services.Auth.AuthService>();
 
         return services;
     }
