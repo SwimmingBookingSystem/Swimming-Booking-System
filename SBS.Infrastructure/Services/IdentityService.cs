@@ -37,58 +37,6 @@ public class IdentityService : IIdentityService
         _configuration = configuration;
     }
 
-    public async Task<AuthResultDto> LoginAsync(string userName, string password, CancellationToken cancellationToken = default)
-    {
-        var user = await _userManager.FindByNameAsync(userName);
-        if (user == null)
-        {
-            return AuthResultDto.Failure(new[] { "Tài khoản hoặc mật khẩu không chính xác." });
-        }
-
-        if (user.Status != "Active")
-        {
-            return AuthResultDto.Failure(new[] { "Tài khoản đang bị khóa hoặc ngừng hoạt động." });
-        }
-
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
-        if (!isPasswordValid)
-        {
-            return AuthResultDto.Failure(new[] { "Tài khoản hoặc mật khẩu không chính xác." });
-        }
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var (accessToken, jwtId) = _tokenService.GenerateAccessToken(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty, roles);
-        var refreshTokenValue = _tokenService.GenerateRefreshToken();
-
-        var expiryDaysStr = _configuration["JwtSettings:RefreshTokenExpirationInDays"] ?? "7";
-        if (!double.TryParse(expiryDaysStr, out var expiryDays))
-        {
-            expiryDays = 7;
-        }
-        var expiryDate = DateTime.UtcNow.AddDays(expiryDays);
-
-        var refreshToken = new RefreshToken
-        {
-            Token = refreshTokenValue,
-            JwtId = jwtId,
-            UserId = user.Id,
-            ExpiryDate = expiryDate,
-            IsUsed = false,
-            IsRevoked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return AuthResultDto.Success(new AuthResponseDto
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshTokenValue,
-            ExpiryDate = expiryDate
-        });
-    }
-
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Query database trực tiếp bằng DbContext để tối ưu hiệu năng

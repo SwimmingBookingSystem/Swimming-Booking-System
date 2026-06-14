@@ -8,7 +8,6 @@ namespace SBS.Application.Common.Interfaces;
 
 public interface IIdentityService
 {
-    Task<AuthResultDto> LoginAsync(string userName, string password, CancellationToken cancellationToken = default);
     Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
     
     Task<bool> UpdateProfileAsync(Guid userId, UpdateProfileDto dto, CancellationToken cancellationToken = default);
