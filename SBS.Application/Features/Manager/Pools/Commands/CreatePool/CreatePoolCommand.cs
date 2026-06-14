@@ -4,6 +4,8 @@ using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Manager.Pools.Dtos;
 using SBS.Domain.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +16,6 @@ public record CreatePoolCommand(
     string PoolName,
     string Address,
     string? Description,
-    string? ImageUrl, // Giữ lại field này để tương thích, nhưng khuyên dùng Images
     List<PoolImageItem>? Images,
     TimeSpan OpeningTime,
     TimeSpan ClosingTime
@@ -34,7 +35,6 @@ public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, Creat
             PoolName    = request.PoolName,
             Address     = request.Address,
             Description = request.Description,
-            ImageUrl    = request.ImageUrl,
             OpeningTime = request.OpeningTime,
             ClosingTime = request.ClosingTime,
             Status      = "Active",
@@ -59,17 +59,6 @@ public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, Creat
                 });
                 index++;
             }
-        }
-        else if (!string.IsNullOrEmpty(request.ImageUrl))
-        {
-            // Fallback backward compatibility: Nếu họ dùng ImageUrl cũ
-            pool.PoolImages.Add(new PoolImage
-            {
-                ImageUrl  = request.ImageUrl,
-                IsCover   = true,
-                SortOrder = 1,
-                CreatedAt = DateTime.UtcNow
-            });
         }
 
         await _uow.Repository<Pool>().AddAsync(pool, ct);
@@ -106,7 +95,9 @@ public class CreatePoolCommandValidator : AbstractValidator<CreatePoolCommand>
 
         RuleFor(x => x.Images)
             .Must(imgs => imgs == null || imgs.Count <= 10)
-            .WithMessage("Mỗi bể bơi chỉ được phép có tối đa 10 ảnh.");
+            .WithMessage("Mỗi bể bơi chỉ được phép có tối đa 10 ảnh.")
+            .Must(imgs => imgs == null || imgs.Count(i => i.IsCover) <= 1)
+            .WithMessage("Chỉ được phép chọn tối đa 1 ảnh làm ảnh bìa.");
 
         RuleForEach(x => x.Images)
             .ChildRules(img =>

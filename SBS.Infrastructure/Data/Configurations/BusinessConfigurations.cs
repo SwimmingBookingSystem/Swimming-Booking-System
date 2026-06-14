@@ -16,7 +16,6 @@ public class PoolConfiguration : IEntityTypeConfiguration<Pool>
         builder.Property(e => e.PoolName).IsRequired().HasMaxLength(200);
         builder.Property(e => e.Address).IsRequired().HasMaxLength(500);
         builder.Property(e => e.Description).HasMaxLength(2000);
-        builder.Property(e => e.ImageUrl).HasMaxLength(500);
         builder.Property(e => e.OpeningTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.ClosingTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Active");

@@ -7,6 +7,7 @@ using SBS.Application.Features.Manager.Pools.Commands.CreatePool;
 using SBS.Application.Features.Manager.Pools.Commands.ManagePoolImages;
 using SBS.Application.Features.Manager.Pools.Commands.ReopenPool;
 using SBS.Application.Features.Manager.Pools.Commands.UpdatePool;
+using SBS.Application.Features.Manager.Pools.Dtos;
 using SBS.Application.Features.Manager.Pools.Queries.GetPoolById;
 using SBS.Application.Features.Manager.Pools.Queries.GetPools;
 using System;
@@ -64,7 +65,6 @@ public class ManagerPoolController : ControllerBase
 
         var command = new CreatePoolCommand(
             request.PoolName, request.Address, request.Description,
-            request.ImageUrl, 
             request.Images?.Select(i => new PoolImageItem 
             { 
                 ImageUrl = i.ImageUrl, 
@@ -93,7 +93,6 @@ public class ManagerPoolController : ControllerBase
 
         var command = new UpdatePoolCommand(
             poolId, request.PoolName, request.Address, request.Description,
-            request.ImageUrl, 
             request.Images?.Select(i => new PoolImageItem 
             { 
                 ImageUrl = i.ImageUrl, 
@@ -147,7 +146,6 @@ public class CreatePoolRequest
     public string PoolName { get; set; } = null!;
     public string Address { get; set; } = null!;
     public string? Description { get; set; }
-    public string? ImageUrl { get; set; } // Giữ lại để tương thích
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;  // "HH:mm"
     public string ClosingTime { get; set; } = null!;  // "HH:mm"
@@ -158,7 +156,6 @@ public class UpdatePoolRequest
     public string PoolName { get; set; } = null!;
     public string Address { get; set; } = null!;
     public string? Description { get; set; }
-    public string? ImageUrl { get; set; } // Giữ lại để tương thích
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;
     public string ClosingTime { get; set; } = null!;

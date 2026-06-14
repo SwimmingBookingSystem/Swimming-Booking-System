@@ -9,7 +9,6 @@ public class Pool
     public string PoolName { get; set; } = null!;
     public string Address { get; set; } = null!;
     public string? Description { get; set; }
-    public string? ImageUrl { get; set; }
     public TimeSpan OpeningTime { get; set; }
     public TimeSpan ClosingTime { get; set; }
     public string Status { get; set; } = "Active";
