@@ -3,6 +3,7 @@ using SBS.Application.Common.Dtos.Manager;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Manager.Pools.Dtos;
 using SBS.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,8 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
 
     public async Task<PagedResponse<PoolDto>> Handle(GetPoolsQuery request, CancellationToken ct)
     {
-        var query = _uow.Repository<Pool>().Query();
+        var query = _uow.Repository<Pool>().Query()
+            .Include(p => p.PoolImages);
 
         if (!string.IsNullOrWhiteSpace(request.Status))
             query = query.Where(p => p.Status == request.Status);
@@ -41,6 +43,14 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
                      Address     = p.Address,
                      Description = p.Description,
                      ImageUrl    = p.ImageUrl,
+                     Images      = p.PoolImages.Select(img => new PoolImageDto 
+                     {
+                         PoolImageId = img.PoolImageId,
+                         ImageUrl    = img.ImageUrl,
+                         IsCover     = img.IsCover,
+                         SortOrder   = img.SortOrder,
+                         CreatedAt   = img.CreatedAt
+                     }).OrderBy(i => i.SortOrder).ToList(),
                      OpeningTime = p.OpeningTime.ToString(@"hh\:mm"),
                      ClosingTime = p.ClosingTime.ToString(@"hh\:mm"),
                      Status      = p.Status,

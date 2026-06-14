@@ -9,6 +9,7 @@ public class PoolDto
     public string Address { get; set; } = null!;
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
+    public List<PoolImageDto> Images { get; set; } = new();
     public string OpeningTime { get; set; } = null!;  // "HH:mm"
     public string ClosingTime { get; set; } = null!;  // "HH:mm"
     public string Status { get; set; } = null!;

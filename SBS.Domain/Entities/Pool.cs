@@ -20,4 +20,5 @@ public class Pool
     public virtual ICollection<PoolSlot> PoolSlots { get; set; } = new List<PoolSlot>();
     public virtual ICollection<PoolTicketType> PoolTicketTypes { get; set; } = new List<PoolTicketType>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<PoolImage> PoolImages { get; set; } = new List<PoolImage>();
 }

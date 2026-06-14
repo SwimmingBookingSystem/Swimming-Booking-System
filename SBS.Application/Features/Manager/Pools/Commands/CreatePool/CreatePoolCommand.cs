@@ -14,7 +14,8 @@ public record CreatePoolCommand(
     string PoolName,
     string Address,
     string? Description,
-    string? ImageUrl,
+    string? ImageUrl, // Giữ lại field này để tương thích, nhưng khuyên dùng Images
+    List<PoolImageItem>? Images,
     TimeSpan OpeningTime,
     TimeSpan ClosingTime
 ) : IRequest<CreatePoolResponse>;
@@ -39,6 +40,37 @@ public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, Creat
             Status      = "Active",
             CreatedAt   = DateTime.UtcNow
         };
+
+        // Thêm ảnh nếu có
+        if (request.Images != null && request.Images.Any())
+        {
+            var coverCount = request.Images.Count(i => i.IsCover);
+            if (coverCount == 0) request.Images[0].IsCover = true;
+
+            int index = 1;
+            foreach (var img in request.Images)
+            {
+                pool.PoolImages.Add(new PoolImage
+                {
+                    ImageUrl  = img.ImageUrl,
+                    IsCover   = img.IsCover,
+                    SortOrder = img.SortOrder == 0 ? index : img.SortOrder,
+                    CreatedAt = DateTime.UtcNow
+                });
+                index++;
+            }
+        }
+        else if (!string.IsNullOrEmpty(request.ImageUrl))
+        {
+            // Fallback backward compatibility: Nếu họ dùng ImageUrl cũ
+            pool.PoolImages.Add(new PoolImage
+            {
+                ImageUrl  = request.ImageUrl,
+                IsCover   = true,
+                SortOrder = 1,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         await _uow.Repository<Pool>().AddAsync(pool, ct);
         await _uow.SaveChangesAsync(ct);
@@ -71,5 +103,17 @@ public class CreatePoolCommandValidator : AbstractValidator<CreatePoolCommand>
         RuleFor(x => x.ClosingTime)
             .GreaterThan(x => x.OpeningTime)
             .WithMessage("Giờ đóng cửa phải lớn hơn giờ mở cửa.");
+
+        RuleFor(x => x.Images)
+            .Must(imgs => imgs == null || imgs.Count <= 10)
+            .WithMessage("Mỗi bể bơi chỉ được phép có tối đa 10 ảnh.");
+
+        RuleForEach(x => x.Images)
+            .ChildRules(img =>
+            {
+                img.RuleFor(i => i.ImageUrl)
+                   .NotEmpty().WithMessage("URL ảnh không được để trống.")
+                   .MaximumLength(1000).WithMessage("URL ảnh không được vượt quá 1000 ký tự.");
+            });
     }
 }
