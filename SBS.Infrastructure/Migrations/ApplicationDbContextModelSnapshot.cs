@@ -551,6 +551,51 @@ namespace SBS.Infrastructure.Migrations
                     b.ToTable("PoolTicketTypes", (string)null);
                 });
 
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
+                });
+
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
                 {
                     b.Property<int>("TicketTypeId")
@@ -979,6 +1024,15 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("TicketType");
                 });
 
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SBS.Domain.Entities.WaitlistEntry", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.PoolSlot", "PoolSlot")
@@ -1048,6 +1102,8 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("HandledContacts");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("WaitlistEntries");
                 });

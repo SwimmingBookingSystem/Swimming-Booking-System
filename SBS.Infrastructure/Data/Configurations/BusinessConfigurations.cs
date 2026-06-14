@@ -300,3 +300,29 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
+
+// ===== RefreshToken =====
+public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+{
+    public void Configure(EntityTypeBuilder<RefreshToken> builder)
+    {
+        builder.ToTable("RefreshTokens");
+        builder.HasKey(e => e.RefreshTokenId);
+        builder.Property(e => e.RefreshTokenId).ValueGeneratedOnAdd();
+        builder.Property(e => e.Token).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.JwtId).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.ExpiryDate).IsRequired();
+        builder.Property(e => e.IsUsed).IsRequired();
+        builder.Property(e => e.IsRevoked).IsRequired();
+        builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Unique index on Token for fast search
+        builder.HasIndex(e => e.Token).IsUnique();
+
+        // FK to AppUser
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
