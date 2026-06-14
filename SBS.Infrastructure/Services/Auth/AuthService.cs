@@ -78,7 +78,11 @@ public class AuthService : IAuthService
         {
             AccessToken = accessToken,
             RefreshToken = refreshTokenValue,
-            ExpiryDate = expiryDate
+            ExpiryDate = expiryDate,
+            Id = user.Id,
+            UserName = user.UserName ?? string.Empty,
+            FullName = user.FullName,
+            Role = roles.Count > 0 ? roles[0] : string.Empty
         });
     }
 }
