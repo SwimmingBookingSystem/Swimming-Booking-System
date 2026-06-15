@@ -3,28 +3,68 @@
   "WorkspaceRootPath": "C:\\Users\\A\\Desktop\\prn232\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\services\\adminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\services\\adminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\features\\admin\\commands\\lockuser\\lockusercommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\admin\\commands\\lockuser\\lockusercommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\common\\interfaces\\iadminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\common\\interfaces\\iadminservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\common\\dtos\\profile\\resultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\common\\dtos\\profile\\resultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\common\\dtos\\admin\\userlistdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\common\\dtos\\admin\\userlistdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|c:\\users\\a\\desktop\\prn232\\sbs.webapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|solutionrelative:sbs.webapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|c:\\users\\a\\desktop\\prn232\\sbs.webapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|solutionrelative:sbs.webapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\data\\seed\\dataseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\data\\seed\\dataseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|solutionrelative:sbs.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\controllers\\admin\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|solutionrelative:sbs.api\\controllers\\admin\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\features\\users\\queries\\getprofile\\getprofilequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\users\\queries\\getprofile\\getprofilequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\controllers\\profilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|solutionrelative:sbs.api\\controllers\\profilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\features\\users\\commands\\changepassword\\changepasswordcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\users\\commands\\changepassword\\changepasswordcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\data\\readdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\data\\readdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|c:\\users\\a\\desktop\\prn232\\sbs.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17FD4E3A-7FBF-4852-8190-06CC31963942}|SBS.Infrastructure\\SBS.Infrastructure.csproj|solutionrelative:sbs.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -47,20 +87,12 @@
       "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\users\\commands\\changepassword\\changepasswordcommandvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\features\\users\\commands\\changepassword\\changepasswordcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\users\\commands\\changepassword\\changepasswordcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|solutionrelative:sbs.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|c:\\users\\a\\desktop\\prn232\\sbs.api\\controllers\\profilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{969628F1-0368-44F4-8ADD-8FBF20D5C1D5}|SBS.Api\\SBS.Api.csproj|solutionrelative:sbs.api\\controllers\\profilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|c:\\users\\a\\desktop\\prn232\\sbs.application\\features\\users\\queries\\getprofile\\getprofilequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{235CF261-CF9E-4D8D-B529-556ACD0A3D41}|SBS.Application\\SBS.Application.csproj|solutionrelative:sbs.application\\features\\users\\queries\\getprofile\\getprofilequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|c:\\users\\a\\desktop\\prn232\\sbs.webapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{B093BE42-6BC3-4176-B364-5A2075FD5CFA}|SBS.WebApp\\SBS.WebApp.csproj|solutionrelative:sbs.webapp\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -70,7 +102,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 11,
           "Children": [
             {
               "$type": "Bookmark",
@@ -114,33 +146,163 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "20260610085436_RunMigration.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
-              "RelativeDocumentMoniker": "SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
-              "RelativeToolTip": "SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "LockUserCommand.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:54:36.362Z",
+              "WhenOpened": "2026-06-10T10:05:57.458Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "AdminService.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Services\\AdminService.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\Services\\AdminService.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Services\\AdminService.cs*",
+              "RelativeToolTip": "SBS.Infrastructure\\Services\\AdminService.cs*",
+              "ViewState": "AgIAACAAAAAAAAAAAAAAwCwAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:54:14.892Z",
+              "WhenOpened": "2026-06-10T09:56:07.235Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "ResultDto.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Dtos\\Profile\\ResultDto.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Common\\Dtos\\Profile\\ResultDto.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Dtos\\Profile\\ResultDto.cs",
+              "RelativeToolTip": "SBS.Application\\Common\\Dtos\\Profile\\ResultDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T09:51:36.81Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IAdminService.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Interfaces\\IAdminService.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Common\\Interfaces\\IAdminService.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Interfaces\\IAdminService.cs",
+              "RelativeToolTip": "SBS.Application\\Common\\Interfaces\\IAdminService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T09:46:01.965Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UserListDto.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Dtos\\Admin\\UserListDto.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Common\\Dtos\\Admin\\UserListDto.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Common\\Dtos\\Admin\\UserListDto.cs",
+              "RelativeToolTip": "SBS.Application\\Common\\Dtos\\Admin\\UserListDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T09:42:59.036Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\Program.cs",
+              "RelativeDocumentMoniker": "SBS.WebApp\\Program.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\Program.cs",
+              "RelativeToolTip": "SBS.WebApp\\Program.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T09:35:52.628Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AdminUsersController.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
+              "RelativeDocumentMoniker": "SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
+              "RelativeToolTip": "SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAQwB8AAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T09:35:00.049Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "DependencyInjection.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\DependencyInjection.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\DependencyInjection.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\DependencyInjection.cs",
+              "RelativeToolTip": "SBS.Infrastructure\\DependencyInjection.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwB0AAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:43:13.173Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ProfileController.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\ProfileController.cs",
+              "RelativeDocumentMoniker": "SBS.Api\\Controllers\\ProfileController.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\ProfileController.cs",
+              "RelativeToolTip": "SBS.Api\\Controllers\\ProfileController.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAhwCMAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:45:17.325Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ChangePasswordCommand.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:45:42.11Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "DataSeeder.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
+              "RelativeToolTip": "SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
+              "ViewState": "AgIAAGoAAAAAAAAAAAAQwBMAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:41:26.48Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\appsettings.json",
+              "RelativeDocumentMoniker": "SBS.WebApp\\appsettings.json",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\appsettings.json",
+              "RelativeToolTip": "SBS.WebApp\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-06-10T08:40:40.112Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "SBS.Application\\DependencyInjection.cs",
@@ -153,33 +315,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "DataSeeder.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
-              "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
-              "RelativeToolTip": "SBS.Infrastructure\\Data\\Seed\\DataSeeder.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAIAAAAAAAAAA==",
+              "DocumentIndex": 10,
+              "Title": "GetProfileQuery.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAzwCQAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:41:26.48Z",
+              "WhenOpened": "2026-06-10T08:44:43.953Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "ProfileController.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\ProfileController.cs",
-              "RelativeDocumentMoniker": "SBS.Api\\Controllers\\ProfileController.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\ProfileController.cs",
-              "RelativeToolTip": "SBS.Api\\Controllers\\ProfileController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:45:17.325Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 16,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Program.cs",
               "RelativeDocumentMoniker": "SBS.Api\\Program.cs",
@@ -192,20 +341,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\appsettings.json",
-              "RelativeDocumentMoniker": "SBS.Api\\appsettings.json",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\appsettings.json",
-              "RelativeToolTip": "SBS.Api\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAuAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-06-10T08:40:47.128Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 17,
               "Title": "UpdateProfileCommandValidator.cs",
               "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateProfile\\UpdateProfileCommandValidator.cs",
               "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\UpdateProfile\\UpdateProfileCommandValidator.cs",
@@ -218,59 +354,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "DependencyInjection.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\DependencyInjection.cs",
-              "RelativeDocumentMoniker": "SBS.Infrastructure\\DependencyInjection.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\DependencyInjection.cs",
-              "RelativeToolTip": "SBS.Infrastructure\\DependencyInjection.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwB4AAAAAAAAAAAAAAA==",
+              "DocumentIndex": 13,
+              "Title": "ReadDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ReadDbContext.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\ReadDbContext.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ReadDbContext.cs",
+              "RelativeToolTip": "SBS.Infrastructure\\Data\\ReadDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:43:13.173Z",
+              "WhenOpened": "2026-06-10T08:59:08.088Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "ChangePasswordCommand.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
-              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
-              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommand.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAwCUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:45:42.11Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "ChangePasswordCommandValidator.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
-              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
-              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:45:44.257Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "UpdateAvatarCommand.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
-              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
-              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAkwCMAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:46:09.222Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 18,
               "Title": "UpdateProfileCommand.cs",
               "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateProfile\\UpdateProfileCommand.cs",
               "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\UpdateProfile\\UpdateProfileCommand.cs",
@@ -283,28 +380,67 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "GetProfileQuery.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
-              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
-              "RelativeToolTip": "SBS.Application\\Features\\Users\\Queries\\GetProfile\\GetProfileQuery.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAYwB0AAAAAAAAAAAAAAA==",
+              "DocumentIndex": 14,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "SBS.Infrastructure\\Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T08:44:43.953Z",
+              "WhenOpened": "2026-06-10T08:54:14.892Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 19,
+              "Title": "UpdateAvatarCommand.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\UpdateAvatar\\UpdateAvatarCommand.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAkwCMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:46:09.222Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "ChangePasswordCommandValidator.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Users\\Commands\\ChangePassword\\ChangePasswordCommandValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:45:44.257Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
               "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\appsettings.json",
-              "RelativeDocumentMoniker": "SBS.WebApp\\appsettings.json",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.WebApp\\appsettings.json",
-              "RelativeToolTip": "SBS.WebApp\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\appsettings.json",
+              "RelativeDocumentMoniker": "SBS.Api\\appsettings.json",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\appsettings.json",
+              "RelativeToolTip": "SBS.Api\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-06-10T08:40:40.112Z",
+              "WhenOpened": "2026-06-10T08:40:47.128Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "20260610085436_RunMigration.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
+              "RelativeDocumentMoniker": "SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
+              "RelativeToolTip": "SBS.Infrastructure\\Migrations\\20260610085436_RunMigration.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T08:54:36.362Z",
               "EditorCaption": ""
             }
           ]

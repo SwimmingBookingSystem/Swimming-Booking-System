@@ -308,10 +308,10 @@ C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\SBS.Api.csproj.Up2Date
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\SBS.Api.dll
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\refint\SBS.Api.dll
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\SBS.Api.pdb
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\SBS.Api.genruntimeconfig.cache
 C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\ref\SBS.Api.dll
+C:\Users\A\Desktop\prn232\SBS.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

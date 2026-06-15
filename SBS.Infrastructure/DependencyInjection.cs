@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
+        services.AddScoped<IAdminService, Services.AdminService>();
 
         return services;
     }
