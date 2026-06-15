@@ -35,5 +35,12 @@ public class AdminUsersController : ControllerBase
         return Ok(new { message = "Khóa tài khoản thành công." });
     }
 
-   
+    [HttpPost("{userId:guid}/unlock")]
+    public async Task<IActionResult> UnlockUser(Guid userId)
+    {
+        var result = await _mediator.Send(new UnlockUserCommand(userId));
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors });
+        return Ok(new { message = "Mở khóa tài khoản thành công." });
+    }
 }
