@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SBS.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1fde00ae8edbdd1afad99ce9c5cf22f4ea34468a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aa5ddc00bef47ee9b01e8850e9776a7838644a34")]
 [assembly: System.Reflection.AssemblyProductAttribute("SBS.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SBS.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

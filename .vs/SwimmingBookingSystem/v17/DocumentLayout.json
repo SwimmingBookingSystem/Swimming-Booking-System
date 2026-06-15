@@ -102,7 +102,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 16,
+          "SelectedChildIndex": 15,
           "Children": [
             {
               "$type": "Bookmark",
@@ -143,18 +143,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "LockUserCommand.cs",
-              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
-              "RelativeDocumentMoniker": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
-              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
-              "RelativeToolTip": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T10:05:57.458Z"
             },
             {
               "$type": "Document",
@@ -225,10 +213,22 @@
               "RelativeDocumentMoniker": "SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
               "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
               "RelativeToolTip": "SBS.Api\\Controllers\\Admin\\AdminUsersController.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAACMAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-10T09:35:00.049Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LockUserCommand.cs",
+              "DocumentMoniker": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "RelativeDocumentMoniker": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "ToolTip": "C:\\Users\\A\\Desktop\\prn232\\SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "RelativeToolTip": "SBS.Application\\Features\\Admin\\Commands\\LockUser\\LockUserCommand.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-10T10:05:57.458Z"
             },
             {
               "$type": "Document",
