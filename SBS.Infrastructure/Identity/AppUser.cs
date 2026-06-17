@@ -24,4 +24,5 @@ public class AppUser : IdentityUser<Guid>
     public virtual ICollection<ContactRequest> ContactRequests { get; set; } = new List<ContactRequest>();
     public virtual ICollection<ContactRequest> HandledContacts { get; set; } = new List<ContactRequest>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
