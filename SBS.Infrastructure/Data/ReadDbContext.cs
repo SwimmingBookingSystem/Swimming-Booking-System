@@ -33,7 +33,7 @@ public class ReadDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        builder.ApplyConfigurationsFromAssembly(typeof(ReadDbContext).Assembly);
     }
 
     // Block any data modification on the read side to ensure read-only safety
