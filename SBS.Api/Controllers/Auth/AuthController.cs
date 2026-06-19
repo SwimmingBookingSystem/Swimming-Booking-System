@@ -3,6 +3,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Auth.Commands.Login;
 using SBS.Application.Features.Auth.Commands.RefreshToken;
+using SBS.Application.Features.Auth.Commands.Register;
+using SBS.Application.Features.Auth.Commands.VerifyOtp;
+using SBS.Application.Features.Auth.Commands.ResendOtp;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,15 +18,18 @@ public class AuthController : ControllerBase
     private readonly ISender _mediator;
     private readonly IValidator<LoginCommand> _loginValidator;
     private readonly IValidator<RefreshTokenCommand> _refreshValidator;
+    private readonly IValidator<RegisterCommand> _registerValidator;
 
     public AuthController(
         ISender mediator, 
         IValidator<LoginCommand> loginValidator,
-        IValidator<RefreshTokenCommand> refreshValidator)
+        IValidator<RefreshTokenCommand> refreshValidator,
+        IValidator<RegisterCommand> registerValidator)
     {
         _mediator = mediator;
         _loginValidator = loginValidator;
         _refreshValidator = refreshValidator;
+        _registerValidator = registerValidator;
     }
 
     [HttpPost("login")]
@@ -62,5 +68,62 @@ public class AuthController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterCommand? command)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return BadRequest(new { errors });
+        }
+
+        if (command == null)
+        {
+            return BadRequest(new { errors = new[] { "Dữ liệu đăng ký không hợp lệ." } });
+        }
+
+        var validationResult = await _registerValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Vui lòng nhập OTP để tiếp tục" });
+    }
+
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Đăng ký tài khoản thành công." });
+    }
+
+    [HttpPost("resend-otp")]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Mã OTP mới đã được gửi vào Email của bạn." });
     }
 }
