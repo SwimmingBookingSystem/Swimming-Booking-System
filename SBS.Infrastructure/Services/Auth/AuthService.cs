@@ -358,4 +358,59 @@ public class AuthService : IAuthService
 
         return ResultDto.Success();
     }
+
+    public async Task<ResultDto> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return ResultDto.Failure(new[] { "Không tìm thấy thông tin tài khoản." });
+        }
+
+        // Generate OTP for Password Reset
+        var otp = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "ResetPassword");
+
+        try
+        {
+            await _emailService.SendEmailAsync(email, "Yêu cầu cấp lại mật khẩu - Swimming Booking System", 
+                $"Chào {user.FullName},<br/><br/>Chúng tôi nhận được yêu cầu khôi phục mật khẩu từ bạn. " +
+                $"Mã OTP để đặt lại mật khẩu của bạn là: <strong>{otp}</strong>. Mã này có hiệu lực trong vòng 5 phút.<br/><br/>" +
+                $"Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.");
+        }
+        catch (Exception)
+        {
+            // Logged/handled inside EmailService
+        }
+
+        return ResultDto.Success();
+    }
+
+    public async Task<ResultDto> ResetPasswordAsync(string email, string otp, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return ResultDto.Failure(new[] { "Không tìm thấy thông tin tài khoản." });
+        }
+
+        // Verify OTP
+        var isValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "ResetPassword", otp);
+        if (!isValid)
+        {
+            return ResultDto.Failure(new[] { "Mã OTP không đúng hoặc đã hết hạn." });
+        }
+
+        // Generate reset token internally
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        
+        // Reset password
+        var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description);
+            return ResultDto.Failure(errors);
+        }
+
+        return ResultDto.Success();
+    }
 }

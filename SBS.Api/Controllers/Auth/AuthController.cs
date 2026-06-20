@@ -6,6 +6,8 @@ using SBS.Application.Features.Auth.Commands.RefreshToken;
 using SBS.Application.Features.Auth.Commands.Register;
 using SBS.Application.Features.Auth.Commands.VerifyOtp;
 using SBS.Application.Features.Auth.Commands.ResendOtp;
+using SBS.Application.Features.Auth.Commands.ForgotPassword;
+using SBS.Application.Features.Auth.Commands.ResetPassword;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -145,5 +147,29 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { message = "Mã OTP mới đã được gửi vào Email của bạn." });
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Mã OTP khôi phục mật khẩu đã được gửi vào Email của bạn." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại." });
     }
 }
