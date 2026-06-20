@@ -19,17 +19,23 @@ public class AuthController : ControllerBase
     private readonly IValidator<LoginCommand> _loginValidator;
     private readonly IValidator<RefreshTokenCommand> _refreshValidator;
     private readonly IValidator<RegisterCommand> _registerValidator;
+    private readonly IValidator<VerifyOtpCommand> _verifyOtpValidator;
+    private readonly IValidator<ResendOtpCommand> _resendOtpValidator;
 
     public AuthController(
         ISender mediator, 
         IValidator<LoginCommand> loginValidator,
         IValidator<RefreshTokenCommand> refreshValidator,
-        IValidator<RegisterCommand> registerValidator)
+        IValidator<RegisterCommand> registerValidator,
+        IValidator<VerifyOtpCommand> verifyOtpValidator,
+        IValidator<ResendOtpCommand> resendOtpValidator)
     {
         _mediator = mediator;
         _loginValidator = loginValidator;
         _refreshValidator = refreshValidator;
         _registerValidator = registerValidator;
+        _verifyOtpValidator = verifyOtpValidator;
+        _resendOtpValidator = resendOtpValidator;
     }
 
     [HttpPost("login")]
@@ -106,6 +112,13 @@ public class AuthController : ControllerBase
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command)
     {
+        var validationResult = await _verifyOtpValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
         var result = await _mediator.Send(command);
         if (!result.Succeeded)
         {
@@ -118,6 +131,13 @@ public class AuthController : ControllerBase
     [HttpPost("resend-otp")]
     public async Task<IActionResult> ResendOtp([FromBody] ResendOtpCommand command)
     {
+        var validationResult = await _resendOtpValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
         var result = await _mediator.Send(command);
         if (!result.Succeeded)
         {

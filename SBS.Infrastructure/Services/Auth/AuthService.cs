@@ -211,25 +211,9 @@ public class AuthService : IAuthService
         string fullName,
         string? phoneNumber,
         DateOnly? dob,
-        string? gender,
         string? address,
         CancellationToken cancellationToken = default)
     {
-        // Check duplicate Username
-        var existingUserByName = await _userManager.FindByNameAsync(userName);
-        if (existingUserByName != null)
-        {
-            // If the existing user has NOT confirmed their email, we can delete it and let the registration recreate it
-            if (!existingUserByName.EmailConfirmed)
-            {
-                await _userManager.DeleteAsync(existingUserByName);
-            }
-            else
-            {
-                return ResultDto.Failure(new[] { "Tên đăng nhập đã được sử dụng." });
-            }
-        }
-
         // Check duplicate Email
         var existingUserByEmail = await _userManager.FindByEmailAsync(email);
         if (existingUserByEmail != null)
@@ -245,6 +229,24 @@ public class AuthService : IAuthService
             }
         }
 
+        // Check duplicate PhoneNumber
+        if (!string.IsNullOrEmpty(phoneNumber))
+        {
+            var existingUserByPhone = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
+            if (existingUserByPhone != null)
+            {
+                // If the existing user has NOT confirmed their email, we can delete it and let the registration recreate it
+                if (!existingUserByPhone.EmailConfirmed)
+                {
+                    await _userManager.DeleteAsync(existingUserByPhone);
+                }
+                else
+                {
+                    return ResultDto.Failure(new[] { "Số điện thoại đã được sử dụng." });
+                }
+            }
+        }
+
         // Create the user object
         var user = new AppUser
         {
@@ -255,7 +257,7 @@ public class AuthService : IAuthService
             PhoneNumber = phoneNumber,
             Address = address,
             Dob = dob,
-            Gender = gender,
+            Gender = null,
             Status = "Active",
             EmailConfirmed = false, // Must verify OTP to set to true
             CreatedAt = DateTime.UtcNow

@@ -17,7 +17,6 @@ public interface IAuthService
         string fullName,
         string? phoneNumber,
         DateOnly? dob,
-        string? gender,
         string? address,
         CancellationToken cancellationToken = default);
     Task<ResultDto> VerifyOtpAsync(string email, string otp, CancellationToken cancellationToken = default);

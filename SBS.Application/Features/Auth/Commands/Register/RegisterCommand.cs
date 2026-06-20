@@ -16,7 +16,6 @@ public record RegisterCommand : IRequest<ResultDto>
     public string FullName { get; init; } = null!;
     public string? PhoneNumber { get; init; }
     public DateOnly? Dob { get; init; }
-    public string? Gender { get; init; }
     public string? Address { get; init; }
 }
 
@@ -38,7 +37,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ResultDto
             request.FullName,
             request.PhoneNumber,
             request.Dob,
-            request.Gender,
             request.Address,
             cancellationToken);
     }
