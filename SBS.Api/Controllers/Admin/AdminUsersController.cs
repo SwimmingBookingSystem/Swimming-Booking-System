@@ -86,5 +86,21 @@ public class AdminUsersController : ControllerBase
         return Ok(new { message = "Tạo quản lý thành công." });
     }
 
+    [HttpPut("{userId:guid}/role")]
+    public async Task<IActionResult> ChangeUserRole(Guid userId, [FromBody] ChangeUserRoleCommand command)
+    {
+        if (userId != command.UserId)
+            return BadRequest(new { errors = new[] { "UserId trong URL không khớp với body." } });
+
+        var validationResult = await _changeRoleValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+            return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors });
+        return Ok(new { message = "Thay đổi vai trò thành công." });
+    }
+
     
 }
