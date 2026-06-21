@@ -106,4 +106,91 @@ public class AdminService : IAdminService
 
         return ResultDto.Success();
     }
+
+    public async Task<ResultDto> CreateStaffAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
+    {
+        var user = new AppUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = dto.UserName,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            PhoneNumber = dto.PhoneNumber,
+            Address = dto.Address,
+            Gender = dto.Gender,
+            Dob = dto.Dob,
+            Status = "Active",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+            return ResultDto.Failure(result.Errors.Select(e => e.Description));
+
+        await _userManager.AddToRoleAsync(user, "Staff");
+
+        return ResultDto.Success();
+    }
+
+    public async Task<ResultDto> CreateManagerAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
+    {
+        var user = new AppUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = dto.UserName,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            PhoneNumber = dto.PhoneNumber,
+            Address = dto.Address,
+            Gender = dto.Gender,
+            Dob = dto.Dob,
+            Status = "Active",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+            return ResultDto.Failure(result.Errors.Select(e => e.Description));
+
+        await _userManager.AddToRoleAsync(user, "Manager");
+
+        return ResultDto.Success();
+    }
+
+    public async Task<ResultDto> ChangeUserRoleAsync(Guid userId, string newRole, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            return ResultDto.Failure(new[] { "Người dùng không tồn tại." });
+
+        var validRoles = new[] { "Customer", "Staff", "Manager", "Admin" };
+        if (!validRoles.Contains(newRole))
+            return ResultDto.Failure(new[] { "Vai trò không hợp lệ." });
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!removeResult.Succeeded)
+            return ResultDto.Failure(removeResult.Errors.Select(e => e.Description));
+
+        var addResult = await _userManager.AddToRoleAsync(user, newRole);
+        if (!addResult.Succeeded)
+            return ResultDto.Failure(addResult.Errors.Select(e => e.Description));
+
+        return ResultDto.Success();
+    }
+
+    public async Task<List<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
+    {
+        var roles = await _readContext.Roles
+            .Select(r => new RoleDto
+            {
+                RoleId = r.Id,
+                RoleName = r.Name ?? string.Empty
+            })
+            .ToListAsync(cancellationToken);
+
+        return roles;
+    }
 }
