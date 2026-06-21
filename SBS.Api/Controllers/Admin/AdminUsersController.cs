@@ -102,5 +102,10 @@ public class AdminUsersController : ControllerBase
         return Ok(new { message = "Thay đổi vai trò thành công." });
     }
 
-    
+    [HttpGet("roles")]
+    public async Task<IActionResult> GetRoles()
+    {
+        var roles = await _mediator.Send(new GetRolesQuery());
+        return Ok(roles);
+    }
 }
