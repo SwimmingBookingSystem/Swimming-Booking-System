@@ -73,5 +73,18 @@ public class AdminUsersController : ControllerBase
         return Ok(new { message = "Tạo nhân viên thành công." });
     }
 
+    [HttpPost("create-manager")]
+    public async Task<IActionResult> CreateManager([FromBody] CreateManagerCommand command)
+    {
+        var validationResult = await _createManagerValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+            return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors });
+        return Ok(new { message = "Tạo quản lý thành công." });
+    }
+
     
 }
