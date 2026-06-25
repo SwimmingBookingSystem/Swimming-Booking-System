@@ -18,6 +18,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
+
         // 1. Database Configuration (CQRS Pattern)
         // Write Database Connection(sbs_writer login with full write access)
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,7 +41,16 @@ public static class DependencyInjection
         // -------- Tuấn Anh
 
         // 2. Identity Configuration (Bound to Write DB Context)
-        services.AddIdentity<AppUser, AppRole>()
+        services.AddIdentity<AppUser, AppRole>(options =>
+        {
+            // Tạm thời tắt các luật mật khẩu phức tạp để tiện test
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 1;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequiredUniqueChars = 0;
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
@@ -82,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, Services.IdentityService>();
         services.AddScoped<ITokenService, Services.TokenService>();
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
+        services.AddScoped<IEmailService, Services.Email.EmailService>();
 
         return services;
     }
