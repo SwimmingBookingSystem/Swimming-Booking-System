@@ -39,6 +39,9 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
 
+        // 5. Customer Bookings Infrastructure Services Registration
+        services.AddCustomerBookingsInfrastructure(configuration);
+
         return services;
     }
 }
