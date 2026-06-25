@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using SBS.Api.Middleware;
 using SBS.Application;
 using SBS.Infrastructure;
 using SBS.Infrastructure.Data;
@@ -62,6 +63,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

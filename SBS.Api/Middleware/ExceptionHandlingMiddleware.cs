@@ -1,10 +1,12 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using SBS.Application.Common.Dtos.Manager;
 using SBS.Application.Common.ManagerExceptions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace SBS.Api.Middleware;  // TA
+namespace SBS.Api.Middleware; // TA
 
 public class ExceptionHandlingMiddleware
 {
@@ -22,29 +24,39 @@ public class ExceptionHandlingMiddleware
         {
             context.Response.StatusCode  = 404;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
         }
         catch (BadRequestException ex)
         {
             context.Response.StatusCode  = 400;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
         }
         catch (ValidationException ex)
         {
             context.Response.StatusCode  = 400;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
             {
-                message = "Dữ liệu không hợp lệ.",
-                errors  = ex.Errors
+                Message = "Dữ liệu không hợp lệ.",
+                Errors  = ex.Errors.Select(e => e.ErrorMessage).ToList()
             });
         }
         catch (Exception ex)
         {
             context.Response.StatusCode  = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { message = "Lỗi máy chủ nội bộ.", detail = ex.Message });
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = "Lỗi máy chủ nội bộ.",
+                Errors  = new System.Collections.Generic.List<string> { ex.Message }
+            });
         }
     }
 }
