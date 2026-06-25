@@ -33,6 +33,21 @@ public class UnitOfWork : IUnitOfWork
         return await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.Database.CommitTransactionAsync(cancellationToken);
+    }
+
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.Database.RollbackTransactionAsync(cancellationToken);
+    }
+
     // Async Execution Helpers using EF Core extension methods
     public async Task<List<T>> ToListAsync<T>(IQueryable<T> query, CancellationToken cancellationToken = default) where T : class
     {

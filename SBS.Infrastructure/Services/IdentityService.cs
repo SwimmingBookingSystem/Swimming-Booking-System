@@ -26,7 +26,6 @@ public class IdentityService : IIdentityService
 
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // Query database trực tiếp bằng DbContext để tối ưu hiệu năng
         var user = await _readContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 

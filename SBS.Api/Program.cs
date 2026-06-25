@@ -4,6 +4,7 @@ using SBS.Infrastructure;
 using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Data.Seed;
 using SBS.Infrastructure.Identity;
+using SBS.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

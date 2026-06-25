@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj": {}
+    "d:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj": {}
   },
   "projects": {
-    "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj": {
+    "d:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj",
+        "projectUniqueName": "d:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj",
         "projectName": "SBS.Domain",
-        "projectPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj",
+        "projectPath": "d:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\SBS.Domain.csproj",
         "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\obj\\",
+        "outputPath": "d:\\8rd_Semester_FPTU\\PRN232\\Final_Project\\SBS.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
