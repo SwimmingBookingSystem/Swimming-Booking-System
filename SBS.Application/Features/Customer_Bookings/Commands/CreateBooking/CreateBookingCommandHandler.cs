@@ -34,7 +34,12 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
     public async Task<CreateBookingResponseDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
     {
         var totalQuantity = request.Tickets.Sum(t => t.Quantity);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Convert to Vietnam Timezone (+7) for accurate time checking
+        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var vietnamTimeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+        var today = DateOnly.FromDateTime(vietnamTimeNow);
+        var timeNow = vietnamTimeNow.TimeOfDay;
 
         var userIdString = _currentUserService.UserId;
         if (!Guid.TryParse(userIdString, out var userId))
@@ -55,6 +60,12 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new SlotNotFoundException(request.PoolSlotId, today);
             }
 
+            // 1.5 Check if the slot is in the past
+            if (slot.SlotDate < today || (slot.SlotDate == today && slot.StartTime <= timeNow))
+            {
+                throw new InvalidOperationException("Cannot book a slot that has already started or passed.");
+            }
+
             // 2. Check Capacity
             if (slot.Capacity < totalQuantity)
             {
@@ -70,6 +81,12 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             if (ticketTypes.Count != poolTicketTypeIds.Count)
             {
                 throw new Exception("One or more invalid ticket types.");
+            }
+
+            // Cross-Pool Validation: Ensure all tickets belong to the same Pool as the slot
+            if (ticketTypes.Any(t => t.PoolId != slot.PoolId))
+            {
+                throw new InvalidOperationException("One or more ticket types do not belong to the selected pool.");
             }
 
             decimal totalAmount = 0;
