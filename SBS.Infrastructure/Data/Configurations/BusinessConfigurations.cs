@@ -16,7 +16,6 @@ public class PoolConfiguration : IEntityTypeConfiguration<Pool>
         builder.Property(e => e.PoolName).IsRequired().HasMaxLength(200);
         builder.Property(e => e.Address).IsRequired().HasMaxLength(500);
         builder.Property(e => e.Description).HasMaxLength(2000);
-        builder.Property(e => e.ImageUrl).HasMaxLength(500);
         builder.Property(e => e.OpeningTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.ClosingTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Active");
@@ -323,6 +322,29 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.HasOne<AppUser>()
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+// ===== PoolImage =====
+public class PoolImageConfiguration : IEntityTypeConfiguration<PoolImage>
+{
+    public void Configure(EntityTypeBuilder<PoolImage> builder)
+    {
+        builder.ToTable("PoolImages");
+        builder.HasKey(e => e.PoolImageId);
+        builder.Property(e => e.PoolImageId).ValueGeneratedOnAdd();
+        builder.Property(e => e.ImageUrl).IsRequired().HasMaxLength(1000);
+        builder.Property(e => e.IsCover).IsRequired().HasDefaultValue(false);
+        builder.Property(e => e.SortOrder).IsRequired().HasDefaultValue(0);
+        builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Mỗi pool không được có 2 ảnh cùng URL
+        builder.HasIndex(e => new { e.PoolId, e.ImageUrl }).IsUnique();
+
+        builder.HasOne(e => e.Pool)
+            .WithMany(p => p.PoolImages)
+            .HasForeignKey(e => e.PoolId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
