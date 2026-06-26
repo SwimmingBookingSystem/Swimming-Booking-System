@@ -1,22 +1,18 @@
-using System;
-using System.Net;
-using System.Text.Json;
-using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using SBS.Application.Common.Dtos.Manager;
+using SBS.Application.Common.ManagerExceptions;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace SBS.Api.Middlewares;
+namespace SBS.Api.Middlewares; // TA
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
+    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -24,42 +20,80 @@ public class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (NotFoundException ex)
+        {
+            context.Response.StatusCode  = 404;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.SlotNotFoundException ex)
+        {
+            context.Response.StatusCode  = 404;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (BadRequestException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.BookingNotFoundException ex)
+        {
+            context.Response.StatusCode  = 404;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.SlotFullException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.InvalidPaymentWebhookException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (ValidationException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = "Dữ liệu không hợp lệ.",
+                Errors  = ex.Errors.Select(e => e.ErrorMessage).ToList()
+            });
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception has occurred.");
-            await HandleExceptionAsync(context, ex);
+            context.Response.StatusCode  = 500;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = "Lỗi máy chủ nội bộ.",
+                Errors  = new System.Collections.Generic.List<string> { ex.Message }
+            });
         }
-    }
-
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        var code = HttpStatusCode.InternalServerError;
-        var result = JsonSerializer.Serialize(new { error = "An error occurred while processing your request." });
-
-        var exceptionType = exception.GetType().Name;
-
-        switch (exceptionType)
-        {
-            case "ValidationException":
-                code = HttpStatusCode.BadRequest;
-                result = JsonSerializer.Serialize(new { error = exception.Message });
-                break;
-            case "SlotNotFoundException":
-            case "BookingNotFoundException":
-            case "NotFoundException":
-                code = HttpStatusCode.NotFound;
-                result = JsonSerializer.Serialize(new { error = exception.Message });
-                break;
-            case "SlotFullException":
-            case "InvalidPaymentWebhookException":
-            case "BadRequestException":
-                code = HttpStatusCode.BadRequest;
-                result = JsonSerializer.Serialize(new { error = exception.Message });
-                break;
-        }
-
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)code;
-        return context.Response.WriteAsync(result);
     }
 }
