@@ -66,7 +66,10 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
 
             if (booking == null)
             {
-                throw new BookingNotFoundException(bookingId);
+                // Return true to acknowledge the webhook (especially for PayOS "Test Webhook" which sends orderCode=123)
+                // This prevents PayOS from continuously retrying the webhook
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                return true;
             }
 
             if (booking.Status == "Paid" || booking.Status == "Cancelled")

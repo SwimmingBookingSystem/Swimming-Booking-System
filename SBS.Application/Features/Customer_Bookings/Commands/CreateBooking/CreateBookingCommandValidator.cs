@@ -15,7 +15,8 @@ public class CreateBookingCommandValidator : AbstractValidator<CreateBookingComm
         RuleForEach(v => v.Tickets).ChildRules(tickets =>
         {
             tickets.RuleFor(t => t.PoolTicketTypeId).GreaterThan(0).WithMessage("PoolTicketTypeId must be valid.");
-            tickets.RuleFor(t => t.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than 0.");
+            tickets.RuleFor(t => t.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than 0.")
+                   .LessThanOrEqualTo(20).WithMessage("Cannot book more than 20 tickets per type in a single transaction.");
         });
     }
 }
