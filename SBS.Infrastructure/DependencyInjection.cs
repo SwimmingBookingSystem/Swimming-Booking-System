@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Identity;
 using System;
+using System.Text;
 
 using SBS.Application.Common.Interfaces;
 using SBS.Infrastructure.Data.Repositories;
@@ -15,8 +18,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
+
         // 1. Database Configuration (CQRS Pattern)
-        // Write Database Connection (sbs_writer login with full write access)
+        // Write Database Connection(sbs_writer login with full write access)
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("WriteConnection")));
 
@@ -24,10 +29,58 @@ public static class DependencyInjection
         services.AddDbContext<ReadDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("ReadConnection")));
 
+        // -------- Tuấn Anh  
+        //var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        //services.AddDbContext<ApplicationDbContext>(options =>
+        //    options.UseSqlServer(connectionString));
+
+        //services.AddDbContext<ReadDbContext>(options =>
+        //    options.UseSqlServer(connectionString));
+
+        // -------- Tuấn Anh
+
         // 2. Identity Configuration (Bound to Write DB Context)
-        services.AddIdentity<AppUser, AppRole>()
+        services.AddIdentity<AppUser, AppRole>(options =>
+        {
+            // Tạm thời tắt các luật mật khẩu phức tạp để tiện test
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 1;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequiredUniqueChars = 0;
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        // Configure Authentication using JWT
+        var secret = configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is not configured.");
+        var issuer = configuration["JwtSettings:Issuer"];
+        var audience = configuration["JwtSettings:Audience"];
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidIssuer = issuer,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
 
         // 3. Repositories & Unit of Work registration
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -38,6 +91,9 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
+        services.AddScoped<ITokenService, Services.TokenService>();
+        services.AddScoped<IAuthService, Services.Auth.AuthService>();
+        services.AddScoped<IEmailService, Services.Email.EmailService>();
 
         // 5. Customer Bookings Infrastructure Services Registration
         services.AddCustomerBookingsInfrastructure(configuration);
