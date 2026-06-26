@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using SBS.Api.Middleware;
 using SBS.Application;
 using SBS.Infrastructure;
 using SBS.Infrastructure.Data;
@@ -8,7 +9,11 @@ using SBS.Infrastructure.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new SBS.Api.Converters.NullableDateOnlyJsonConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 // CORS — cho phép SBS.WebApp gọi API
@@ -25,7 +30,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Swimming Booking System API", Version = "v1" });
-    
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -75,6 +80,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWebApp");
@@ -85,4 +92,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
