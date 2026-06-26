@@ -427,3 +427,16 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# User personal working files and temporary tests
+rule.md
+project_architecture_analysis.md
+customer_bookings_review_report.md
+test_payos.cs
+test_payos.exe
+PayOSTest/
+.agents/
+
+# Explicitly ignore all bin and obj folders globally
+[Bb]in/
+[Oo]bj/

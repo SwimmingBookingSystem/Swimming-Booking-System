@@ -95,6 +95,9 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
         services.AddScoped<IEmailService, Services.Email.EmailService>();
 
+        // 5. Customer Bookings Infrastructure Services Registration
+        services.AddCustomerBookingsInfrastructure(configuration);
+
         return services;
     }
 }
