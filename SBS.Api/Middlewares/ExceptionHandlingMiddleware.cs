@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SBS.Api.Middleware; // TA
+namespace SBS.Api.Middlewares; // TA
 
 public class ExceptionHandlingMiddleware
 {

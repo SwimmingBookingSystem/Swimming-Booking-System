@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using SBS.Api.Middleware;
+using SBS.Api.Middlewares;
 using SBS.Application;
 using SBS.Infrastructure;
 using SBS.Infrastructure.Data;
