@@ -436,3 +436,7 @@ test_payos.cs
 test_payos.exe
 PayOSTest/
 .agents/
+
+# Explicitly ignore all bin and obj folders globally
+[Bb]in/
+[Oo]bj/
