@@ -29,7 +29,44 @@ public class ExceptionHandlingMiddleware
                 Message = ex.Message
             });
         }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.SlotNotFoundException ex)
+        {
+            context.Response.StatusCode  = 404;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
         catch (BadRequestException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.BookingNotFoundException ex)
+        {
+            context.Response.StatusCode  = 404;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.SlotFullException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
+        catch (SBS.Application.Features.Customer_Bookings.Exceptions.InvalidPaymentWebhookException ex)
         {
             context.Response.StatusCode  = 400;
             context.Response.ContentType = "application/json";
