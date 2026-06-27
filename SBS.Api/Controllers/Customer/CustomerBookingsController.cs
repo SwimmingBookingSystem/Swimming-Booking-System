@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SBS.Api.Controllers;
+namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/customer-bookings")]
