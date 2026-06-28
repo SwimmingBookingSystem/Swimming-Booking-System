@@ -193,4 +193,116 @@ public class AdminService : IAdminService
 
         return roles;
     }
+
+    public async Task<DashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(now);
+        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var totalRevenue = await _readContext.Payments
+            .Where(p => p.Status == "Completed")
+            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+
+        var totalUsers = await _readContext.Users.CountAsync(cancellationToken);
+        var totalBookings = await _readContext.Bookings.CountAsync(cancellationToken);
+        var totalPools = await _readContext.Pools.CountAsync(cancellationToken);
+
+        var todayBookings = await _readContext.Bookings
+            .CountAsync(b => b.BookingDate == today, cancellationToken);
+
+        var thisMonthRevenue = await _readContext.Payments
+            .Where(p => p.Status == "Completed" && p.PaymentDate >= startOfMonth)
+            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+
+        var newUsersThisMonth = await _readContext.Users
+            .CountAsync(u => u.CreatedAt >= startOfMonth, cancellationToken);
+
+        var monthlyRevenues = await _readContext.Payments
+            .Where(p => p.Status == "Completed" && p.PaymentDate != null && p.PaymentDate.Value.Year == now.Year)
+            .GroupBy(p => new { p.PaymentDate!.Value.Year, p.PaymentDate.Value.Month })
+            .Select(g => new MonthlyRevenueDto
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Revenue = g.Sum(p => p.Amount)
+            })
+            .OrderBy(m => m.Month)
+            .ToListAsync(cancellationToken);
+
+        var usersByRole = await _readContext.Users
+            .GroupJoin(
+                _readContext.UserRoles,
+                u => u.Id,
+                ur => ur.UserId,
+                (u, userRoles) => new { u, userRoles }
+            )
+            .SelectMany(
+                x => x.userRoles.DefaultIfEmpty(),
+                (x, ur) => new { x.u, ur }
+            )
+            .GroupJoin(
+                _readContext.Roles,
+                x => x.ur.RoleId,
+                r => r.Id,
+                (x, roles) => new { x.u, roles }
+            )
+            .SelectMany(
+                x => x.roles.DefaultIfEmpty(),
+                (x, r) => new { x.u, r }
+            )
+            .GroupBy(x => x.r.Name ?? "Customer")
+            .Select(g => new UserByRoleDto
+            {
+                Role = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var bookingsByStatus = await _readContext.Bookings
+            .GroupBy(b => b.Status)
+            .Select(g => new BookingByStatusDto
+            {
+                Status = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var recentBookings = await _readContext.Bookings
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(10)
+            .Join(
+                _readContext.Users,
+                b => b.UserId,
+                u => u.Id,
+                (b, u) => new RecentBookingDto
+                {
+                    BookingId = b.BookingId,
+                    BookingCode = b.BookingCode,
+                    CustomerName = u.FullName,
+                    TotalAmount = b.TotalAmount,
+                    Status = b.Status,
+                    CreatedAt = b.CreatedAt
+                }
+            )
+            .ToListAsync(cancellationToken);
+
+        return new DashboardDto
+        {
+            Overview = new OverviewDto
+            {
+                TotalRevenue = totalRevenue,
+                TotalUsers = totalUsers,
+                TotalBookings = totalBookings,
+                TotalPools = totalPools,
+                TodayBookings = todayBookings,
+                ThisMonthRevenue = thisMonthRevenue,
+                NewUsersThisMonth = newUsersThisMonth
+            },
+            MonthlyRevenues = monthlyRevenues,
+            UsersByRole = usersByRole,
+            BookingsByStatus = bookingsByStatus,
+            RecentBookings = recentBookings
+        };
+    }
 }

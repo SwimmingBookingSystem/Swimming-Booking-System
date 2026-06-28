@@ -22,4 +22,6 @@ public interface IAdminService
     Task<ResultDto> ChangeUserRoleAsync(Guid userId, string newRole, CancellationToken cancellationToken = default);
 
     Task<List<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default);
+
+    Task<DashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default);
 }
