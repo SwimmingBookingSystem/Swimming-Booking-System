@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Customer.CustomerViewPoolList;
+using SBS.Application.Features.Customer.CustomerViewPoolDetail;
 using System;
 using System.Threading.Tasks;
 
@@ -61,4 +62,11 @@ public class CustomerPoolController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPoolDetail(int id)
+    {
+        var query = new GetCustomerPoolDetailQuery(id);
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
 }
