@@ -91,6 +91,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
+        services.AddScoped<IAdminService, Services.AdminService>();
         services.AddScoped<ITokenService, Services.TokenService>();
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
         services.AddScoped<IEmailService, Services.Email.EmailService>();
