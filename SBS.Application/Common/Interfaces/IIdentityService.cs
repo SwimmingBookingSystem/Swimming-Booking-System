@@ -1,4 +1,5 @@
 using SBS.Application.Common.Dtos.Profile;
+using SBS.Application.Common.Dtos.Auth;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

@@ -12,6 +12,10 @@ public interface IUnitOfWork : IDisposable
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
+    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
+    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
+    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+
     // Helpers to execute IQueryable asynchronously without referencing EF Core in Application Layer
     Task<List<T>> ToListAsync<T>(IQueryable<T> query, CancellationToken cancellationToken = default) where T : class;
     

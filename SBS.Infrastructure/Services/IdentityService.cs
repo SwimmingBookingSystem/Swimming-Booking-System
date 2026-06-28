@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SBS.Application.Common.Dtos.Profile;
+using SBS.Application.Common.Dtos.Auth;
 using SBS.Application.Common.Interfaces;
+using SBS.Domain.Entities;
 using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Identity;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +20,25 @@ public class IdentityService : IIdentityService
     private readonly UserManager<AppUser> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly ReadDbContext _readContext;
+    private readonly ITokenService _tokenService;
+    private readonly IConfiguration _configuration;
 
-    public IdentityService(UserManager<AppUser> userManager, ApplicationDbContext context, ReadDbContext readContext)
+    public IdentityService(
+        UserManager<AppUser> userManager,
+        ApplicationDbContext context,
+        ReadDbContext readContext,
+        ITokenService tokenService,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _context = context;
         _readContext = readContext;
+        _tokenService = tokenService;
+        _configuration = configuration;
     }
 
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // Query database trực tiếp bằng DbContext để tối ưu hiệu năng
         var user = await _readContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 

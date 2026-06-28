@@ -444,10 +444,6 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<TimeSpan>("OpeningTime")
                         .HasColumnType("time");
 
@@ -469,6 +465,45 @@ namespace SBS.Infrastructure.Migrations
                     b.HasKey("PoolId");
 
                     b.ToTable("Pools", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
+                {
+                    b.Property<int>("PoolImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolImageId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsCover")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("PoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("PoolImageId");
+
+                    b.HasIndex("PoolId", "ImageUrl")
+                        .IsUnique();
+
+                    b.ToTable("PoolImages", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
@@ -549,6 +584,51 @@ namespace SBS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PoolTicketTypes", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
@@ -949,6 +1029,17 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
+                {
+                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
+                        .WithMany("PoolImages")
+                        .HasForeignKey("PoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pool");
+                });
+
             modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
@@ -977,6 +1068,15 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Pool");
 
                     b.Navigation("TicketType");
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.WaitlistEntry", b =>
@@ -1010,6 +1110,8 @@ namespace SBS.Infrastructure.Migrations
             modelBuilder.Entity("SBS.Domain.Entities.Pool", b =>
                 {
                     b.Navigation("Feedbacks");
+
+                    b.Navigation("PoolImages");
 
                     b.Navigation("PoolSlots");
 
@@ -1048,6 +1150,8 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("HandledContacts");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("WaitlistEntries");
                 });

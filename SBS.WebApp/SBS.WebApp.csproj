@@ -10,4 +10,10 @@
     <ProjectReference Include="..\SBS.Api\SBS.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\Manager\" />
+    <Folder Include="Pages\Manager\" />
+    <Folder Include="Services\Manager\" />
+  </ItemGroup>
+
 </Project>

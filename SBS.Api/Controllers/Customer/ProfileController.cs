@@ -8,7 +8,7 @@ using SBS.Application.Features.Users.Queries.GetProfile;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SBS.Api.Controllers;
+namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/[controller]")]
