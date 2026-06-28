@@ -23,6 +23,8 @@ public class AuthController : ControllerBase
     private readonly IValidator<RegisterCommand> _registerValidator;
     private readonly IValidator<VerifyOtpCommand> _verifyOtpValidator;
     private readonly IValidator<ResendOtpCommand> _resendOtpValidator;
+    private readonly IValidator<ForgotPasswordCommand> _forgotPasswordValidator;
+    private readonly IValidator<ResetPasswordCommand> _resetPasswordValidator;
 
     public AuthController(
         ISender mediator, 
@@ -30,7 +32,9 @@ public class AuthController : ControllerBase
         IValidator<RefreshTokenCommand> refreshValidator,
         IValidator<RegisterCommand> registerValidator,
         IValidator<VerifyOtpCommand> verifyOtpValidator,
-        IValidator<ResendOtpCommand> resendOtpValidator)
+        IValidator<ResendOtpCommand> resendOtpValidator,
+        IValidator<ForgotPasswordCommand> forgotPasswordValidator,
+        IValidator<ResetPasswordCommand> resetPasswordValidator)
     {
         _mediator = mediator;
         _loginValidator = loginValidator;
@@ -38,6 +42,8 @@ public class AuthController : ControllerBase
         _registerValidator = registerValidator;
         _verifyOtpValidator = verifyOtpValidator;
         _resendOtpValidator = resendOtpValidator;
+        _forgotPasswordValidator = forgotPasswordValidator;
+        _resetPasswordValidator = resetPasswordValidator;
     }
 
     [HttpPost("login")]
@@ -152,6 +158,13 @@ public class AuthController : ControllerBase
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
+        var validationResult = await _forgotPasswordValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
         var result = await _mediator.Send(command);
         if (!result.Succeeded)
         {
@@ -164,6 +177,13 @@ public class AuthController : ControllerBase
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
     {
+        var validationResult = await _resetPasswordValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
         var result = await _mediator.Send(command);
         if (!result.Succeeded)
         {

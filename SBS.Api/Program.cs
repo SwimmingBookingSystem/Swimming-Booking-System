@@ -60,6 +60,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await DataSeeder.SeedDataAsync(context, userManager, roleManager);
+    await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context);
 }
 
 // Configure the HTTP request pipeline.
