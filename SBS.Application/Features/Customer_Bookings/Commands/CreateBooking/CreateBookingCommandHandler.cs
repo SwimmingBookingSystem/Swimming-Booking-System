@@ -60,6 +60,11 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new SlotNotFoundException(request.PoolSlotId, today);
             }
 
+            if (slot.Status != "Open")
+            {
+                throw new InvalidOperationException("Cannot book a slot that is not open.");
+            }
+
             // 1.5 Check if the slot is in the past
             if (slot.SlotDate < today || (slot.SlotDate == today && slot.StartTime <= timeNow))
             {
@@ -75,12 +80,18 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             // 3. Retrieve requested ticket types and calculate total amount
             var poolTicketTypeIds = request.Tickets.Select(t => t.PoolTicketTypeId).ToList();
             var ticketTypes = await _unitOfWork.Repository<PoolTicketType>().Query()
+                .Include(t => t.TicketType)
                 .Where(t => poolTicketTypeIds.Contains(t.PoolTicketTypeId))
                 .ToListAsync(cancellationToken);
 
             if (ticketTypes.Count != poolTicketTypeIds.Count)
             {
                 throw new Exception("One or more invalid ticket types.");
+            }
+
+            if (ticketTypes.Any(t => t.Status != "Active" || t.TicketType.Status != "Active"))
+            {
+                throw new InvalidOperationException("One or more selected tickets are no longer active.");
             }
 
             // Cross-Pool Validation: Ensure all tickets belong to the same Pool as the slot
