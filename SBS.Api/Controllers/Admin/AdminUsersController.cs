@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Admin.Commands.ChangeUserRole;
 using SBS.Application.Features.Admin.Commands.CreateManager;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 namespace SBS.Api.Controllers.Admin;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/admin/users")]
 public class AdminUsersController : ControllerBase
 {

@@ -1,11 +1,13 @@
+using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Admin.Queries.GetDashboard;
-using System.Threading.Tasks;
 
 namespace SBS.Api.Controllers.Admin;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/admin/dashboard")]
 public class AdminDashboardController : ControllerBase
 {
