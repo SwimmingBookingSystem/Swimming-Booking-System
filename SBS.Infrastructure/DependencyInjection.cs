@@ -91,12 +91,15 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IIdentityService, Services.IdentityService>();
+        services.AddScoped<IAdminService, Services.AdminService>();
         services.AddScoped<ITokenService, Services.TokenService>();
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
         services.AddScoped<IEmailService, Services.Email.EmailService>();
 
         // 5. Customer Bookings Infrastructure Services Registration
         services.AddCustomerBookingsInfrastructure(configuration);
+        // 5. Staff-specific Services (isolated — no conflict with auth team)
+        services.AddScoped<IStaffUserService, Services.StaffUserService>();
 
         return services;
     }

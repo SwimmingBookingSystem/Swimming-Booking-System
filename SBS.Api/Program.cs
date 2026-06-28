@@ -16,6 +16,18 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new SBS.Api.Converters.NullableDateOnlyJsonConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
+
+// CORS — cho phép SBS.WebApp gọi API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebApp", policy =>
+    {
+        policy.WithOrigins("https://localhost:7000", "http://localhost:5000") // port của SBS.WebApp
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Swimming Booking System API", Version = "v1" });
@@ -60,6 +72,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await DataSeeder.SeedDataAsync(context, userManager, roleManager);
+    await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context);
 }
 
 // Configure the HTTP request pipeline.
@@ -72,6 +85,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowWebApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
