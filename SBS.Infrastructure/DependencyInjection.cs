@@ -97,6 +97,8 @@ public static class DependencyInjection
 
         // 5. Customer Bookings Infrastructure Services Registration
         services.AddCustomerBookingsInfrastructure(configuration);
+        // 5. Staff-specific Services (isolated — no conflict with auth team)
+        services.AddScoped<IStaffUserService, Services.StaffUserService>();
 
         return services;
     }

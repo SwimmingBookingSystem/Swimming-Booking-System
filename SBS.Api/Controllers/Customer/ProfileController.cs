@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Users.Commands.ChangePassword;
 using SBS.Application.Features.Users.Commands.UpdateAvatar;
@@ -12,6 +13,7 @@ namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProfileController : ControllerBase
 {
     private readonly ISender _mediator;
