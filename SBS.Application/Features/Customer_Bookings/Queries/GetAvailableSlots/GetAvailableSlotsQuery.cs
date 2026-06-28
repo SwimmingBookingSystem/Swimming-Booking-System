@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SBS.Application.Features.Customer_Bookings.Queries.GetAvailableSlots;
 
-public record GetAvailableSlotsQuery(DateOnly Date) : IRequest<List<AvailableSlotDto>>;
+public record GetAvailableSlotsQuery(int PoolId, DateOnly Date) : IRequest<List<AvailableSlotDto>>;
 
 public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQuery, List<AvailableSlotDto>>
 {
@@ -28,7 +28,7 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
         var slots = await _readOnlyUnitOfWork.Repository<PoolSlot>().Query()
             .AsNoTracking()
             .Include(s => s.Pool)
-            .Where(s => s.SlotDate == request.Date && s.Capacity > 0 && s.Status == "Open")
+            .Where(s => s.PoolId == request.PoolId && s.SlotDate == request.Date && s.Capacity > 0 && s.Status == "Open")
             .OrderBy(s => s.StartTime)
             .Select(s => new AvailableSlotDto
             {
