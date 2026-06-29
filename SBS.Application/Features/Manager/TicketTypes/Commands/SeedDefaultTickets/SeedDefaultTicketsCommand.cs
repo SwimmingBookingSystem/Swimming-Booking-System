@@ -39,10 +39,10 @@ public class SeedDefaultTicketsCommandHandler
 
         foreach (var d in defaults)
         {
-            // Idempotent: nếu đã tồn tại thì bỏ qua
+            // Idempotent: nếu đã tồn tại (theo Code hoặc Name) thì bỏ qua
             bool exists = await _uow.AnyAsync(
                 _uow.Repository<TicketType>().Query()
-                    .Where(t => t.TicketCode == d.Code), ct);
+                    .Where(t => t.TicketCode == d.Code || t.TicketName == d.Name), ct);
             if (exists) continue;
 
             // Tạo loại vé
