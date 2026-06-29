@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = result.Errors.FirstOrDefault() ?? "Tên đăng nhập hoặc mật khẩu không chính xác." });
         }
 
-        // CẤU HÌNH LÝ THUYẾT COOKIE: Thiết lập Cookie HttpOnly bảo mật cho token
+        // Thiết lập Cookie HttpOnly bảo mật cho token
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
