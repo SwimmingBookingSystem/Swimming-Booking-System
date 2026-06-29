@@ -51,12 +51,9 @@
             </div>
             <div class="d-flex gap-2 mt-2 mb-4">
                 <button type="button" class="btn btn-outline-primary btn-sm" id="btnUploadImage" onclick="$('#fileUpload').click()">
-                    <i class="fa-solid fa-upload"></i> Tải ảnh lên
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh lên Cloud
                 </button>
                 <input type="file" id="fileUpload" class="d-none" accept="image/*" onchange="handleFileUpload(event)">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAddImage" onclick="addImageRow()">
-                    <i class="fa-solid fa-link"></i> Nhập URL
-                </button>
             </div>
             
             <div class="d-flex justify-content-end gap-2 border-top pt-4">
@@ -107,8 +104,6 @@
                 
                 if (p.images && p.images.length > 0) {
                     p.images.forEach(img => addImageRow(img.imageUrl, img.isCover));
-                } else {
-                    addImageRow();
                 }
             } catch (e) { }
         }
@@ -117,19 +112,25 @@
             if ($('.img-row').length >= 10) return;
             const uid = Date.now() + Math.random().toString().slice(2,5);
             const html = `
-                <div class="row g-2 mb-3 img-row align-items-center" id="img_${uid}">
-                    <div class="col-8">
-                        <input type="url" class="form-control img-url" placeholder="https://..." value="${url}">
+                <div class="row g-2 mb-3 img-row align-items-center bg-light p-2 rounded border" id="img_${uid}">
+                    <div class="col-8 d-flex align-items-center gap-3">
+                        <div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid #dee2e6; flex-shrink: 0; background: #fff;">
+                            <img src="${url}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/60x60?text=Ảnh'">
+                        </div>
+                        <input type="hidden" class="img-url" value="${url}">
+                        <div class="text-success small fw-medium" style="word-break: break-all;">
+                            <i class="fa-solid fa-check-circle me-1"></i>Đã lưu trên hệ thống
+                        </div>
                     </div>
                     <div class="col-3">
                         <div class="form-check">
                             <input class="form-check-input cover-radio" type="radio" name="isCover" id="cover_${uid}" ${isCover ? 'checked' : ''}>
-                            <label class="form-check-label fw-medium" for="cover_${uid}">Ảnh Bìa</label>
+                            <label class="form-check-label fw-medium text-dark" for="cover_${uid}">Ảnh Bìa</label>
                         </div>
                     </div>
                     <div class="col-1 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="$('#img_${uid}').remove(); checkImageCount();" title="Xóa ảnh">
-                            <i class="fa-solid fa-trash"></i>
+                        <button type="button" class="btn btn-outline-danger btn-sm border-0" onclick="$('#img_${uid}').remove(); checkImageCount();" title="Xóa ảnh">
+                            <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                 </div>
@@ -140,10 +141,8 @@
 
         function checkImageCount() {
             if ($('.img-row').length >= 10) {
-                $('#btnAddImage').hide();
                 $('#btnUploadImage').hide();
             } else {
-                $('#btnAddImage').show();
                 $('#btnUploadImage').show();
             }
         }
