@@ -23,10 +23,17 @@ public class CustomerBookingsController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet("available-slots")]
-    public async Task<ActionResult<List<AvailableSlotDto>>> GetAvailableSlots([FromQuery] DateOnly date)
+    [HttpGet("pools/{poolId}/available-slots")]
+    public async Task<ActionResult<List<AvailableSlotDto>>> GetAvailableSlots([FromRoute] int poolId, [FromQuery] DateOnly date)
     {
-        var result = await _mediator.Send(new GetAvailableSlotsQuery(date));
+        var result = await _mediator.Send(new GetAvailableSlotsQuery(poolId, date));
+        return Ok(result);
+    }
+
+    [HttpGet("pools/{poolId}/tickets")]
+    public async Task<ActionResult<List<CustomerPoolTicketDto>>> GetPoolTickets([FromRoute] int poolId)
+    {
+        var result = await _mediator.Send(new SBS.Application.Features.Customer_Bookings.Queries.GetPoolTickets.GetPoolTicketsQuery(poolId));
         return Ok(result);
     }
 
