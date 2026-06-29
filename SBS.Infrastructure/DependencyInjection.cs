@@ -21,6 +21,13 @@ public static class DependencyInjection
     {
         services.AddMemoryCache();
 
+        // Register Redis Cache
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("RedisConnection") ?? "localhost:6379";
+            options.InstanceName = "SBS_";
+        });
+
         // 1. Database Configuration (CQRS Pattern)
         // Write Database Connection(sbs_writer login with full write access)
         services.AddDbContext<ApplicationDbContext>(options =>
