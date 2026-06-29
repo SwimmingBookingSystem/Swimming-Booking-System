@@ -44,8 +44,9 @@ public class ManagerPoolController : ControllerBase
     public async Task<IActionResult> GetPools(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? status = null)
-        => Ok(await _mediator.Send(new GetPoolsQuery(page, pageSize, status)));
+        [FromQuery] string? status = null,
+        [FromQuery] string? search = null)
+        => Ok(await _mediator.Send(new GetPoolsQuery(page, pageSize, status, search)));
 
     /// Lấy chi tiết một bể bơi theo ID
     [HttpGet("{poolId:int}")]

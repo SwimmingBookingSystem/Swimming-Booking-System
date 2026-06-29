@@ -12,7 +12,8 @@ namespace SBS.Application.Features.Manager.Pools.Queries.GetPools;
 public record GetPoolsQuery(
     int Page = 1,
     int PageSize = 10,
-    string? Status = null
+    string? Status = null,
+    string? Search = null
 ) : IRequest<PagedResponse<PoolDto>>;
 
 public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse<PoolDto>>
@@ -28,10 +29,13 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
         if (!string.IsNullOrWhiteSpace(request.Status))
             query = query.Where(p => p.Status == request.Status);
 
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            query = query.Where(p => p.PoolName.Contains(request.Search) || p.Address.Contains(request.Search));
+
         var total = await _uow.CountAsync(query, ct);
 
         var items = await _uow.ToListAsync(
-            query.OrderByDescending(p => p.CreatedAt)
+            query.OrderBy(p => p.CreatedAt)
                  .Skip((request.Page - 1) * request.PageSize)
                  .Take(request.PageSize)
                  .Select(p => new PoolDto

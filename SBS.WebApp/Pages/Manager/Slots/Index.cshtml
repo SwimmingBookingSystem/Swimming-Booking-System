@@ -56,11 +56,17 @@
             </tbody>
         </table>
     </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 slot</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         let allPools = [];
+        let currentPage = 1;
+        const pageSize = 10;
 
         $(document).ready(function() {
             // Set today for date picker
@@ -69,7 +75,7 @@
             initData();
 
             $('#filterPool, #filterDate, #filterStatus').on('change', function() {
-                loadSlots();
+                loadSlots(1);
                 
                 // Cập nhật link Tạo slot để truyền sẵn poolId
                 const poolId = $('#filterPool').val();
@@ -96,27 +102,47 @@
             } catch(e) {}
         }
 
-        async function loadSlots() {
+        async function loadSlots(page = 1) {
+            currentPage = page;
             const poolId = $('#filterPool').val();
             const date = $('#filterDate').val();
             const status = $('#filterStatus').val();
             
             if(!poolId) {
                 $('#slotTableBody').html('<tr><td colspan="7" class="text-center p-5 text-muted"><i class="fa-solid fa-swimming-pool fa-3x mb-3 text-light"></i><br>Vui lòng chọn bể bơi để xem Slot.</td></tr>');
+                $('#pagination').html('');
+                $('#pageInfo').text('Hiển thị 0-0 trong 0 slot');
                 return;
             }
 
             try {
-                let url = `/pools/${poolId}/slots?pageSize=100`;
+                let url = `/pools/${poolId}/slots?page=${page}&pageSize=${pageSize}`;
                 if(date) url += `&date=${date}`;
                 if(status) url += `&status=${status}`;
 
                 const res = await api.get(url);
-                const slots = res.items || [];
-                renderTable(slots);
+                renderTable(res.items || []);
+                renderPagination(res.totalCount, res.page, res.pageSize);
             } catch(e) {
                 $('#slotTableBody').html('<tr><td colspan="7" class="text-center p-5 text-danger">Lỗi tải dữ liệu.</td></tr>');
             }
+        }
+
+        function renderPagination(totalCount, page, pSize) {
+            const totalPages = Math.ceil(totalCount / pSize) || 1;
+            const startItem = (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+            
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} slot`);
+
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page - 1}); return false;">Trước</a></li>`;
+            for(let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadSlots(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page + 1}); return false;">Sau</a></li>`;
+            
+            $('#pagination').html(html);
         }
 
         function renderTable(slots) {
@@ -172,7 +198,7 @@
             try {
                 await api.patch(`/slots/${id}/capacity`, { capacity: cap });
                 toastr.success('Cập nhật sức chứa thành công');
-                loadSlots();
+                loadSlots(currentPage);
             } catch(e) {}
         }
 
@@ -180,7 +206,7 @@
             try {
                 await api.patch(`/slots/${id}/${action}`);
                 toastr.success('Cập nhật trạng thái thành công');
-                loadSlots();
+                loadSlots(currentPage);
             } catch(e) {}
         }
     </script>
