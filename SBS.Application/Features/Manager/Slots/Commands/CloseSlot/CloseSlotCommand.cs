@@ -28,6 +28,13 @@ public class CloseSlotCommandHandler : IRequestHandler<CloseSlotCommand, Success
         if (slot.Status == "Closed")
             throw new BadRequestException("Slot đã ở trạng thái Closed.");
 
+        var hasActiveBookings = await _uow.AnyAsync(
+            _uow.Repository<Booking>().Query()
+                .Where(b => b.PoolSlotId == request.SlotId && (b.Status == "Paid" || b.Status == "PendingPayment")), ct);
+                
+        if (hasActiveBookings)
+            throw new BadRequestException("Không thể đóng slot vì đã có người booking.");
+
         slot.Status = "Closed";
         _uow.Repository<PoolSlot>().Update(slot);
         await _uow.SaveChangesAsync(ct);

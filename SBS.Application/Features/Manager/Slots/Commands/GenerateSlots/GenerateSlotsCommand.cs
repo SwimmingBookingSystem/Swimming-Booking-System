@@ -59,7 +59,7 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
                         StartTime = currentTime,
                         EndTime = endTime,
                         SlotDate = date,
-                        Capacity = 50,
+                        Capacity = pool.StandardCapacity > 0 ? pool.StandardCapacity : 50,
                         Status = "Open",
                         CreatedAt = DateTime.UtcNow
                     });

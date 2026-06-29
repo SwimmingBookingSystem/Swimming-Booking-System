@@ -44,8 +44,9 @@ public class ManagerPoolController : ControllerBase
     public async Task<IActionResult> GetPools(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? status = null)
-        => Ok(await _mediator.Send(new GetPoolsQuery(page, pageSize, status)));
+        [FromQuery] string? status = null,
+        [FromQuery] string? search = null)
+        => Ok(await _mediator.Send(new GetPoolsQuery(page, pageSize, status, search)));
 
     /// Lấy chi tiết một bể bơi theo ID
     [HttpGet("{poolId:int}")]
@@ -71,7 +72,7 @@ public class ManagerPoolController : ControllerBase
                 IsCover = i.IsCover, 
                 SortOrder = i.SortOrder 
             }).ToList(),
-            openingTime, closingTime);
+            openingTime, closingTime, request.Area);
 
         var validation = await _createValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -99,7 +100,7 @@ public class ManagerPoolController : ControllerBase
                 IsCover = i.IsCover, 
                 SortOrder = i.SortOrder 
             }).ToList(),
-            openingTime, closingTime);
+            openingTime, closingTime, request.Area);
 
         var validation = await _updateValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -149,6 +150,7 @@ public class CreatePoolRequest
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;  // "HH:mm"
     public string ClosingTime { get; set; } = null!;  // "HH:mm"
+    public double Area { get; set; }
 }
 
 public class UpdatePoolRequest
@@ -159,6 +161,7 @@ public class UpdatePoolRequest
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;
     public string ClosingTime { get; set; } = null!;
+    public double Area { get; set; }
 }
 
 // Request model dùng cho PUT /{poolId}/images

@@ -18,7 +18,8 @@ public record CreatePoolCommand(
     string? Description,
     List<PoolImageItem>? Images,
     TimeSpan OpeningTime,
-    TimeSpan ClosingTime
+    TimeSpan ClosingTime,
+    double Area
 ) : IRequest<CreatePoolResponse>;
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -37,6 +38,8 @@ public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, Creat
             Description = request.Description,
             OpeningTime = request.OpeningTime,
             ClosingTime = request.ClosingTime,
+            Area        = request.Area,
+            StandardCapacity = (int)(request.Area / 2.5),
             Status      = "Active",
             CreatedAt   = DateTime.UtcNow
         };

@@ -1,3 +1,5 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -142,8 +144,10 @@
         // --- 3. CẤU HÌNH GỌI API (MANAGER API INTERCEPTOR) ---
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
         
+        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+
         const api = {
-            baseURL: 'https://localhost:7179/api/manager',
+            baseURL: window.API_BASE_URL + '/api/manager',
             request: function(method, url, data) {
                 return new Promise((resolve, reject) => {
                     $('#global-loader').css('display', 'flex');
