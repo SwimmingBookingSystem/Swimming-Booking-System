@@ -1,0 +1,384 @@
+/* ========================================
+   Manager Pricing - Pool Ticket Pricing
+   ======================================== */
+
+/* Page Header */
+.pricing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+.pricing-header h4 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin: 0;
+}
+
+/* Pool Selector Tabs */
+.pool-tab-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 6px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.pool-tab {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.pool-tab:hover {
+    background: #f0f9ff;
+    color: #0284c7;
+}
+.pool-tab.active {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+.pool-tab .pool-count {
+    background: rgba(255,255,255,0.25);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.pool-tab.active .pool-count {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Pool Info Banner */
+.pool-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 14px;
+    border: 1px solid #bae6fd;
+    margin-bottom: 24px;
+}
+.pool-info-banner .pool-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.pool-info-banner .pool-details h5 {
+    font-weight: 700;
+    color: #0c4a6e;
+    margin: 0 0 4px;
+}
+.pool-info-banner .pool-details p {
+    font-size: 0.85rem;
+    color: #0369a1;
+    margin: 0;
+}
+
+/* Pricing Table */
+.pricing-table-wrapper {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+}
+.pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.pricing-table thead {
+    background: #f8fafc;
+}
+.pricing-table thead th {
+    padding: 14px 18px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.pricing-table tbody td {
+    padding: 16px 18px;
+    font-size: 0.875rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.pricing-table tbody tr {
+    transition: all 0.2s;
+}
+.pricing-table tbody tr:hover {
+    background: #f0f9ff;
+}
+.pricing-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Inline Price Edit */
+.price-edit-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.price-edit-group .form-control {
+    width: 140px;
+    font-weight: 600;
+    text-align: right;
+    border-radius: 8px;
+}
+.price-edit-group .price-suffix {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Price Comparison */
+.price-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.price-current {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+.price-base {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+.price-diff {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.price-diff.up {
+    background: #fef3c7;
+    color: #b45309;
+}
+.price-diff.down {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.price-diff.same {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* Status Toggle */
+.status-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+/* Action Buttons (reuse from tickets but scoped) */
+.pricing-action-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.pricing-action-btn:hover {
+    background: #f0f9ff;
+    color: #0284c7;
+    border-color: #bae6fd;
+}
+.pricing-action-btn.save-btn {
+    background: #0284c7;
+    color: #fff;
+    border-color: #0284c7;
+}
+.pricing-action-btn.save-btn:hover {
+    background: #0369a1;
+}
+
+/* Empty State */
+.pricing-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #94a3b8;
+}
+.pricing-empty i {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+.pricing-empty p {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Status indicators (shared) */
+.pricing-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.pricing-status.active {
+    background: #dcfce7;
+    color: #15803d;
+}
+.pricing-status.closed {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.pricing-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Ticket Info Cell */
+.ticket-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.ticket-info-cell .ticket-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.ticket-info-cell .ticket-icon.single {
+    background: #dbeafe;
+    color: #2563eb;
+}
+.ticket-info-cell .ticket-icon.combo {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.ticket-info-cell .ticket-name {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.875rem;
+}
+.ticket-info-cell .ticket-code {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: monospace;
+}
+
+/* Price Edit Modal */
+.price-edit-modal .current-info {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+.price-edit-modal .current-info label {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+.price-edit-modal .current-info .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Summary footer */
+.pricing-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Category Badge (self-contained for pricing page) */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.category-badge.single {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.category-badge.combo {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.category-badge i {
+    font-size: 0.7rem;
+}
+
+/* Modal Enhancements */
+.price-edit-modal .modal-content {
+    border-radius: 16px;
+    border: none;
+}
+.price-edit-modal .modal-header {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-bottom: 1px solid #bae6fd;
+    padding: 20px 24px;
+}
+.price-edit-modal .modal-header .modal-title {
+    font-weight: 700;
+    color: #0c4a6e;
+}
+.price-edit-modal .modal-body {
+    padding: 24px;
+}
+.price-edit-modal .modal-footer {
+    border-top: 1px solid #f1f5f9;
+    padding: 16px 24px;
+    background: #f8fafc;
+}

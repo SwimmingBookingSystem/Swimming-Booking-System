@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using SBS.Application.Common.Interfaces;
 using SBS.Infrastructure.Models;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace SBS.Infrastructure.Services;

@@ -32,6 +32,33 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Swimming Booking System API", Version = "v1" });
 
+    // Resolve conflicts khi 2+ controllers cùng base route (ManagerPoolController & ManagerPoolTicketController)
+    options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
+    // Tránh lỗi trùng SchemaId khi có class cùng tên ở namespace khác và xử lý tên cho generic types (List, v.v.)
+    options.CustomSchemaIds(type => 
+    {
+        if (!type.IsGenericType)
+        {
+            return type.FullName?.Replace("+", ".") ?? type.Name;
+        }
+
+        var baseName = type.Name.Split('`')[0];
+        var genericArgs = string.Join("And", type.GetGenericArguments().Select(t => t.Name));
+        return $"{baseName}Of{genericArgs}";
+    });
+
+    // Fix Swagger 500: Lỗi serialize DateOnly/TimeOnly trong Swashbuckle của .NET 8
+    options.MapType<DateOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "date" });
+    options.MapType<DateOnly?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "date", Nullable = true });
+    options.MapType<TimeOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time" });
+    options.MapType<TimeOnly?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time", Nullable = true });
+    
+    // Fix Swagger 500: TimeSpan cũng có thể gây crash khi sinh Schema nếu không được map thành string
+    options.MapType<TimeSpan>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time-span" });
+    options.MapType<TimeSpan?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time-span", Nullable = true });
+
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using SBS.Application.Common.Dtos.Auth;
 using SBS.Application.Common.Dtos.Profile;
 using SBS.Application.Common.Interfaces;
@@ -23,19 +25,22 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IDistributedCache _cache;
 
     public AuthService(
         UserManager<AppUser> userManager,
         ApplicationDbContext context,
         ITokenService tokenService,
         IConfiguration configuration,
-        IEmailService emailService)
+        IEmailService emailService,
+        IDistributedCache cache)
     {
         _userManager = userManager;
         _context = context;
         _tokenService = tokenService;
         _configuration = configuration;
         _emailService = emailService;
+        _cache = cache;
     }
 
     public async Task<AuthResultDto> LoginAsync(string userName, string password, CancellationToken cancellationToken = default)
@@ -84,8 +89,13 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        var cacheKey = $"refreshToken:{refreshTokenValue}";
+        var cacheValue = JsonConvert.SerializeObject(refreshToken);
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpiration = expiryDate
+        };
+        await _cache.SetStringAsync(cacheKey, cacheValue, cacheOptions, cancellationToken);
 
         return AuthResultDto.Success(new AuthResponseDto
         {
@@ -118,12 +128,19 @@ public class AuthService : IAuthService
                 return AuthResultDto.Failure(new[] { $"Access Token không hợp lệ. Claims: {claimsList}" });
             }
 
-            var savedRefreshToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == refreshToken, cancellationToken);
+            var cacheKey = $"refreshToken:{refreshToken}";
+            var cachedData = await _cache.GetStringAsync(cacheKey, cancellationToken);
+
+            if (string.IsNullOrEmpty(cachedData))
+            {
+                return AuthResultDto.Failure(new[] { "Refresh Token không tồn tại hoặc đã hết hạn." });
+            }
+
+            var savedRefreshToken = JsonConvert.DeserializeObject<RefreshToken>(cachedData);
 
             if (savedRefreshToken == null)
             {
-                return AuthResultDto.Failure(new[] { "Refresh Token không tồn tại." });
+                return AuthResultDto.Failure(new[] { "Refresh Token không hợp lệ." });
             }
 
             if (savedRefreshToken.IsUsed)
@@ -170,9 +187,20 @@ public class AuthService : IAuthService
             }
             var newExpiryDate = DateTime.UtcNow.AddDays(expiryDays);
 
+            // Đánh dấu token cũ đã được sử dụng và lưu lại vào Redis với thời gian hết hạn còn lại
             savedRefreshToken.IsUsed = true;
-            _context.RefreshTokens.Update(savedRefreshToken);
+            var remainingTime = savedRefreshToken.ExpiryDate - DateTime.UtcNow;
+            if (remainingTime > TimeSpan.Zero)
+            {
+                var oldCacheValue = JsonConvert.SerializeObject(savedRefreshToken);
+                var oldCacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpiration = savedRefreshToken.ExpiryDate
+                };
+                await _cache.SetStringAsync(cacheKey, oldCacheValue, oldCacheOptions, cancellationToken);
+            }
 
+            // Lưu token mới vào Redis
             var newRefreshToken = new RefreshToken
             {
                 Token = newRefreshTokenValue,
@@ -184,8 +212,13 @@ public class AuthService : IAuthService
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.RefreshTokens.Add(newRefreshToken);
-            await _context.SaveChangesAsync(cancellationToken);
+            var newCacheKey = $"refreshToken:{newRefreshTokenValue}";
+            var newCacheValue = JsonConvert.SerializeObject(newRefreshToken);
+            var newCacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = newExpiryDate
+            };
+            await _cache.SetStringAsync(newCacheKey, newCacheValue, newCacheOptions, cancellationToken);
 
             return AuthResultDto.Success(new AuthResponseDto
             {

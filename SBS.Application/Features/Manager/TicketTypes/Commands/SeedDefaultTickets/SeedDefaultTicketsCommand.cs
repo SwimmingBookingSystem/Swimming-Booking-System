@@ -23,12 +23,12 @@ public class SeedDefaultTicketsCommandHandler
 
     public async Task<SuccessResponse> Handle(SeedDefaultTicketsCommand _, CancellationToken ct)
     {
-        // 3 loại vé đơn mặc định
+        // Seed 1 loại vé đơn (Cá nhân) và 2 loại vé Combo (Nhóm)
         var defaults = new[]
         {
-            new { Code = "ADULT",  Name = "Vé người lớn",             Base = 100_000m, Disc = 0m  },
-            new { Code = "CHILD",  Name = "Vé trẻ em dưới 12 tuổi",  Base = 100_000m, Disc = 30m },
-            new { Code = "SENIOR", Name = "Vé người cao tuổi",        Base = 100_000m, Disc = 20m },
+            new { Code = "STANDARD", Name = "Vé cá nhân",          Category = "Single", Base = 100_000m, Disc = 0m  },
+            new { Code = "COMBO_3",  Name = "Combo 3 Người (Giảm 10%)", Category = "Combo",  Base = 300_000m, Disc = 10m },
+            new { Code = "COMBO_5",  Name = "Combo 5 Người (Giảm 15%)", Category = "Combo",  Base = 500_000m, Disc = 15m },
         };
 
         // Lấy tất cả pool đang Active để gán vé
@@ -39,10 +39,10 @@ public class SeedDefaultTicketsCommandHandler
 
         foreach (var d in defaults)
         {
-            // Idempotent: nếu đã tồn tại thì bỏ qua
+            // Idempotent: nếu đã tồn tại (theo Code hoặc Name) thì bỏ qua
             bool exists = await _uow.AnyAsync(
                 _uow.Repository<TicketType>().Query()
-                    .Where(t => t.TicketCode == d.Code), ct);
+                    .Where(t => t.TicketCode == d.Code || t.TicketName == d.Name), ct);
             if (exists) continue;
 
             // Tạo loại vé
@@ -50,7 +50,7 @@ public class SeedDefaultTicketsCommandHandler
             {
                 TicketCode      = d.Code,
                 TicketName      = d.Name,
-                Category        = "Single",
+                Category        = d.Category,
                 BasePrice       = d.Base,
                 DiscountPercent = d.Disc,
                 Status          = "Active",

@@ -125,8 +125,13 @@ public class UpdateTicketTypeCommandValidator : AbstractValidator<UpdateTicketTy
             .MaximumLength(200).WithMessage("Tên vé không được vượt quá 200 ký tự.");
 
         RuleFor(x => x.DiscountPercent)
-            .InclusiveBetween(5, 50)
-            .WithMessage("Ưu đãi combo phải từ 5% đến 50%.")
+            .Must(d => d == 0 || (d >= 5 && d <= 100 && d % 5 == 0))
+            .WithMessage("Giảm giá vé đơn phải là 0% hoặc từ 5% trở lên (bội số của 5).")
+            .When(x => x.ComboDetails == null);
+
+        RuleFor(x => x.DiscountPercent)
+            .Must(d => d >= 5 && d <= 100 && d % 5 == 0)
+            .WithMessage("Ưu đãi combo phải từ 5% trở lên và là bội số của 5 (5%, 10%...).")
             .When(x => x.ComboDetails != null);
     }
 }

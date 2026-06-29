@@ -87,12 +87,16 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            Console.WriteLine("=== UNHANDLED EXCEPTION ===");
+            Console.WriteLine(ex.ToString());
+            Console.WriteLine("===============================");
+            
             context.Response.StatusCode  = 500;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ErrorResponse
             {
-                Message = "Lỗi máy chủ nội bộ.",
-                Errors  = new System.Collections.Generic.List<string> { ex.Message }
+                Message = "Lỗi máy chủ nội bộ (Xem chi tiết ở Errors).",
+                Errors  = new System.Collections.Generic.List<string> { ex.Message, ex.StackTrace ?? "" }
             });
         }
     }
