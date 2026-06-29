@@ -8,7 +8,8 @@ namespace SBS.Infrastructure.Migrations
     /// <inheritdoc />
     public partial class AddPoolStaffAssignments : Migration
     {
-        /// <inheritdoc />
+        /// <inheritdoc /> 
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
