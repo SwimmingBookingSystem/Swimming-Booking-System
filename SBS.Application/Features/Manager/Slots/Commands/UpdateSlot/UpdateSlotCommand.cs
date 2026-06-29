@@ -48,13 +48,16 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
             throw new BadRequestException(
                 "Không thể thay đổi giờ hoặc ngày của slot đã có booking.");
 
+        var pool = await _uow.FirstOrDefaultAsync(
+            _uow.Repository<Pool>().Query().Where(p => p.PoolId == slot.PoolId), ct)!;
+
+        if (request.Capacity < 1 || request.Capacity > pool!.StandardCapacity)
+            throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
+
         // 3. Validate nằm trong giờ mở cửa pool (chỉ khi thay đổi giờ)
         if (timeChanged)
         {
-            var pool = await _uow.FirstOrDefaultAsync(
-                _uow.Repository<Pool>().Query().Where(p => p.PoolId == slot.PoolId), ct)!;
-
-            if (request.StartTime < pool!.OpeningTime || request.EndTime > pool.ClosingTime)
+            if (request.StartTime < pool.OpeningTime || request.EndTime > pool.ClosingTime)
                 throw new BadRequestException(
                     $"Slot phải nằm trong giờ mở cửa của bể bơi ({pool.OpeningTime:hh\\:mm} – {pool.ClosingTime:hh\\:mm}).");
 
@@ -98,11 +101,7 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
 // ── Validator ─────────────────────────────────────────────────────────────────
 public class UpdateSlotCommandValidator : AbstractValidator<UpdateSlotCommand>
 {
-    public UpdateSlotCommandValidator()
-    {
-        RuleFor(x => x.Capacity)
-            .Equal(50).WithMessage("Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.");
-
+    public UpdateSlotCommandValidator() { 
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)
             .WithMessage("Giờ kết thúc phải lớn hơn giờ bắt đầu.");

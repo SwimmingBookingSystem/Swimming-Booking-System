@@ -40,6 +40,9 @@ public class CreateSlotCommandHandler : IRequestHandler<CreateSlotCommand, Creat
             throw new BadRequestException(
                 $"Slot phải nằm trong giờ mở cửa của bể bơi ({pool.OpeningTime:hh\\:mm} – {pool.ClosingTime:hh\\:mm}).");
 
+        if (request.Capacity < 1 || request.Capacity > pool.StandardCapacity)
+            throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
+
         // 3. Kiểm tra trùng slot cùng pool, cùng ngày (overlap)
         bool hasOverlap = await _uow.AnyAsync(
             _uow.Repository<PoolSlot>().Query()
@@ -87,16 +90,12 @@ public class CreateSlotCommandHandler : IRequestHandler<CreateSlotCommand, Creat
 // ── Validator ─────────────────────────────────────────────────────────────────
 public class CreateSlotCommandValidator : AbstractValidator<CreateSlotCommand>
 {
-    public CreateSlotCommandValidator()
-    {
-        RuleFor(x => x.Capacity)
-            .Equal(50).WithMessage("Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.");
-
+    public CreateSlotCommandValidator() { 
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)
             .WithMessage("Giờ kết thúc phải lớn hơn giờ bắt đầu.");
 
-        RuleFor(x => x.SlotDate)
+        RuleFor(x => x.SlotDate) 
             .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
             .WithMessage("Ngày slot không được là ngày trong quá khứ.");
     }

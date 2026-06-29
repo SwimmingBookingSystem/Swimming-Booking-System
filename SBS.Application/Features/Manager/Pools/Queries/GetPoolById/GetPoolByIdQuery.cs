@@ -46,6 +46,8 @@ public class GetPoolByIdQueryHandler : IRequestHandler<GetPoolByIdQuery, PoolDto
             OpeningTime = pool.OpeningTime.ToString(@"hh\:mm"),
             ClosingTime = pool.ClosingTime.ToString(@"hh\:mm"),
             Status      = pool.Status,
+            Area        = pool.Area,
+            StandardCapacity = pool.StandardCapacity,
             CreatedAt   = pool.CreatedAt,
             UpdatedAt   = pool.UpdatedAt
         };

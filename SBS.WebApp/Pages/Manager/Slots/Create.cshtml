@@ -45,8 +45,8 @@
             
             <div class="mb-4">
                 <label class="form-label fw-medium">Sức chứa <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="capacity" required value="50" disabled>
-                <div class="form-text small">Sức chứa chuẩn nghiệp vụ mặc định là 50 khách/ca.</div>
+                <input type="number" class="form-control" id="capacity" required value="50" min="1">
+                <div class="form-text small" id="capacityHint">Sức chứa ca bơi phụ thuộc vào tiêu chuẩn an toàn của bể.</div>
             </div>
             
             <div class="d-flex justify-content-end gap-2 border-top pt-4">
@@ -75,9 +75,16 @@
                     if(p) {
                         $('#poolHoursHint').removeClass('d-none');
                         $('#poolHoursText').text(p.openingTime.substring(0,5) + ' - ' + p.closingTime.substring(0,5));
+                        
+                        const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
+                        $('#capacity').attr('max', maxCap);
+                        $('#capacity').val(maxCap);
+                        $('#capacityHint').html(`Sức chứa tối đa của bể này là <strong>${maxCap} khách</strong>.`);
                     }
                 } else {
                     $('#poolHoursHint').addClass('d-none');
+                    $('#capacity').removeAttr('max');
+                    $('#capacityHint').text('Vui lòng chọn bể bơi để biết giới hạn sức chứa.');
                 }
             });
         });
@@ -121,6 +128,11 @@
             if(p) {
                 if(startTime < p.openingTime || endTime > p.closingTime) {
                     toastr.error(`Slot phải nằm trong giờ hoạt động của bể bơi (${p.openingTime.substring(0,5)} - ${p.closingTime.substring(0,5)})`);
+                    return;
+                }
+                const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
+                if(parseInt($('#capacity').val()) > maxCap || parseInt($('#capacity').val()) < 1) {
+                    toastr.error(`Sức chứa phải lớn hơn 0 và tối đa là ${maxCap} người.`);
                     return;
                 }
             }

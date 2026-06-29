@@ -29,6 +29,13 @@ public class ClosePoolCommandHandler : IRequestHandler<ClosePoolCommand, Success
         if (pool.Status == "Closed")
             throw new BadRequestException("Bể bơi đã ở trạng thái Closed, không thể đóng lại.");
 
+        var hasActiveBookings = await _uow.AnyAsync(
+            _uow.Repository<Booking>().Query()
+                .Where(b => b.PoolSlot.PoolId == request.PoolId && (b.Status == "Paid" || b.Status == "PendingPayment")), ct);
+                
+        if (hasActiveBookings)
+            throw new BadRequestException("Không thể đóng bể bơi vì đang có slot có người booking.");
+
         pool.Status    = "Closed";
         pool.UpdatedAt = DateTime.UtcNow;
 
