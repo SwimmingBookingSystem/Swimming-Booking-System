@@ -1,0 +1,134 @@
+@page
+@model SBS.WebApp.Pages.Manager.DashboardModel
+@{
+    Layout = "_ManagerLayout";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card p-4 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted fw-semibold mb-1">Tổng số Bể bơi</div>
+                    <div class="kpi-value" id="kpi-total-pools">-</div>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle">
+                    <i class="fa-solid fa-swimming-pool fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted fw-semibold mb-1">Bể bơi hoạt động</div>
+                    <div class="kpi-value" id="kpi-active-pools">-</div>
+                </div>
+                <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle">
+                    <i class="fa-solid fa-check-circle fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted fw-semibold mb-1">Loại vé Active</div>
+                    <div class="kpi-value" id="kpi-active-tickets">-</div>
+                </div>
+                <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle">
+                    <i class="fa-solid fa-ticket fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted fw-semibold mb-1">Tổng doanh thu</div>
+                    <div class="kpi-value">---</div>
+                </div>
+                <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle">
+                    <i class="fa-solid fa-wallet fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-12">
+        <div class="card border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-4">Danh sách Bể bơi mới cập nhật</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên bể bơi</th>
+                                <th>Địa chỉ</th>
+                                <th>Giờ hoạt động</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-pools-body">
+                            <tr><td colspan="4" class="text-center text-muted">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Tạm thời gọi API lấy pools để đếm. 
+                // Thực tế nên có API tổng hợp Dashboard.
+                const poolsRes = await api.get('/pools?pageSize=100');
+                const pools = poolsRes.items || [];
+                
+                $('#kpi-total-pools').text(poolsRes.totalCount || pools.length);
+                const activePools = pools.filter(p => p.status === 'Active').length;
+                $('#kpi-active-pools').text(activePools);
+
+                const ticketsRes = await api.get('/ticket-types?pageSize=100&status=Active');
+                $('#kpi-active-tickets').text(ticketsRes.totalCount || ticketsRes.items?.length || 0);
+
+                // Render recent pools
+                let html = '';
+                if(pools.length === 0) {
+                    html = '<tr><td colspan="4" class="text-center text-muted">Không có dữ liệu</td></tr>';
+                } else {
+                    pools.slice(0, 5).forEach(p => {
+                        let statusBadge = p.status === 'Active' 
+                            ? '<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Active</span>'
+                            : '<span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">Closed</span>';
+                            
+                        html += `
+                            <tr>
+                                <td class="fw-medium">${p.poolName}</td>
+                                <td class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> ${p.address}</td>
+                                <td>${p.openingTime} - ${p.closingTime}</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                $('#recent-pools-body').html(html);
+
+            } catch (error) {
+                $('#recent-pools-body').html('<tr><td colspan="4" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>');
+            }
+        }
+    </script>
+}

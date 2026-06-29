@@ -41,6 +41,6 @@ public class UpdateSlotCapacityCommandValidator : AbstractValidator<UpdateSlotCa
     public UpdateSlotCapacityCommandValidator()
     {
         RuleFor(x => x.Capacity)
-            .GreaterThan(0).WithMessage("Sức chứa phải lớn hơn 0.");
+            .Equal(50).WithMessage("Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.");
     }
 }
