@@ -123,5 +123,34 @@ const api = {
     post: function(url, data) { return this.request('POST', url, data); },
     put: function(url, data) { return this.request('PUT', url, data); },
     patch: function(url, data) { return this.request('PATCH', url, data); },
-    delete: function(url) { return this.request('DELETE', url); }
+    delete: function(url) { return this.request('DELETE', url); },
+    
+    uploadFile: function(url, file) {
+        return new Promise((resolve, reject) => {
+            $('#global-loader').css('display', 'flex');
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            $.ajax({
+                url: this.baseURL + url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhrFields: {
+                    withCredentials: true
+                },
+                success: function(response) {
+                    $('#global-loader').hide();
+                    resolve(response);
+                },
+                error: function(xhr) {
+                    $('#global-loader').hide();
+                    console.error("Upload Error: ", xhr);
+                    toastr.error('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
+                    reject(xhr);
+                }
+            });
+        });
+    }
 };

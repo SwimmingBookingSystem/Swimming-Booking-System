@@ -10,6 +10,8 @@ using SBS.Application.Features.Manager.Pools.Commands.UpdatePool;
 using SBS.Application.Features.Manager.Pools.Dtos;
 using SBS.Application.Features.Manager.Pools.Queries.GetPoolById;
 using SBS.Application.Features.Manager.Pools.Queries.GetPools;
+using SBS.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,17 +28,20 @@ public class ManagerPoolController : ControllerBase
     private readonly IValidator<CreatePoolCommand> _createValidator;
     private readonly IValidator<UpdatePoolCommand> _updateValidator;
     private readonly IValidator<UpdatePoolImagesCommand> _imagesValidator;
+    private readonly ICloudinaryService _cloudinaryService;
 
     public ManagerPoolController(
         ISender mediator,
         IValidator<CreatePoolCommand> createValidator,
         IValidator<UpdatePoolCommand> updateValidator,
-        IValidator<UpdatePoolImagesCommand> imagesValidator)
+        IValidator<UpdatePoolImagesCommand> imagesValidator,
+        ICloudinaryService cloudinaryService)
     {
         _mediator        = mediator;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _imagesValidator = imagesValidator;
+        _cloudinaryService = cloudinaryService;
     }
 
     /// Lấy danh sách bể bơi (có phân trang, lọc theo status)
@@ -52,6 +57,25 @@ public class ManagerPoolController : ControllerBase
     [HttpGet("{poolId:int}")]
     public async Task<IActionResult> GetPool(int poolId)
         => Ok(await _mediator.Send(new GetPoolByIdQuery(poolId)));
+
+    // Upload ảnh lên Cloudinary
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            using var stream = file.OpenReadStream();
+            var url = await _cloudinaryService.UploadImageAsync(stream, file.FileName);
+            return Ok(new { url });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
     // Tạo bể bơi mới
     [HttpPost]

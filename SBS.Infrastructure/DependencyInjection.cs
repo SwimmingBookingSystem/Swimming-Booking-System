@@ -109,6 +109,10 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
         services.AddScoped<IEmailService, Services.Email.EmailService>();
 
+        // Cloudinary Services
+        services.Configure<SBS.Infrastructure.Models.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+        services.AddScoped<ICloudinaryService, Services.CloudinaryService>();
+
         // 5. Customer Bookings Infrastructure Services Registration
         services.AddCustomerBookingsInfrastructure(configuration);
         // 5. Staff-specific Services (isolated — no conflict with auth team)
