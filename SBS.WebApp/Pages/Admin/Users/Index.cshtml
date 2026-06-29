@@ -1,69 +1,220 @@
 @page
 @model SBS.WebApp.Pages.Admin.Users.IndexModel
 @{
-    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Người dùng";
+    ViewData["Breadcrumb"] = "Quản trị / Người dùng";
 }
 
-<h1>Quản lý người dùng</h1>
-
-@if (!string.IsNullOrEmpty(Model.StatusMessage))
-{
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        @Model.StatusMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-3 align-items-center">
+        <div class="input-group shadow-sm" style="width: 300px;">
+            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên, email, tài khoản...">
+        </div>
+        <select id="roleFilter" class="form-select shadow-sm" style="width: 160px;">
+            <option value="">Tất cả vai trò</option>
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Staff">Staff</option>
+            <option value="Customer">Customer</option>
+        </select>
+        <select id="statusFilter" class="form-select shadow-sm" style="width: 160px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Active">Hoạt động</option>
+            <option value="Locked">Khóa</option>
+        </select>
     </div>
-}
+</div>
 
-<table class="table table-striped table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>Tên đăng nhập</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>Số điện thoại</th>
-            <th>Vai trò</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model.Users)
-        {
-            <tr>
-                <td>@user.UserName</td>
-                <td>@user.FullName</td>
-                <td>@user.Email</td>
-                <td>@user.PhoneNumber</td>
-                <td>@user.Role</td>
-                <td>
-                    @if (user.Status == "Active")
-                    {
-                        <span class="badge bg-success">Hoạt động</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Đã khóa</span>
-                    }
-                </td>
-                <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
-                <td>
-                    @if (user.Status == "Active")
-                    {
-                        <form method="post" asp-page-handler="Lock" onsubmit="return confirm('Xác nhận khóa tài khoản @user.UserName?');">
-                            <input type="hidden" name="userId" value="@user.UserId" />
-                            <button type="submit" class="btn btn-danger btn-sm">Khóa</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form method="post" asp-page-handler="Unlock" onsubmit="return confirm('Xác nhận mở khóa tài khoản @user.UserName?');">
-                            <input type="hidden" name="userId" value="@user.UserId" />
-                            <button type="submit" class="btn btn-success btn-sm">Mở khóa</button>
-                        </form>
-                    }
-                </td>
-            </tr>
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Người dùng</th>
+                    <th class="text-muted small fw-bold text-uppercase">Email</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Số điện thoại</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Vai trò</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
+                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="6" class="text-center p-4">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 người dùng</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận</h5>
+                <p class="text-muted mb-4" id="confirmMessage">Bạn có chắc chắn muốn thực hiện?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        let confirmActionCb = null;
+        let currentPage = 1;
+        const pageSize = 10;
+
+        $(document).ready(function() {
+            loadUsers(1);
+
+            let searchTimeout = null;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => loadUsers(1), 500);
+            });
+            $('#roleFilter').on('change', function() { loadUsers(1); });
+            $('#statusFilter').on('change', function() { loadUsers(1); });
+        });
+
+        async function loadUsers(page) {
+            currentPage = page;
+            const search = $('#searchInput').val();
+            const role = $('#roleFilter').val();
+            const status = $('#statusFilter').val();
+
+            try {
+                const res = await api.get('/users');
+                let users = res || [];
+
+                if (search) {
+                    const s = search.toLowerCase();
+                    users = users.filter(u =>
+                        u.fullName.toLowerCase().includes(s) ||
+                        u.userName.toLowerCase().includes(s) ||
+                        u.email.toLowerCase().includes(s)
+                    );
+                }
+                if (role) {
+                    users = users.filter(u => u.role === role);
+                }
+                if (status) {
+                    users = users.filter(u => u.status === status);
+                }
+
+                const totalCount = users.length;
+                const totalPages = Math.ceil(totalCount / pageSize) || 1;
+                const paged = users.slice((page - 1) * pageSize, page * pageSize);
+
+                renderTable(paged);
+                renderPagination(totalCount, page, pageSize, totalPages);
+            } catch (error) {
+                $('#userTableBody').html('<tr><td colspan="6" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
         }
-    </tbody>
-</table>
+
+        function renderPagination(totalCount, page, pSize, totalPages) {
+            const startItem = (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+            
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} người dùng`);
+
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadUsers(${page - 1}); return false;">Trước</a></li>`;
+            for(let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadUsers(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadUsers(${page + 1}); return false;">Sau</a></li>`;
+            
+            $('#pagination').html(html);
+        }
+
+        function renderTable(users) {
+            let html = '';
+            if (users.length === 0) {
+                html = '<tr><td colspan="6" class="text-center text-muted p-5"><i class="fa-solid fa-users-slash fa-3x mb-3"></i><br>Không tìm thấy người dùng nào.</td></tr>';
+            } else {
+                users.forEach(u => {
+                    const isLocked = u.status !== 'Active';
+                    const statusBadge = isLocked
+                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">LOCKED</span>'
+                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">ACTIVE</span>';
+
+                    let roleBadge = 'secondary';
+                    if (u.role === 'Admin') roleBadge = 'danger';
+                    else if (u.role === 'Manager') roleBadge = 'primary';
+                    else if (u.role === 'Staff') roleBadge = 'info';
+                    else if (u.role === 'Customer') roleBadge = 'secondary';
+
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName)}&background=DC2626&color=fff`;
+
+                    const lockBtn = isLocked
+                        ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
+                        : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`;
+
+                    html += `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="${avatarUrl}" alt="${u.fullName}" class="rounded-circle object-fit-cover shadow-sm" width="40" height="40">
+                                    <div>
+                                        <div class="fw-bold text-dark">${u.fullName}</div>
+                                        <small class="text-muted">@@${u.userName}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="text-muted small">${u.email}</span></td>
+                            <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
+                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${u.role}</span></td>
+                            <td class="text-center">${statusBadge}</td>
+                            <td class="text-end pe-4">${lockBtn}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#userTableBody').html(html);
+        }
+
+        function confirmLock(id, name) {
+            $('#confirmTitle').text('Khóa tài khoản?');
+            $('#confirmMessage').text(`Tài khoản "${name}" sẽ không thể đăng nhập.`);
+            confirmActionCb = async () => {
+                try {
+                    await api.post(`/users/${id}/lock`);
+                    toastr.success('Đã khóa tài khoản.');
+                    confirmModal.hide();
+                    loadUsers(currentPage);
+                } catch(e) {}
+            };
+            confirmModal.show();
+        }
+
+        function confirmUnlock(id, name) {
+            $('#confirmTitle').text('Mở khóa tài khoản?');
+            $('#confirmMessage').text(`Tài khoản "${name}" sẽ có thể đăng nhập lại.`);
+            confirmActionCb = async () => {
+                try {
+                    await api.post(`/users/${id}/unlock`);
+                    toastr.success('Đã mở khóa tài khoản.');
+                    confirmModal.hide();
+                    loadUsers(currentPage);
+                } catch(e) {}
+            };
+            confirmModal.show();
+        }
+
+        $('#btnConfirmAction').click(function() {
+            if (confirmActionCb) confirmActionCb();
+        });
+    </script>
+}
