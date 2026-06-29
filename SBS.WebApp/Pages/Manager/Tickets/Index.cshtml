@@ -1,0 +1,551 @@
+@page
+@model SBS.WebApp.Pages.Manager.Tickets.IndexModel
+@{
+    Layout = "_ManagerLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/manager-tickets.css" asp-append-version="true" />
+}
+
+<!-- Page Header -->
+<div class="tickets-header">
+    <h4><i class="fa-solid fa-ticket me-2 text-primary"></i>Quản lý Loại vé</h4>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" onclick="seedDefaults()">
+            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Tạo vé mặc định
+        </button>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="fa-solid fa-plus me-1"></i> Tạo loại vé mới
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="ticket-stats" id="statsRow">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-layer-group"></i></div>
+        <div><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tổng loại vé</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-ticket"></i></div>
+        <div><div class="stat-value" id="statSingle">0</div><div class="stat-label">Vé đơn (Single)</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fa-solid fa-cubes"></i></div>
+        <div><div class="stat-value" id="statCombo">0</div><div class="stat-label">Vé combo</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="fa-solid fa-circle-check"></i></div>
+        <div><div class="stat-value" id="statActive">0</div><div class="stat-label">Đang hoạt động</div></div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="tickets-toolbar">
+    <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm mã vé, tên vé...">
+    </div>
+    <select id="filterCategory" class="form-select">
+        <option value="">Tất cả loại</option>
+        <option value="Single">Vé đơn (Single)</option>
+        <option value="Combo">Vé Combo</option>
+    </select>
+    <select id="filterStatus" class="form-select">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Active">Đang hoạt động</option>
+        <option value="Closed">Đã đóng</option>
+    </select>
+</div>
+
+<!-- Table -->
+<div class="ticket-table-wrapper">
+    <table class="ticket-table">
+        <thead>
+            <tr>
+                <th>Mã vé</th>
+                <th>Tên vé</th>
+                <th>Loại</th>
+                <th>Giá gốc</th>
+                <th>Giảm giá</th>
+                <th>Giá thực</th>
+                <th>Trạng thái</th>
+                <th style="width: 120px; text-align: center;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="ticketTableBody">
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Đang tải dữ liệu...</p>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="pagination-bar" id="paginationBar" style="display: none;">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" id="btnPrev" onclick="changePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="btn btn-outline-secondary" id="btnNext" onclick="changePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Create/Edit Ticket -->
+<div class="modal fade" id="ticketModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ticketModalTitle">
+                    <i class="fa-solid fa-plus-circle me-2"></i>Tạo loại vé mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ticketForm">
+                    <input type="hidden" id="editTicketId">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mã vé <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ticketCode" maxlength="50" placeholder="VD: ADULT, CHILD, CMB01...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên vé <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ticketName" maxlength="200" placeholder="VD: Vé người lớn">
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3" id="categorySection">
+                        <label class="form-label fw-semibold">Loại vé <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="category" id="catSingle" value="Single" checked>
+                                <label class="form-check-label fw-medium" for="catSingle">
+                                    <i class="fa-solid fa-ticket text-primary me-1"></i> Vé đơn (Single)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="category" id="catCombo" value="Combo">
+                                <label class="form-check-label fw-medium" for="catCombo">
+                                    <i class="fa-solid fa-cubes text-purple me-1"></i> Vé combo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Single fields -->
+                    <div id="singleFields">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Giá gốc (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="basePrice" min="1000" step="1000" placeholder="50000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Giảm giá (%)</label>
+                                <input type="number" class="form-control" id="discountPercent" min="0" max="100" value="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Combo fields -->
+                    <div id="comboFields" style="display: none;">
+                        <div class="section-divider">
+                            <span><i class="fa-solid fa-cubes me-2"></i>Cấu hình Combo</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ưu đãi combo (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="comboDiscount" min="5" max="50" value="10" step="1" style="width: 150px;">
+                            <div class="form-text">Tối thiểu 5%, tối đa 50%</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Danh sách vé đơn trong combo</label>
+                            <div id="comboDetailsContainer"></div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addComboRow()">
+                                <i class="fa-solid fa-plus me-1"></i> Thêm vé đơn
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea class="form-control" id="ticketDescription" rows="3" maxlength="2000" placeholder="Mô tả ngắn gọn về loại vé..."></textarea>
+                    </div>
+
+                    <!-- Apply to Pools (only Create) -->
+                    <div id="applyPoolsSection">
+                        <div class="section-divider">
+                            <span><i class="fa-solid fa-swimming-pool me-2"></i>Áp dụng cho Bể bơi</span>
+                        </div>
+                        <div class="pool-checkbox-grid" id="poolCheckboxGrid">
+                            <!-- Pool checkboxes injected here -->
+                        </div>
+                        <div class="form-text mt-2">Chọn bể bơi để áp dụng loại vé này ngay sau khi tạo. Có thể bỏ qua và thêm sau trong trang Bảng giá.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary px-4" onclick="saveTicket()">
+                    <i class="fa-solid fa-save me-1"></i> Lưu loại vé
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận</h5>
+                <p class="text-muted mb-4" id="confirmMessage"></p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allTickets = [];
+        let singleTickets = []; // Cache for combo builder
+        let pools = [];
+        let currentPage = 1;
+        const pageSize = 10;
+        let totalCount = 0;
+        let ticketModal, confirmModal, confirmCb;
+
+        $(document).ready(function () {
+            ticketModal = new bootstrap.Modal(document.getElementById('ticketModal'));
+            confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+            loadTickets();
+            loadPools();
+
+            // Category toggle
+            $('input[name="category"]').on('change', function () {
+                toggleCategoryFields($(this).val());
+            });
+
+            // Filters
+            $('#searchInput').on('input', debounce(() => { currentPage = 1; loadTickets(); }, 400));
+            $('#filterCategory, #filterStatus').on('change', () => { currentPage = 1; loadTickets(); });
+        });
+
+        function debounce(fn, ms) {
+            let t;
+            return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+        }
+
+        // ── DATA LOADING ──────────────────────────────────────────────
+        async function loadTickets() {
+            try {
+                const cat = $('#filterCategory').val();
+                const status = $('#filterStatus').val();
+                let url = `/ticket-types?page=${currentPage}&pageSize=${pageSize}`;
+                if (cat) url += `&category=${cat}`;
+                if (status) url += `&status=${status}`;
+
+                const res = await api.get(url);
+                allTickets = res.items || [];
+                totalCount = res.totalCount || 0;
+                renderTable(allTickets);
+                updateStats();
+                updatePagination();
+            } catch (e) { }
+        }
+
+        async function loadPools() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                pools = res.items || [];
+            } catch (e) { }
+        }
+
+        async function loadSingleTickets() {
+            try {
+                const res = await api.get('/ticket-types?pageSize=100&category=Single&status=Active');
+                singleTickets = res.items || [];
+            } catch (e) { }
+        }
+
+        // ── STATS ────────────────────────────────────────────────────
+        async function updateStats() {
+            try {
+                const all = await api.get('/ticket-types?pageSize=1000');
+                const items = all.items || [];
+                $('#statTotal').text(items.length);
+                $('#statSingle').text(items.filter(t => t.category === 'Single').length);
+                $('#statCombo').text(items.filter(t => t.category === 'Combo').length);
+                $('#statActive').text(items.filter(t => t.status === 'Active').length);
+            } catch (e) { }
+        }
+
+        // ── TABLE RENDERING ──────────────────────────────────────────
+        function renderTable(list) {
+            if (list.length === 0) {
+                $('#ticketTableBody').html(`
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-ticket-simple"></i>
+                            <p>Chưa có loại vé nào.</p>
+                        </div>
+                    </td></tr>`);
+                return;
+            }
+
+            let html = '';
+            list.forEach(t => {
+                const actualPrice = t.basePrice * (1 - t.discountPercent / 100);
+                const isCombo = t.category === 'Combo';
+                const isActive = t.status === 'Active';
+
+                html += `
+                <tr>
+                    <td><span class="ticket-code"><i class="fa-solid fa-barcode"></i> ${t.ticketCode}</span></td>
+                    <td>
+                        <div class="fw-semibold">${t.ticketName}</div>
+                        ${isCombo && t.comboDetails ? `<div class="combo-items">${t.comboDetails.map(d => `<span class="combo-chip"><span class="qty">${d.quantity}×</span> ${d.singleTicketCode}</span>`).join('')}</div>` : ''}
+                    </td>
+                    <td>
+                        <span class="category-badge ${isCombo ? 'combo' : 'single'}">
+                            <i class="fa-solid ${isCombo ? 'fa-cubes' : 'fa-ticket'}"></i> ${t.category}
+                        </span>
+                    </td>
+                    <td class="price-display">${formatMoney(t.basePrice)}</td>
+                    <td>${t.discountPercent > 0 ? `<span class="discount-badge"><i class="fa-solid fa-arrow-down"></i> ${t.discountPercent}%</span>` : '<span class="text-muted">—</span>'}</td>
+                    <td class="price-display">${formatMoney(actualPrice)}</td>
+                    <td><span class="status-indicator ${isActive ? 'active' : 'closed'}">${isActive ? 'Hoạt động' : 'Đã đóng'}</span></td>
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="action-btn" title="Chỉnh sửa" onclick="openEditModal(${t.ticketTypeId})"><i class="fa-solid fa-pen"></i></button>
+                            ${isActive
+                        ? `<button class="action-btn danger" title="Đóng" onclick="toggleStatus(${t.ticketTypeId}, 'close')"><i class="fa-solid fa-ban"></i></button>`
+                        : `<button class="action-btn" title="Mở lại" onclick="toggleStatus(${t.ticketTypeId}, 'open')"><i class="fa-solid fa-rotate-left"></i></button>`
+                    }
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            $('#ticketTableBody').html(html);
+        }
+
+        // ── PAGINATION ───────────────────────────────────────────────
+        function updatePagination() {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            if (totalPages <= 1) { $('#paginationBar').hide(); return; }
+            $('#paginationBar').show();
+            $('#paginationInfo').text(`Trang ${currentPage} / ${totalPages} (${totalCount} loại vé)`);
+            $('#btnPrev').prop('disabled', currentPage <= 1);
+            $('#btnNext').prop('disabled', currentPage >= totalPages);
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            loadTickets();
+        }
+
+        // ── MODAL LOGIC ──────────────────────────────────────────────
+        async function openCreateModal() {
+            $('#ticketForm')[0].reset();
+            $('#editTicketId').val('');
+            $('#ticketModalTitle').html('<i class="fa-solid fa-plus-circle me-2"></i>Tạo loại vé mới');
+            $('#ticketCode').prop('disabled', false);
+            $('#categorySection').show();
+            $('#applyPoolsSection').show();
+            toggleCategoryFields('Single');
+            renderPoolCheckboxes();
+            await loadSingleTickets();
+            ticketModal.show();
+        }
+
+        async function openEditModal(id) {
+            try {
+                const t = await api.get(`/ticket-types/${id}`);
+                $('#ticketForm')[0].reset();
+                $('#editTicketId').val(t.ticketTypeId);
+                $('#ticketModalTitle').html('<i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh sửa loại vé');
+                $('#ticketCode').val(t.ticketCode).prop('disabled', true);
+                $('#ticketName').val(t.ticketName);
+                $('#ticketDescription').val(t.description);
+                $('#categorySection').hide();
+                $('#applyPoolsSection').hide();
+
+                if (t.category === 'Combo') {
+                    $('input[name="category"][value="Combo"]').prop('checked', true);
+                    toggleCategoryFields('Combo');
+                    $('#comboDiscount').val(t.discountPercent);
+                    await loadSingleTickets();
+                    $('#comboDetailsContainer').empty();
+                    if (t.comboDetails) {
+                        t.comboDetails.forEach(d => addComboRow(d.singleTicketTypeId, d.quantity));
+                    }
+                } else {
+                    $('input[name="category"][value="Single"]').prop('checked', true);
+                    toggleCategoryFields('Single');
+                    $('#basePrice').val(t.basePrice);
+                    $('#discountPercent').val(t.discountPercent);
+                }
+                ticketModal.show();
+            } catch (e) { }
+        }
+
+        function toggleCategoryFields(cat) {
+            if (cat === 'Combo') {
+                $('#singleFields').hide();
+                $('#comboFields').show();
+            } else {
+                $('#singleFields').show();
+                $('#comboFields').hide();
+            }
+        }
+
+        // ── COMBO BUILDER ────────────────────────────────────────────
+        function addComboRow(selectedId = '', qty = 1) {
+            const uid = Date.now() + '' + Math.random().toString().slice(2, 5);
+            const options = singleTickets.map(s =>
+                `<option value="${s.ticketTypeId}" ${s.ticketTypeId == selectedId ? 'selected' : ''}>${s.ticketCode} – ${s.ticketName} (${formatMoney(s.basePrice)})</option>`
+            ).join('');
+            const html = `
+                <div class="combo-row" id="combo_${uid}">
+                    <select class="form-select combo-single-select">${options}</select>
+                    <input type="number" class="form-control qty-input" min="1" max="10" value="${qty}" placeholder="SL">
+                    <button type="button" class="btn-remove-combo" onclick="$('#combo_${uid}').remove()"><i class="fa-solid fa-xmark"></i></button>
+                </div>`;
+            $('#comboDetailsContainer').append(html);
+        }
+
+        // ── POOL CHECKBOXES ──────────────────────────────────────────
+        function renderPoolCheckboxes() {
+            if (pools.length === 0) {
+                $('#poolCheckboxGrid').html('<p class="text-muted small">Chưa có bể bơi nào.</p>');
+                return;
+            }
+            let html = '';
+            pools.filter(p => p.status === 'Active').forEach(p => {
+                html += `
+                    <label class="pool-check-item">
+                        <input type="checkbox" class="form-check-input pool-chk" value="${p.poolId}">
+                        <span><i class="fa-solid fa-water text-primary me-1"></i> ${p.poolName}</span>
+                    </label>`;
+            });
+            $('#poolCheckboxGrid').html(html);
+        }
+
+        // ── SAVE ─────────────────────────────────────────────────────
+        async function saveTicket() {
+            const id = $('#editTicketId').val();
+            const cat = $('input[name="category"]:checked').val();
+
+            if (!$('#ticketName').val().trim()) {
+                toastr.warning('Vui lòng nhập tên vé.');
+                return;
+            }
+
+            if (id) {
+                // UPDATE
+                const payload = {
+                    ticketName: $('#ticketName').val().trim(),
+                    basePrice: cat === 'Single' ? parseFloat($('#basePrice').val()) || 0 : 0,
+                    discountPercent: cat === 'Single' ? parseFloat($('#discountPercent').val()) || 0 : parseFloat($('#comboDiscount').val()) || 10,
+                    description: $('#ticketDescription').val().trim() || null,
+                    comboDetails: null
+                };
+                if (cat === 'Combo') {
+                    payload.comboDetails = [];
+                    $('.combo-row').each(function () {
+                        payload.comboDetails.push({
+                            singleTicketTypeId: parseInt($(this).find('.combo-single-select').val()),
+                            quantity: parseInt($(this).find('.qty-input').val()) || 1
+                        });
+                    });
+                }
+                try {
+                    await api.put(`/ticket-types/${id}`, payload);
+                    toastr.success('Cập nhật loại vé thành công!');
+                    ticketModal.hide();
+                    loadTickets();
+                } catch (e) { }
+            } else {
+                // CREATE
+                if (!$('#ticketCode').val().trim()) {
+                    toastr.warning('Vui lòng nhập mã vé.');
+                    return;
+                }
+                const payload = {
+                    ticketCode: $('#ticketCode').val().trim(),
+                    ticketName: $('#ticketName').val().trim(),
+                    category: cat,
+                    basePrice: cat === 'Single' ? parseFloat($('#basePrice').val()) || 0 : 0,
+                    discountPercent: cat === 'Single' ? parseFloat($('#discountPercent').val()) || 0 : parseFloat($('#comboDiscount').val()) || 10,
+                    description: $('#ticketDescription').val().trim() || null,
+                    comboDetails: null,
+                    applyToPoolIds: []
+                };
+                if (cat === 'Combo') {
+                    payload.comboDetails = [];
+                    $('.combo-row').each(function () {
+                        payload.comboDetails.push({
+                            singleTicketTypeId: parseInt($(this).find('.combo-single-select').val()),
+                            quantity: parseInt($(this).find('.qty-input').val()) || 1
+                        });
+                    });
+                }
+                $('.pool-chk:checked').each(function () {
+                    payload.applyToPoolIds.push(parseInt($(this).val()));
+                });
+
+                try {
+                    await api.post('/ticket-types', payload);
+                    toastr.success('Tạo loại vé thành công!');
+                    ticketModal.hide();
+                    loadTickets();
+                } catch (e) { }
+            }
+        }
+
+        // ── STATUS TOGGLE ────────────────────────────────────────────
+        function toggleStatus(id, action) {
+            const ticket = allTickets.find(t => t.ticketTypeId === id);
+            const label = action === 'close' ? 'đóng' : 'mở lại';
+            $('#confirmTitle').text(`Xác nhận ${label} vé?`);
+            $('#confirmMessage').text(`Bạn có chắc muốn ${label} loại vé "${ticket?.ticketName || id}"?`);
+            confirmCb = async () => {
+                try {
+                    await api.patch(`/ticket-types/${id}/${action}`);
+                    toastr.success(`Đã ${label} loại vé thành công.`);
+                    confirmModal.hide();
+                    loadTickets();
+                } catch (e) { }
+            };
+            confirmModal.show();
+        }
+
+        $('#btnConfirmAction').click(function () { if (confirmCb) confirmCb(); });
+
+        // ── SEED DEFAULTS ────────────────────────────────────────────
+        async function seedDefaults() {
+            try {
+                await api.post('/ticket-types/defaults', {});
+                toastr.success('Đã tạo 3 loại vé đơn mặc định!');
+                loadTickets();
+            } catch (e) { }
+        }
+
+        // ── UTILS ────────────────────────────────────────────────────
+        function formatMoney(v) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(v)) + ' ₫';
+        }
+    </script>
+}
