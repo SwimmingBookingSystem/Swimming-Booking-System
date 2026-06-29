@@ -101,7 +101,7 @@ public class UpdateSlotCommandValidator : AbstractValidator<UpdateSlotCommand>
     public UpdateSlotCommandValidator()
     {
         RuleFor(x => x.Capacity)
-            .GreaterThan(0).WithMessage("Sức chứa phải lớn hơn 0.");
+            .Equal(50).WithMessage("Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.");
 
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)

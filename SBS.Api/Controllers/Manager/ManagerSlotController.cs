@@ -118,6 +118,27 @@ public class ManagerSlotController : ControllerBase
 
         return Ok(await _mediator.Send(command));
     }
+    
+    /// Tự động sinh slot hàng loạt
+    [HttpPost("pools/{poolId:int}/slots/generate")]
+    public async Task<IActionResult> GenerateSlots(int poolId, [FromBody] GenerateSlotsRequest request)
+    {
+        if (!DateOnly.TryParse(request.StartDate, out var start))
+            return BadRequest(new { message = "StartDate không hợp lệ. Định dạng: yyyy-MM-dd" });
+
+        if (!DateOnly.TryParse(request.EndDate, out var end))
+            return BadRequest(new { message = "EndDate không hợp lệ. Định dạng: yyyy-MM-dd" });
+
+        var command = new SBS.Application.Features.Manager.Slots.Commands.GenerateSlots.GenerateSlotsCommand(
+            poolId, start, end, request.DurationMinutes, request.BreakMinutes);
+
+        var validator = new SBS.Application.Features.Manager.Slots.Commands.GenerateSlots.GenerateSlotsCommandValidator();
+        var validation = await validator.ValidateAsync(command);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
+        return Ok(await _mediator.Send(command));
+    }
 }
 
 // Request Models
@@ -142,4 +163,12 @@ public class UpdatePoolSlotRequest
 public class UpdateSlotCapacityRequest
 {
     public int Capacity { get; set; }
+}
+
+public class GenerateSlotsRequest
+{
+    public string StartDate { get; set; } = null!;
+    public string EndDate { get; set; } = null!;
+    public int DurationMinutes { get; set; }
+    public int BreakMinutes { get; set; }
 }

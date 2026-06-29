@@ -1,0 +1,526 @@
+@page
+@model SBS.WebApp.Pages.Auth.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Swimming Booking System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Nhập font chữ Outfit hiện đại và sang trọng từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            --card-bg: rgba(255, 255, 255, 0.88);
+            --text-color: #0f172a;
+            --shadow-premium: 0 20px 40px -15px rgba(2, 132, 199, 0.25), 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-image: linear-gradient(rgba(14, 165, 233, 0.1), rgba(15, 23, 42, 0.4)), url('/images/swimming_pool_bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Tăng kích thước khung đăng nhập rộng và thoáng hơn */
+        .login-container {
+            width: 100%;
+            max-width: 530px; /* Tăng độ rộng của Form lên 530px */
+            padding: 25px;
+            z-index: 10;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 28px; /* Bo góc tròn lớn hơn */
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(16px);
+            padding: 56px 48px; /* Tăng padding để trông rộng rãi và thoáng */
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px -20px rgba(2, 132, 199, 0.35), 0 2px 5px rgba(2, 132, 199, 0.05);
+        }
+
+        /* Icon trang trí chủ đề nước/bể bơi phía trên */
+        .brand-icon-wrapper {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px auto;
+            box-shadow: 0 8px 16px rgba(2, 132, 199, 0.2);
+            color: white;
+            font-size: 2.4rem;
+            animation: pulse-wave 3s infinite ease-in-out;
+        }
+
+        @@keyframes pulse-wave {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .brand-title {
+            color: #0369a1;
+            font-weight: 800;
+            font-size: 2.2rem; /* Tăng kích thước chữ tiêu đề */
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.98rem; /* Tăng kích thước chữ phụ */
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-group-custom {
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.94rem; /* Tăng kích thước nhãn */
+            color: #334155;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Input có icon bên trái để tăng tính chuyên nghiệp */
+        .input-group-custom {
+            position: relative;
+        }
+
+        .input-icon-left {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.2rem;
+            z-index: 5;
+        }
+
+        .form-control {
+            border-radius: 16px;
+            padding: 15px 15px 15px 48px; /* Tăng chiều cao và khoảng cách chữ bên trong */
+            border: 1.5px solid #e2e8f0;
+            font-size: 1.05rem; /* Tăng cỡ chữ trong ô nhập */
+            font-family: 'Outfit', sans-serif;
+            background-color: rgba(248, 250, 252, 0.8);
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.35rem;
+            z-index: 5;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .links-container {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 0.88rem;
+            margin-top: -12px;
+            margin-bottom: 24px;
+        }
+
+        .links-container a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .links-container a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        /* Nút submit thiết kế to, bo góc và hiệu ứng chuyển động */
+        .btn-login {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border: none;
+            border-radius: 16px; /* Bo góc rộng hơn khớp với form */
+            padding: 16px; /* Tăng padding nút */
+            font-weight: 700;
+            font-size: 1.12rem; /* Tăng cỡ chữ nút */
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            transform: scale(1.015);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-login:active {
+            transform: scale(0.99);
+        }
+
+        .btn-login:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .register-prompt {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            color: #64748b;
+        }
+
+        .register-prompt a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .register-prompt a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
+        }
+
+        .back-home {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+
+        .back-home a {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-home a:hover {
+            color: var(--text-color);
+        }
+
+        /* Waves Animation Styling - Thiết kế sóng biển mượt mà, sâu sắc hơn */
+        .waves-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 200px;
+            min-height: 150px;
+            max-height: 200px;
+            left: 0;
+            z-index: 1;
+        }
+
+        .waves {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin-bottom: -7px;
+            min-height: 150px;
+            max-height: 200px;
+        }
+
+        .parallax > use {
+            animation: move-forever 20s cubic-bezier(.55,.5,.45,.5) infinite;
+        }
+        .parallax > use:nth-child(1) {
+            animation-delay: -2s;
+            animation-duration: 9s;
+        }
+        .parallax > use:nth-child(2) {
+            animation-delay: -3s;
+            animation-duration: 12s;
+        }
+        .parallax > use:nth-child(3) {
+            animation-delay: -4s;
+            animation-duration: 15s;
+        }
+        .parallax > use:nth-child(4) {
+            animation-delay: -5s;
+            animation-duration: 25s;
+        }
+
+        @@keyframes move-forever {
+            0% {
+                transform: translate3d(-90px,0,0);
+            }
+            100% {
+                transform: translate3d(85px,0,0);
+            }
+        }
+
+        /* Alert báo lỗi thiết kế bo tròn khớp tông màu */
+        .alert {
+            font-size: 0.9rem;
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 25px;
+            border: none;
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Icon Sóng nước trang trí hiện đại -->
+            <div class="brand-icon-wrapper">
+                <i class="bi bi-water"></i>
+            </div>
+            
+            <h2 class="brand-title">Bể bơi SBS</h2>
+            <div class="brand-subtitle">Đăng nhập tài khoản của bạn để đặt lịch bơi</div>
+            
+            <!-- Alert báo lỗi -->
+            <div id="error-alert" class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span id="error-alert-text">Tên đăng nhập hoặc mật khẩu không chính xác.</span>
+            </div>
+
+            <form id="login-form">
+                <!-- Tên đăng nhập -->
+                <div class="form-group-custom">
+                    <label for="username" class="form-label">Tên đăng nhập</label>
+                    <div class="input-group-custom">
+                        <i class="bi bi-person-fill input-icon-left"></i>
+                        <input type="text" class="form-control" id="username" placeholder="Nhập tên đăng nhập" required autocomplete="username" />
+                    </div>
+                </div>
+                
+                <!-- Mật khẩu -->
+                <div class="form-group-custom">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <div class="input-group-custom password-container">
+                        <i class="bi bi-lock-fill input-icon-left"></i>
+                        <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" required autocomplete="current-password" />
+                        <button type="button" class="password-toggle" id="toggle-password-btn" aria-label="Hiển thị mật khẩu">
+                            <i class="bi bi-eye" id="toggle-password-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Link Quên mật khẩu -->
+                <div class="links-container">
+                    <a href="#">Quên mật khẩu?</a>
+                </div>
+
+                <!-- Nút Đăng nhập to, đẹp mắt -->
+                <button type="submit" class="btn-login" id="login-submit-btn">
+                    <span id="login-btn-text">Đăng nhập</span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="login-btn-spinner" role="status" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <div class="register-prompt">
+                Bạn chưa có tài khoản? <a href="#">Đăng ký ngay</a>
+            </div>
+
+            <div class="back-home">
+                <a href="/"><i class="bi bi-arrow-left"></i> Quay lại trang chủ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Sóng nước chuyển nhấp nhô sống động hơn -->
+    <div class="waves-container">
+        <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+             viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z" />
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(2, 132, 199, 0.2)" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(2, 132, 199, 0.12)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(224, 247, 255, 0.45)" />
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(224, 247, 255, 0.85)" />
+            </g>
+        </svg>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Địa chỉ API trỏ thẳng về API localhost của nhóm đã cấu hình CORS
+            const apiBaseUrl = 'https://localhost:7179';
+
+            // Ẩn/Hiện mật khẩu
+            $('#toggle-password-btn').click(function() {
+                const passwordInput = $('#password');
+                const toggleIcon = $('#toggle-password-icon');
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    toggleIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    toggleIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            // Gửi Form Đăng nhập qua AJAX
+            $('#login-form').submit(function(e) {
+                e.preventDefault();
+
+                const username = $('#username').val().trim();
+                const password = $('#password').val();
+
+                if (!username || !password) {
+                    showError('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.');
+                    return;
+                }
+
+                // Hiệu ứng Loading
+                setLoadingState(true);
+                hideError();
+
+                $.ajax({
+                    url: `${apiBaseUrl}/api/Auth/login`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        userName: username,
+                        password: password
+                    }),
+                    success: function(response) {
+                        setLoadingState(false);
+                        
+                        // API trả về trực tiếp DTO AuthResponseDto khi đăng nhập thành công
+                        if (response && response.accessToken) {
+                            // Lưu vào localStorage
+                            localStorage.setItem('accessToken', response.accessToken);
+                            localStorage.setItem('refreshToken', response.refreshToken);
+                            localStorage.setItem('role', response.role);
+                            localStorage.setItem('fullName', response.fullName);
+                            localStorage.setItem('userName', response.userName);
+
+                            // Điều hướng tùy theo vai trò (Role)
+                            const role = response.role.toLowerCase();
+                            if (role === 'admin') {
+                                window.location.href = '/AdminTest/Dashboard';
+                            } else if (role === 'manager') {
+                                window.location.href = '/ManagerTest/Dashboard';
+                            } else if (role === 'staff') {
+                                window.location.href = '/StaffTest/Dashboard';
+                            } else if (role === 'customer') {
+                                window.location.href = '/CustomerTest/Dashboard';
+                            } else {
+                                showError('Vai trò của bạn không được cấp quyền truy cập.');
+                            }
+                        } else {
+                            showError('Đăng nhập không thành công.');
+                        }
+                    },
+                    error: function(xhr) {
+                        setLoadingState(false);
+                        let errorMsg = 'Kết nối tới máy chủ thất bại.';
+                        
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            } else if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = xhr.responseJSON.errors[0];
+                            }
+                        }
+                        showError(errorMsg);
+                    }
+                });
+            });
+
+            function showError(message) {
+                $('#error-alert-text').text(message);
+                $('#error-alert').css('display', 'flex').fadeIn();
+            }
+
+            function hideError() {
+                $('#error-alert').hide();
+            }
+
+            function setLoadingState(isLoading) {
+                const btn = $('#login-submit-btn');
+                const text = $('#login-btn-text');
+                const spinner = $('#login-btn-spinner');
+
+                if (isLoading) {
+                    btn.prop('disabled', true);
+                    text.text('Đang xử lý...');
+                    spinner.removeClass('d-none');
+                } else {
+                    btn.prop('disabled', false);
+                    text.text('Đăng nhập');
+                    spinner.addClass('d-none');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
