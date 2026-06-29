@@ -29,6 +29,7 @@ public class ReadDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<ContactRequest> ContactRequests { get; set; } = null!;
     public DbSet<Feedback> Feedbacks { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<PoolStaffAssignment> PoolStaffAssignments { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SBS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SBS.Infrastructure.Data;
 namespace SBS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629063708_AddPoolStaffAssignments")]
+    partial class AddPoolStaffAssignments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -432,9 +435,6 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<double>("Area")
-                        .HasColumnType("float");
-
                     b.Property<TimeSpan>("ClosingTime")
                         .HasColumnType("time");
 
@@ -454,9 +454,6 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("StandardCapacity")
-                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()

@@ -21,17 +21,28 @@ public class StaffGetTodayAttendanceQueryHandler : IRequestHandler<StaffGetToday
 {
     private readonly IReadOnlyUnitOfWork _readOnlyUnitOfWork;
     private readonly IStaffUserService _staffUserService;
+    private readonly ICurrentUserService _currentUserService;
 
     public StaffGetTodayAttendanceQueryHandler(
         IReadOnlyUnitOfWork readOnlyUnitOfWork,
-        IStaffUserService staffUserService)
+        IStaffUserService staffUserService,
+        ICurrentUserService currentUserService)
     {
         _readOnlyUnitOfWork = readOnlyUnitOfWork;
         _staffUserService = staffUserService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<TodayAttendanceDto> Handle(StaffGetTodayAttendanceQuery request, CancellationToken cancellationToken)
     {
+        // Guard: lấy danh sách Pool được phân công cho Staff đang đăng nhập
+        var staffId = Guid.TryParse(_currentUserService.UserId, out var sid) ? sid : Guid.Empty;
+        var assignedPoolIds = await _staffUserService.GetAssignedPoolIdsAsync(staffId, cancellationToken);
+
+        // Nếu Staff chưa được phân công hồ nào → trả về rỗng
+        if (assignedPoolIds.Count == 0)
+            return new TodayAttendanceDto { TotalBookings = 0, CheckedIn = 0, NotCheckedIn = 0, Guests = new() };
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)); // UTC+7
 
         var query = _readOnlyUnitOfWork.Repository<Booking>()
@@ -41,6 +52,7 @@ public class StaffGetTodayAttendanceQueryHandler : IRequestHandler<StaffGetToday
             .Include(b => b.CheckIn)
             .Where(b => b.BookingDate == today)
             .Where(b => b.Status == "Confirmed" || b.Status == "CheckIn" || b.Status == "NoShow")
+            .Where(b => assignedPoolIds.Contains(b.PoolSlot.PoolId)) // Guard: chỉ hiện hồ được phân công
             .AsQueryable();
 
         if (request.PoolId.HasValue)

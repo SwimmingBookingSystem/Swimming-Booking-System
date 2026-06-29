@@ -51,6 +51,11 @@ public class StaffManualCheckInCommandHandler : IRequestHandler<StaffManualCheck
         if (booking is null)
             return new StaffCheckInResultDto { Succeeded = false, Message = "Không tìm thấy booking." };
 
+        // Guard: kiểm tra Staff có được phân công vào hồ bơi của booking này không
+        var isAssigned = await _staffUserService.IsStaffAssignedToPoolAsync(staffId, booking.PoolSlot.PoolId, cancellationToken);
+        if (!isAssigned)
+            return new StaffCheckInResultDto { Succeeded = false, Message = "Bạn không có quyền check-in tại hồ bơi này." };
+
         // 3. Validate trạng thái
         if (booking.Status != "Confirmed")
             return new StaffCheckInResultDto

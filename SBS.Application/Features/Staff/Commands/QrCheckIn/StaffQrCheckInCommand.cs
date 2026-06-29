@@ -58,6 +58,11 @@ public class StaffQrCheckInCommandHandler : IRequestHandler<StaffQrCheckInComman
         if (booking is null)
             return new StaffCheckInResultDto { Succeeded = false, Message = "Không tìm thấy booking với mã QR này." };
 
+        // Guard: kiểm tra Staff có được phân công vào hồ bơi của booking này không
+        var isAssigned = await _staffUserService.IsStaffAssignedToPoolAsync(staffId, booking.PoolSlot.PoolId, cancellationToken);
+        if (!isAssigned)
+            return new StaffCheckInResultDto { Succeeded = false, Message = "Bạn không có quyền check-in tại hồ bơi này." };
+
         // 3. Validate trạng thái
         if (booking.Status != "Confirmed")
             return new StaffCheckInResultDto
