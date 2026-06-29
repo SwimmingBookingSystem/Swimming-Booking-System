@@ -34,22 +34,36 @@ public class StaffGetAllBookingsQueryHandler : IRequestHandler<StaffGetAllBookin
 {
     private readonly IReadOnlyUnitOfWork _readOnlyUnitOfWork;
     private readonly IStaffUserService _staffUserService;
+    private readonly ICurrentUserService _currentUserService;
 
     public StaffGetAllBookingsQueryHandler(
         IReadOnlyUnitOfWork readOnlyUnitOfWork,
-        IStaffUserService staffUserService)
+        IStaffUserService staffUserService,
+        ICurrentUserService currentUserService)
     {
         _readOnlyUnitOfWork = readOnlyUnitOfWork;
         _staffUserService = staffUserService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PagedResultDto<BookingListItemDto>> Handle(StaffGetAllBookingsQuery request, CancellationToken cancellationToken)
     {
+        // Guard: lấy danh sách Pool được phân công cho Staff đang đăng nhập
+        var staffId = Guid.TryParse(_currentUserService.UserId, out var sid) ? sid : Guid.Empty;
+        var assignedPoolIds = await _staffUserService.GetAssignedPoolIdsAsync(staffId, cancellationToken);
+
         var query = _readOnlyUnitOfWork.Repository<Booking>()
             .Query()
             .Include(b => b.PoolSlot)
                 .ThenInclude(s => s.Pool)
             .AsQueryable();
+
+        // Giới hạn theo hồ bơi được phân công
+        if (assignedPoolIds.Count > 0)
+            query = query.Where(b => assignedPoolIds.Contains(b.PoolSlot.PoolId));
+        else
+            // Staff chưa được phân công hồ nào → trả về rỗng
+            return new PagedResultDto<BookingListItemDto> { Items = new(), TotalCount = 0, Page = request.Page, PageSize = request.PageSize };
 
         // Apply filters
         if (!string.IsNullOrEmpty(request.Status))

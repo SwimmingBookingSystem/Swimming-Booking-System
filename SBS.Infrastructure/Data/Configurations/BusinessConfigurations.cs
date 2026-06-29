@@ -348,3 +348,31 @@ public class PoolImageConfiguration : IEntityTypeConfiguration<PoolImage>
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+// ===== PoolStaffAssignment =====
+public class PoolStaffAssignmentConfiguration : IEntityTypeConfiguration<PoolStaffAssignment>
+{
+    public void Configure(EntityTypeBuilder<PoolStaffAssignment> builder)
+    {
+        builder.ToTable("PoolStaffAssignments");
+        builder.HasKey(e => e.AssignmentId);
+        builder.Property(e => e.AssignmentId).ValueGeneratedOnAdd();
+        builder.Property(e => e.StaffId).IsRequired();
+        builder.Property(e => e.AssignedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Unique: mỗi cặp (PoolId, StaffId) chỉ tồn tại 1 lần
+        builder.HasIndex(e => new { e.PoolId, e.StaffId }).IsUnique();
+
+        // FK tới Pools
+        builder.HasOne(e => e.Pool)
+            .WithMany()
+            .HasForeignKey(e => e.PoolId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // FK tới AspNetUsers (Staff) — configured from Infrastructure side, no navigation on AppUser
+        builder.HasOne<AppUser>()
+            .WithMany()
+            .HasForeignKey(e => e.StaffId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
