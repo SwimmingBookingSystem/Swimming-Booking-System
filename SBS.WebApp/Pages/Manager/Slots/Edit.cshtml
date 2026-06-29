@@ -1,0 +1,168 @@
+@page "{id:int}"
+@model SBS.WebApp.Pages.Manager.Slots.EditModel
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Chỉnh sửa Ca bơi";
+    ViewData["Breadcrumb"] = "Quản lý / Khung giờ / Chỉnh sửa";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-bottom p-4">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-pen text-primary me-2"></i>Chỉnh sửa Ca bơi (Slot)</h5>
+    </div>
+    <div class="card-body p-4">
+        <div id="bookingWarning" class="alert alert-warning d-none mb-4">
+            <i class="fa-solid fa-lock me-1"></i> Slot này đã có lượt đặt hoặc đang bị khóa. Không thể thay đổi thông tin.
+        </div>
+        
+        <form id="slotForm">
+            <input type="hidden" id="slotId" value="@Model.Id">
+            <div class="mb-3">
+                <label class="form-label fw-medium">Bể bơi <span class="text-danger">*</span></label>
+                <select id="poolSelect" class="form-select" required>
+                    <option value="">-- Đang tải --</option>
+                </select>
+                <div id="poolHoursHint" class="form-text text-primary small d-none">
+                    <i class="fa-solid fa-info-circle"></i> Giờ hoạt động: <span id="poolHoursText"></span>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-medium">Tên Slot (Tùy chọn)</label>
+                <input type="text" class="form-control" id="slotName" maxlength="100" placeholder="VD: Ca Sáng 1">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-medium">Ngày <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="slotDate" required>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ Bắt đầu <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="startTime" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ Kết thúc <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="endTime" required>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-medium">Sức chứa <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="capacity" required value="50" min="1">
+                <div class="form-text small" id="capacityHint">Sức chứa ca bơi phụ thuộc vào tiêu chuẩn an toàn của bể.</div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                <a href="/Manager/Slots" class="btn btn-light border px-4">Hủy</a>
+                <button type="button" class="btn btn-primary px-4" id="btnSave" onclick="saveSlot()"><i class="fa-solid fa-save me-2"></i>Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allPools = [];
+        const slotId = $('#slotId').val();
+
+        $(document).ready(function() {
+            initData();
+        });
+
+        async function initData() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                allPools = res.items || [];
+                loadSlotData();
+            } catch(e) {}
+        }
+
+        async function loadSlotData() {
+            try {
+                const s = await api.get(`/slots/${slotId}`);
+                
+                $('#poolSelect').html(`<option value="${s.poolId}">${allPools.find(p => p.poolId === s.poolId)?.poolName}</option>`);
+                $('#poolSelect').val(s.poolId);
+                
+                const p = allPools.find(x => x.poolId === s.poolId);
+                if(p) {
+                    $('#poolHoursHint').removeClass('d-none');
+                    $('#poolHoursText').text(p.openingTime.substring(0,5) + ' - ' + p.closingTime.substring(0,5));
+                    
+                    const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
+                    $('#capacity').attr('max', maxCap);
+                    $('#capacityHint').html(`Sức chứa tối đa của bể này là <strong>${maxCap} khách</strong>.`);
+                }
+
+                $('#slotName').val(s.slotName);
+                $('#slotDate').val(s.slotDate);
+                $('#startTime').val(s.startTime.substring(0,5));
+                $('#endTime').val(s.endTime.substring(0,5));
+                $('#capacity').val(s.capacity);
+
+                // Disable form on edit (business logic simulation)
+                toggleFieldsLock(true);
+            } catch(e) {
+                toastr.error('Không tải được thông tin slot.');
+                setTimeout(() => { window.location.href = '/Manager/Slots'; }, 1500);
+            }
+        }
+
+        function toggleFieldsLock(lock) {
+            $('#poolSelect').prop('disabled', lock);
+            $('#slotDate').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
+            $('#startTime').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
+            $('#endTime').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
+            
+            if(lock) {
+                $('#bookingWarning').removeClass('d-none');
+            }
+        }
+
+        async function saveSlot() {
+            if(!$('#slotForm')[0].checkValidity()) {
+                $('#slotForm')[0].reportValidity();
+                return;
+            }
+
+            const poolId = $('#poolSelect').val();
+            const date = $('#slotDate').val();
+            const startTime = $('#startTime').val() + ':00';
+            const endTime = $('#endTime').val() + ':00';
+            
+            if(startTime >= endTime) {
+                toastr.error('Giờ kết thúc phải sau giờ bắt đầu.');
+                return;
+            }
+
+            const p = allPools.find(x => x.poolId == poolId);
+            if(p) {
+                if(startTime < p.openingTime || endTime > p.closingTime) {
+                    toastr.error(`Slot phải nằm trong giờ hoạt động của bể bơi (${p.openingTime.substring(0,5)} - ${p.closingTime.substring(0,5)})`);
+                    return;
+                }
+                const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
+                if(parseInt($('#capacity').val()) > maxCap || parseInt($('#capacity').val()) < 1) {
+                    toastr.error(`Sức chứa phải lớn hơn 0 và tối đa là ${maxCap} người.`);
+                    return;
+                }
+            }
+
+            const payload = {
+                slotName: $('#slotName').val(),
+                slotDate: date,
+                startTime: startTime,
+                endTime: endTime,
+                capacity: parseInt($('#capacity').val())
+            };
+
+            try {
+                await api.put(`/slots/${slotId}`, payload);
+                toastr.success('Cập nhật slot thành công.');
+                setTimeout(() => { window.location.href = '/Manager/Slots'; }, 1000);
+            } catch(e) {}
+        }
+    </script>
+}

@@ -1,6 +1,8 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System;
 using SBS.Application.Features.Auth.Commands.Login;
 using SBS.Application.Features.Auth.Commands.RefreshToken;
 using SBS.Application.Features.Auth.Commands.Register;
@@ -57,31 +59,134 @@ public class AuthController : ControllerBase
         }
 
         var result = await _mediator.Send(command);
-        if (!result.Succeeded)
+        if (!result.Succeeded || result.Data == null)
         {
             return BadRequest(new { message = result.Errors.FirstOrDefault() ?? "Tên đăng nhập hoặc mật khẩu không chính xác." });
         }
 
-        return Ok(result.Data);
+        // CẤU HÌNH LÝ THUYẾT COOKIE: Thiết lập Cookie HttpOnly bảo mật cho token
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Luôn bật HTTPS trong môi trường chạy local và deploy
+            SameSite = SameSiteMode.None, // Để cho phép chia sẻ Cookie chéo origin (từ API sang WebApp)
+            Expires = result.Data.ExpiryDate
+        };
+
+        var refreshCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+
+        var normalCookieOptions = new CookieOptions
+        {
+            HttpOnly = false, // Cookie thường để JS đọc được
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = result.Data.ExpiryDate
+        };
+
+        Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
+        Response.Cookies.Append("refreshToken", result.Data.RefreshToken, refreshCookieOptions);
+        Response.Cookies.Append("fullName", result.Data.FullName ?? "", normalCookieOptions);
+        Response.Cookies.Append("role", result.Data.Role ?? "", normalCookieOptions);
+        Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
+        Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
+
+        return Ok(new
+        {
+            id = result.Data.Id,
+            userName = result.Data.UserName,
+            fullName = result.Data.FullName,
+            role = result.Data.Role,
+            expiryDate = result.Data.ExpiryDate
+        });
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand? command = null)
     {
-        var validationResult = await _refreshValidator.ValidateAsync(command);
+        string? accessToken = command?.AccessToken;
+        string? refreshToken = command?.RefreshToken;
+
+        // Nếu client không gửi trong body, đọc từ Cookies
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            accessToken = Request.Cookies["accessToken"];
+        }
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            refreshToken = Request.Cookies["refreshToken"];
+        }
+
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+        {
+            return BadRequest(new { message = "Không tìm thấy token trong yêu cầu hoặc Cookie." });
+        }
+
+        // Tạo command mới để gửi qua MediatR
+        var refreshCommand = new RefreshTokenCommand
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+
+        var validationResult = await _refreshValidator.ValidateAsync(refreshCommand);
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
             return BadRequest(new { errors });
         }
 
-        var result = await _mediator.Send(command);
-        if (!result.Succeeded)
+        var result = await _mediator.Send(refreshCommand);
+        if (!result.Succeeded || result.Data == null)
         {
             return BadRequest(new { message = result.Errors.FirstOrDefault() ?? "Token không hợp lệ hoặc đã hết hạn." });
         }
 
-        return Ok(result.Data);
+        // Ghi lại Cookie mới sau khi làm mới thành công
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = result.Data.ExpiryDate
+        };
+
+        var refreshCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+
+        var normalCookieOptions = new CookieOptions
+        {
+            HttpOnly = false,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = result.Data.ExpiryDate
+        };
+
+        Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
+        Response.Cookies.Append("refreshToken", result.Data.RefreshToken, refreshCookieOptions);
+        Response.Cookies.Append("fullName", result.Data.FullName ?? "", normalCookieOptions);
+        Response.Cookies.Append("role", result.Data.Role ?? "", normalCookieOptions);
+        Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
+        Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
+
+        return Ok(new
+        {
+            id = result.Data.Id,
+            userName = result.Data.UserName,
+            fullName = result.Data.FullName,
+            role = result.Data.Role,
+            expiryDate = result.Data.ExpiryDate
+        });
     }
 
     [HttpPost("register")]

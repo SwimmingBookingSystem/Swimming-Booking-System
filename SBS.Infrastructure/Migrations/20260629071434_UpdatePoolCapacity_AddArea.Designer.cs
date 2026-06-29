@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SBS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SBS.Infrastructure.Data;
 namespace SBS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629071434_UpdatePoolCapacity_AddArea")]
+    partial class UpdatePoolCapacity_AddArea
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -558,38 +561,6 @@ namespace SBS.Infrastructure.Migrations
                     b.ToTable("PoolSlots", (string)null);
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.PoolStaffAssignment", b =>
-                {
-                    b.Property<int>("AssignmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssignmentId"));
-
-                    b.Property<DateTime>("AssignedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<Guid?>("AssignedByAdminId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PoolId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("StaffId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("AssignmentId");
-
-                    b.HasIndex("StaffId");
-
-                    b.HasIndex("PoolId", "StaffId")
-                        .IsUnique();
-
-                    b.ToTable("PoolStaffAssignments", (string)null);
-                });
-
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
                     b.Property<int>("PoolTicketTypeId")
@@ -1084,23 +1055,6 @@ namespace SBS.Infrastructure.Migrations
                         .WithMany("PoolSlots")
                         .HasForeignKey("PoolId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Pool");
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolStaffAssignment", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
-                        .WithMany()
-                        .HasForeignKey("PoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Pool");

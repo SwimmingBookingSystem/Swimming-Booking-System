@@ -20,7 +20,8 @@ public record UpdatePoolCommand(
     string? Description,
     List<PoolImageItem>? Images,
     TimeSpan OpeningTime,
-    TimeSpan ClosingTime
+    TimeSpan ClosingTime,
+    double Area
 ) : IRequest<PoolDto>;
 
 // Handler
@@ -42,6 +43,8 @@ public class UpdatePoolCommandHandler : IRequestHandler<UpdatePoolCommand, PoolD
         pool.Description = request.Description;
         pool.OpeningTime = request.OpeningTime;
         pool.ClosingTime = request.ClosingTime;
+        pool.Area        = request.Area;
+        pool.StandardCapacity = (int)(request.Area / 2.5);
         pool.UpdatedAt   = DateTime.UtcNow;
 
         // Xử lý cập nhật danh sách ảnh nếu có truyền lên
@@ -94,6 +97,8 @@ public class UpdatePoolCommandHandler : IRequestHandler<UpdatePoolCommand, PoolD
             OpeningTime = pool.OpeningTime.ToString(@"hh\:mm"),
             ClosingTime = pool.ClosingTime.ToString(@"hh\:mm"),
             Status      = pool.Status,
+            Area        = pool.Area,
+            StandardCapacity = pool.StandardCapacity,
             CreatedAt   = pool.CreatedAt,
             UpdatedAt   = pool.UpdatedAt
         };

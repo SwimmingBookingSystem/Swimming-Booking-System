@@ -8,6 +8,7 @@ using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Identity;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 using SBS.Application.Common.Interfaces;
 using SBS.Infrastructure.Data.Repositories;
@@ -80,6 +81,18 @@ public static class DependencyInjection
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
             };
+            // CẤU HÌNH LÝ THUYẾT COOKIE: Đọc token từ Cookie tên "accessToken"
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (context.Request.Cookies.ContainsKey("accessToken"))
+                    {
+                        context.Token = context.Request.Cookies["accessToken"];
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         // 3. Repositories & Unit of Work registration
@@ -95,6 +108,10 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, Services.TokenService>();
         services.AddScoped<IAuthService, Services.Auth.AuthService>();
         services.AddScoped<IEmailService, Services.Email.EmailService>();
+
+        // Cloudinary Services
+        services.Configure<SBS.Infrastructure.Models.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+        services.AddScoped<ICloudinaryService, Services.CloudinaryService>();
 
         // 5. Customer Bookings Infrastructure Services Registration
         services.AddCustomerBookingsInfrastructure(configuration);

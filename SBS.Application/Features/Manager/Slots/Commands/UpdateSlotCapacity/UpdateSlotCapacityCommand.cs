@@ -27,6 +27,12 @@ public class UpdateSlotCapacityCommandHandler
             _uow.Repository<PoolSlot>().Query().Where(s => s.PoolSlotId == request.SlotId), ct)
             ?? throw new NotFoundException(nameof(PoolSlot), request.SlotId);
 
+        var pool = await _uow.FirstOrDefaultAsync(
+            _uow.Repository<Pool>().Query().Where(p => p.PoolId == slot.PoolId), ct)!;
+
+        if (request.Capacity < 1 || request.Capacity > pool.StandardCapacity)
+            throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
+
         slot.Capacity = request.Capacity;
         _uow.Repository<PoolSlot>().Update(slot);
         await _uow.SaveChangesAsync(ct);
@@ -35,12 +41,11 @@ public class UpdateSlotCapacityCommandHandler
     }
 }
 
-// ── Validator ─────────────────────────────────────────────────────────────────
+// Validator 
 public class UpdateSlotCapacityCommandValidator : AbstractValidator<UpdateSlotCapacityCommand>
 {
     public UpdateSlotCapacityCommandValidator()
     {
-        RuleFor(x => x.Capacity)
-            .Equal(50).WithMessage("Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.");
+        RuleFor(x => x.Capacity).GreaterThan(0).WithMessage("Sức chứa phải lớn hơn 0.");
     }
 }

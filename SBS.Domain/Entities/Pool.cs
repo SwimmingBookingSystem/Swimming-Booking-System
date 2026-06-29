@@ -12,6 +12,8 @@ public class Pool
     public TimeSpan OpeningTime { get; set; }
     public TimeSpan ClosingTime { get; set; }
     public string Status { get; set; } = "Active";
+    public double Area { get; set; }
+    public int StandardCapacity { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
