@@ -55,6 +55,8 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
                      OpeningTime = p.OpeningTime.ToString(@"hh\:mm"),
                      ClosingTime = p.ClosingTime.ToString(@"hh\:mm"),
                      Status      = p.Status,
+                     Area        = p.Area,
+                     StandardCapacity = p.StandardCapacity,
                      CreatedAt   = p.CreatedAt,
                      UpdatedAt   = p.UpdatedAt
                  }), ct);

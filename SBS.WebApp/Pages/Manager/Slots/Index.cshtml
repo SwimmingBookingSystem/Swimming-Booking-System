@@ -191,8 +191,12 @@
 
         async function updateCapacity(id) {
             const cap = parseInt($(`#cap_${id}`).val());
-            if(cap !== 50) {
-                toastr.warning('Sức chứa chuẩn nghiệp vụ phải là đúng 50/slot.');
+            const poolId = parseInt($('#filterPool').val());
+            const currentPool = allPools.find(p => p.poolId === poolId);
+            const maxCap = currentPool && currentPool.standardCapacity ? currentPool.standardCapacity : 0;
+            
+            if(cap < 1 || (maxCap > 0 && cap > maxCap)) {
+                toastr.warning(`Sức chứa chuẩn nghiệp vụ phải lớn hơn 0 và tối đa là ${maxCap} người.`);
                 return;
             }
             try {

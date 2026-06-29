@@ -72,7 +72,7 @@ public class ManagerPoolController : ControllerBase
                 IsCover = i.IsCover, 
                 SortOrder = i.SortOrder 
             }).ToList(),
-            openingTime, closingTime);
+            openingTime, closingTime, request.Area);
 
         var validation = await _createValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -100,7 +100,7 @@ public class ManagerPoolController : ControllerBase
                 IsCover = i.IsCover, 
                 SortOrder = i.SortOrder 
             }).ToList(),
-            openingTime, closingTime);
+            openingTime, closingTime, request.Area);
 
         var validation = await _updateValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -150,6 +150,7 @@ public class CreatePoolRequest
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;  // "HH:mm"
     public string ClosingTime { get; set; } = null!;  // "HH:mm"
+    public double Area { get; set; }
 }
 
 public class UpdatePoolRequest
@@ -160,6 +161,7 @@ public class UpdatePoolRequest
     public List<PoolImageRequest>? Images { get; set; }
     public string OpeningTime { get; set; } = null!;
     public string ClosingTime { get; set; } = null!;
+    public double Area { get; set; }
 }
 
 // Request model dùng cho PUT /{poolId}/images
