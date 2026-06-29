@@ -40,3 +40,12 @@ public class UpdateSlotCapacityCommandHandler
         return new SuccessResponse { Message = $"Đã cập nhật sức chứa thành {request.Capacity}." };
     }
 }
+
+// Validator 
+public class UpdateSlotCapacityCommandValidator : AbstractValidator<UpdateSlotCapacityCommand>
+{
+    public UpdateSlotCapacityCommandValidator()
+    {
+        RuleFor(x => x.Capacity).GreaterThan(0).WithMessage("Sức chứa phải lớn hơn 0.");
+    }
+}
