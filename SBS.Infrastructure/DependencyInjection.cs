@@ -29,7 +29,7 @@ public static class DependencyInjection
         });
 
         // 1. Database Configuration (CQRS Pattern)
-        // Write Database Connection(sbs_writer login with full write access)
+        //Write Database Connection(sbs_writer login with full write access)
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("WriteConnection")));
 
