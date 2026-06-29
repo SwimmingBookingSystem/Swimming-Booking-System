@@ -1,15 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common.Interfaces;
 using SBS.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace SBS.Infrastructure.Data.Seed.CustomerSeed;
 
 public static class CustomerPoolSeeder
 {
-    public static async Task SeedCustomerPoolsAsync(ApplicationDbContext context)
+    public static async Task SeedCustomerPoolsAsync(ApplicationDbContext context, ICloudinaryService cloudinaryService)
     {
         // Kiểm tra nếu trong CSDL chỉ có tối đa 1 bể bơi (bể bơi Quốc gia mặc định) thì mới seed thêm
         if (await context.Pools.CountAsync(p => p.Status == "Active") <= 1)
@@ -205,6 +207,8 @@ public static class CustomerPoolSeeder
                 }
             };
 
+            using var httpClient = new HttpClient();
+
             for (int i = 0; i < poolsToSeed.Count; i++)
             {
                 var pool = poolsToSeed[i];
@@ -213,9 +217,25 @@ public static class CustomerPoolSeeder
                 var images = poolImagesUrls[i];
                 for (int imgIdx = 0; imgIdx < images.Length; imgIdx++)
                 {
+                    string imageUrl = images[imgIdx];
+                    try
+                    {
+                        Console.WriteLine($"[Seeder] Uploading image for pool {i+1}, image {imgIdx+1}...");
+                        var response = await httpClient.GetAsync(imageUrl);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            using var stream = await response.Content.ReadAsStreamAsync();
+                            imageUrl = await cloudinaryService.UploadImageAsync(stream, $"seed_pool_{i}_{imgIdx}_{DateTime.UtcNow.Ticks}.jpg", "pools_seed");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Seeder] Cloudinary upload failed: {ex.Message}");
+                    }
+
                     pool.PoolImages.Add(new PoolImage
                     {
-                        ImageUrl = images[imgIdx],
+                        ImageUrl = imageUrl,
                         IsCover = imgIdx == 0,
                         SortOrder = imgIdx + 1,
                         CreatedAt = DateTime.UtcNow

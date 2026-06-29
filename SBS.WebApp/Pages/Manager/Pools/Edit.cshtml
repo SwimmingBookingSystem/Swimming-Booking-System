@@ -49,9 +49,15 @@
             <div id="imageUrlsContainer">
                 <!-- Image inputs -->
             </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 mb-4" id="btnAddImage" onclick="addImageRow()">
-                <i class="fa-solid fa-plus"></i> Thêm URL ảnh
-            </button>
+            <div class="d-flex gap-2 mt-2 mb-4">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnUploadImage" onclick="$('#fileUpload').click()">
+                    <i class="fa-solid fa-upload"></i> Tải ảnh lên
+                </button>
+                <input type="file" id="fileUpload" class="d-none" accept="image/*" onchange="handleFileUpload(event)">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAddImage" onclick="addImageRow()">
+                    <i class="fa-solid fa-link"></i> Nhập URL
+                </button>
+            </div>
             
             <div class="d-flex justify-content-end gap-2 border-top pt-4">
                 <a href="/Manager/Pools" class="btn btn-light border px-4">Hủy</a>
@@ -133,8 +139,29 @@
         }
 
         function checkImageCount() {
-            if ($('.img-row').length >= 10) $('#btnAddImage').hide();
-            else $('#btnAddImage').show();
+            if ($('.img-row').length >= 10) {
+                $('#btnAddImage').hide();
+                $('#btnUploadImage').hide();
+            } else {
+                $('#btnAddImage').show();
+                $('#btnUploadImage').show();
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const res = await api.uploadFile('/pools/upload-image', file);
+                if (res && res.url) {
+                    addImageRow(res.url);
+                }
+            } catch (e) {
+                console.error("Upload failed", e);
+            } finally {
+                event.target.value = ''; // reset file input
+            }
         }
 
         async function savePool() {

@@ -71,8 +71,9 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
+    var cloudinaryService = services.GetRequiredService<SBS.Application.Common.Interfaces.ICloudinaryService>();
     await DataSeeder.SeedDataAsync(context, userManager, roleManager);
-    await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context);
+    await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context, cloudinaryService);
 }
 
 // Configure the HTTP request pipeline.
