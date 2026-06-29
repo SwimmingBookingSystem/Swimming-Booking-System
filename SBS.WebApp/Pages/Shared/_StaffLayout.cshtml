@@ -1,0 +1,192 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Staff Portal</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Toastr for Notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <!-- Staff Custom CSS -->
+    <link rel="stylesheet" href="~/css/staff.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <a href="/Staff/CheckIn" class="brand">
+            <i class="fa-solid fa-water text-info me-2"></i> SBS Staff
+        </a>
+        <div class="nav flex-column">
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Staff/CheckIn" ? "active" : "")" href="/Staff/CheckIn">
+                <i class="fa-solid fa-qrcode w-20px"></i> Check-in / Out
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Staff/Bookings") == true ? "active" : "")" href="/Staff/Bookings">
+                <i class="fa-solid fa-ticket w-20px"></i> Quản lý Booking
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="breadcrumb mb-0 fw-medium text-muted">
+                @ViewData["Breadcrumb"]
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm px-3 py-2" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=Staff&background=0284C7&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <span id="userNameDisplay" class="fw-medium">Đang tải...</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li><a class="dropdown-item text-danger py-2" href="#" onclick="logout(); return false;"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Global Loader -->
+    <div id="global-loader">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- HTML5 QR Code Library for Camera Scanning -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <script>
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        const userRole = getCookie('role');
+        const fullName = decodeURIComponent(getCookie('fullName') || getCookie('userName') || 'Staff');
+
+        if (!userRole || (userRole.toLowerCase() !== 'staff' && userRole.toLowerCase() !== 'manager' && userRole.toLowerCase() !== 'admin')) {
+            window.location.href = '/Auth/Login';
+        }
+
+        function logout() {
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            
+            window.location.href = '/Auth/Login';
+        }
+
+        $(document).ready(function() {
+            $('#userNameDisplay').text(fullName);
+            $('#userAvatar').attr('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284C7&color=fff`);
+        });
+
+        toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
+        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+
+        const staffApi = {
+            baseURL: window.API_BASE_URL + '/api/staff',
+            request: function(method, url, data) {
+                return new Promise((resolve, reject) => {
+                    $('#global-loader').css('display', 'flex');
+                    
+                    const role = getCookie('role');
+                    if (!role) {
+                        $('#global-loader').hide();
+                        logout();
+                        reject(new Error("No active session available"));
+                        return;
+                    }
+
+                    const headers = { 'Content-Type': 'application/json' };
+                    
+                    $.ajax({
+                        url: this.baseURL + url, 
+                        type: method, 
+                        headers: headers,
+                        xhrFields: { withCredentials: true },
+                        data: data ? JSON.stringify(data) : null,
+                        success: function(response) { 
+                            $('#global-loader').hide(); 
+                            resolve(response); 
+                        },
+                        error: function(xhr) {
+                            $('#global-loader').hide();
+                            console.error("Staff API Error: ", xhr);
+                            const status = xhr.status;
+                            let dataObj = {};
+                            try { dataObj = JSON.parse(xhr.responseText); } catch(e) {}
+                            
+                            if (status === 401) {
+                                toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                                setTimeout(() => logout(), 1500);
+                            } else if (status === 403) {
+                                toastr.error('Bạn không có quyền thực hiện thao tác này tại hồ bơi.');
+                            } else if (status === 400 || status === 404 || status === 422) {
+                                const errs = dataObj.errors || dataObj.Errors;
+                                const msg = dataObj.message || dataObj.Message;
+                                const title = dataObj.title || dataObj.Title;
+                                
+                                if (errs && Array.isArray(errs) && errs.length > 0) {
+                                    errs.forEach(err => toastr.error(err));
+                                } else if (errs && typeof errs === 'object') {
+                                    Object.values(errs).forEach(errArr => {
+                                        if (Array.isArray(errArr)) errArr.forEach(err => toastr.error(err));
+                                        else toastr.error(errArr); 
+                                    });
+                                } else if (msg) {
+                                    toastr.error(msg);
+                                } else if (title) {
+                                    toastr.error(title);
+                                } else {
+                                    toastr.error('Lỗi (' + status + '): ' + (xhr.responseText ? xhr.responseText.substring(0,100) : 'Yêu cầu không hợp lệ.'));
+                                }
+                            } else if (status === 500) {
+                                toastr.error('Đã xảy ra lỗi hệ thống (500). Vui lòng thử lại sau.');
+                            } else {
+                                toastr.error('Lỗi máy chủ không xác định.');
+                            }
+                            reject(xhr);
+                        }
+                    });
+                });
+            },
+            get: function(url) { return this.request('GET', url); },
+            post: function(url, data) { return this.request('POST', url, data); },
+            put: function(url, data) { return this.request('PUT', url, data); },
+            patch: function(url, data) { return this.request('PATCH', url, data); },
+            delete: function(url) { return this.request('DELETE', url); }
+        };
+    </script>
+    
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

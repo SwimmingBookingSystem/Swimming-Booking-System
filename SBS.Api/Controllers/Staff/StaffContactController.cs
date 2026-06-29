@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Staff.Commands.ResolveContactRequest;
-using SBS.Application.Features.Staff.Queries.GetPendingContactRequests;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,18 +25,6 @@ public class StaffContactController : ControllerBase
     {
         _mediator = mediator;
         _resolveValidator = resolveValidator;
-    }
-
-    /// <summary>
-    /// GET /api/staff/contacts?status=Pending
-    /// Xem danh sách yêu cầu hỗ trợ từ khách hàng.
-    /// status: "Pending" | "Resolved" | "All"
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetContactRequests([FromQuery] string? status = "Pending")
-    {
-        var result = await _mediator.Send(new StaffGetPendingContactRequestsQuery { Status = status });
-        return Ok(result);
     }
 
     /// <summary>
