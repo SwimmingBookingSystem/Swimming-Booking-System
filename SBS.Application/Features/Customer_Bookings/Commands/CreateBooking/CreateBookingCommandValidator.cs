@@ -1,4 +1,5 @@
 using FluentValidation;
+using System.Linq;
 
 namespace SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
 
@@ -10,7 +11,9 @@ public class CreateBookingCommandValidator : AbstractValidator<CreateBookingComm
             .GreaterThan(0).WithMessage("PoolSlotId is required.");
 
         RuleFor(v => v.Tickets)
-            .NotEmpty().WithMessage("At least one ticket must be selected.");
+            .NotEmpty().WithMessage("At least one ticket must be selected.")
+            .Must(t => t.Select(x => x.PoolTicketTypeId).Distinct().Count() == t.Count)
+            .WithMessage("Duplicate ticket types are not allowed.");
 
         RuleForEach(v => v.Tickets).ChildRules(tickets =>
         {

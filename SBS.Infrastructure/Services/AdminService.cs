@@ -39,7 +39,7 @@ public class AdminService : IAdminService
             )
             .GroupJoin(
                 _readContext.Roles,
-                x => x.ur.RoleId,
+                x => x.ur!.RoleId,
                 r => r.Id,
                 (x, roles) => new { x.u, x.ur, roles }
             )
@@ -56,7 +56,7 @@ public class AdminService : IAdminService
                 FullName = x.u.FullName,
                 PhoneNumber = x.u.PhoneNumber,
                 Status = x.u.Status,
-                Role = x.r.Name ?? "Customer",
+                Role = x.r!.Name ?? "Customer",
                 CreatedAt = x.u.CreatedAt
             })
             .ToListAsync(cancellationToken);
@@ -243,7 +243,7 @@ public class AdminService : IAdminService
             )
             .GroupJoin(
                 _readContext.Roles,
-                x => x.ur.RoleId,
+                x => x.ur!.RoleId,
                 r => r.Id,
                 (x, roles) => new { x.u, roles }
             )
@@ -251,7 +251,7 @@ public class AdminService : IAdminService
                 x => x.roles.DefaultIfEmpty(),
                 (x, r) => new { x.u, r }
             )
-            .GroupBy(x => x.r.Name ?? "Customer")
+            .GroupBy(x => x.r!.Name ?? "Customer")
             .Select(g => new UserByRoleDto
             {
                 Role = g.Key,
