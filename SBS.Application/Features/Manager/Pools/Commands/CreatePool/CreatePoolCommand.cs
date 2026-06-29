@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SBS.Application.Features.Manager.Pools.Commands.CreatePool;
 
-// ── Command ──────────────────────────────────────────────────────────────────
+// ── Command
 public record CreatePoolCommand(
     string PoolName,
     string Address,
@@ -22,7 +22,7 @@ public record CreatePoolCommand(
     double Area
 ) : IRequest<CreatePoolResponse>;
 
-// ── Handler ───────────────────────────────────────────────────────────────────
+// ── Handler 
 public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, CreatePoolResponse>
 {
     private readonly IUnitOfWork _uow;
@@ -76,7 +76,7 @@ public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, Creat
     }
 }
 
-// ── Validator ─────────────────────────────────────────────────────────────────
+// ── Validator
 public class CreatePoolCommandValidator : AbstractValidator<CreatePoolCommand>
 {
     public CreatePoolCommandValidator()
