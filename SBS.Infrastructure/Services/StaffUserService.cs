@@ -58,4 +58,20 @@ public class StaffUserService : IStaffUserService
 
         return await query.Select(u => u.Id).ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<List<int>> GetAssignedPoolIdsAsync(Guid staffId, CancellationToken cancellationToken = default)
+    {
+        return await _readContext.PoolStaffAssignments
+            .Where(a => a.StaffId == staffId)
+            .Select(a => a.PoolId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> IsStaffAssignedToPoolAsync(Guid staffId, int poolId, CancellationToken cancellationToken = default)
+    {
+        return await _readContext.PoolStaffAssignments
+            .AnyAsync(a => a.StaffId == staffId && a.PoolId == poolId, cancellationToken);
+    }
 }

@@ -83,6 +83,14 @@ public class StaffCreateWalkInBookingCommandHandler : IRequestHandler<StaffCreat
         if (slot.Status != "Open")
             return new StaffWalkInBookingResultDto { Succeeded = false, Errors = new[] { $"Slot bơi hiện không mở (Trạng thái: {slot.Status})." } };
 
+        // Guard: kiểm tra Staff có được phân công vào hồ bơi của slot này không
+        var isAssigned = await _unitOfWork.AnyAsync(
+            _unitOfWork.Repository<PoolStaffAssignment>().Query()
+                .Where(a => a.StaffId == staffId && a.PoolId == slot.PoolId),
+            cancellationToken);
+        if (!isAssigned)
+            return new StaffWalkInBookingResultDto { Succeeded = false, Errors = new[] { "Bạn không có quyền tạo walk-in booking tại hồ bơi này." } };
+
         // 3. Kiểm tra sức chứa còn lại
         var confirmedCount = await _unitOfWork.CountAsync(
             _unitOfWork.Repository<Booking>()

@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, Guid>
 
     public DbSet<PoolImage> PoolImages { get; set; } = null!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<PoolStaffAssignment> PoolStaffAssignments { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
