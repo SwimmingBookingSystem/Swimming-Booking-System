@@ -32,6 +32,24 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Swimming Booking System API", Version = "v1" });
 
+    // Resolve conflicts khi 2+ controllers cùng base route (ManagerPoolController & ManagerPoolTicketController)
+    options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
+    // Tránh lỗi trùng SchemaId khi có class cùng tên ở namespace khác
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+
+    // Fix Swagger 500: Swashbuckle không hỗ trợ DateOnly/TimeOnly mặc định (.NET 6+)
+    options.MapType<DateOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "date"
+    });
+    options.MapType<TimeOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "time"
+    });
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
