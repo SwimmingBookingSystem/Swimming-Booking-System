@@ -184,20 +184,20 @@ public class CreateTicketTypeCommandValidator : AbstractValidator<CreateTicketTy
             .Must(c => c == "Single" || c == "Combo")
             .WithMessage("Category phải là 'Single' hoặc 'Combo'.");
 
-        // Single: BasePrice bắt buộc > 0; DiscountPercent 0–100
+        // Single: BasePrice bắt buộc > 0; DiscountPercent 0 hoặc bội số của 5
         RuleFor(x => x.BasePrice)
             .GreaterThan(0).WithMessage("BasePrice phải lớn hơn 0.")
             .When(x => x.Category == "Single");
 
         RuleFor(x => x.DiscountPercent)
-            .InclusiveBetween(0, 100)
-            .WithMessage("DiscountPercent của vé đơn phải từ 0 đến 100.")
+            .Must(d => d == 0 || (d >= 5 && d <= 100 && d % 5 == 0))
+            .WithMessage("Giảm giá vé đơn phải là 0% hoặc từ 5% trở lên (bội số của 5).")
             .When(x => x.Category == "Single");
 
-        // Combo: discount 5–50; ComboDetails bắt buộc ≥ 2 phần tử
+        // Combo: discount từ 5-100 và là bội số của 5
         RuleFor(x => x.DiscountPercent)
-            .InclusiveBetween(5, 50)
-            .WithMessage("Ưu đãi combo phải từ 5% đến 50%.")
+            .Must(d => d >= 5 && d <= 100 && d % 5 == 0)
+            .WithMessage("Ưu đãi combo phải từ 5% trở lên và là bội số của 5 (5%, 10%...).")
             .When(x => x.Category == "Combo");
 
         RuleFor(x => x.ComboDetails)

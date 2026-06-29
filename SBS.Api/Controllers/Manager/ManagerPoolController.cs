@@ -60,7 +60,7 @@ public class ManagerPoolController : ControllerBase
 
     // Upload ảnh lên Cloudinary
     [HttpPost("upload-image")]
-    public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadImage(IFormFile file)
     {
         try
         {

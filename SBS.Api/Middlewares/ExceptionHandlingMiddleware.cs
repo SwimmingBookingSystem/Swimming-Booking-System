@@ -87,6 +87,10 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            Console.WriteLine("=== CRITICAL SWAGGER ERROR ===");
+            Console.WriteLine(ex.ToString());
+            Console.WriteLine("===============================");
+            
             context.Response.StatusCode  = 500;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ErrorResponse

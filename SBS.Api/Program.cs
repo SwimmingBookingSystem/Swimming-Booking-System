@@ -35,20 +35,29 @@ builder.Services.AddSwaggerGen(options =>
     // Resolve conflicts khi 2+ controllers cùng base route (ManagerPoolController & ManagerPoolTicketController)
     options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
-    // Tránh lỗi trùng SchemaId khi có class cùng tên ở namespace khác
-    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+    // Tránh lỗi trùng SchemaId khi có class cùng tên ở namespace khác và xử lý tên cho generic types (List, v.v.)
+    options.CustomSchemaIds(type => 
+    {
+        if (!type.IsGenericType)
+        {
+            return type.FullName?.Replace("+", ".") ?? type.Name;
+        }
 
-    // Fix Swagger 500: Swashbuckle không hỗ trợ DateOnly/TimeOnly mặc định (.NET 6+)
-    options.MapType<DateOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema
-    {
-        Type = "string",
-        Format = "date"
+        var baseName = type.Name.Split('`')[0];
+        var genericArgs = string.Join("And", type.GetGenericArguments().Select(t => t.Name));
+        return $"{baseName}Of{genericArgs}";
     });
-    options.MapType<TimeOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema
-    {
-        Type = "string",
-        Format = "time"
-    });
+
+    // Fix Swagger 500: Lỗi serialize DateOnly/TimeOnly trong Swashbuckle của .NET 8
+    options.MapType<DateOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "date" });
+    options.MapType<DateOnly?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "date", Nullable = true });
+    options.MapType<TimeOnly>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time" });
+    options.MapType<TimeOnly?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time", Nullable = true });
+    
+    // Fix Swagger 500: TimeSpan cũng có thể gây crash khi sinh Schema nếu không được map thành string
+    options.MapType<TimeSpan>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time-span" });
+    options.MapType<TimeSpan?>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "time-span", Nullable = true });
+
 
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
