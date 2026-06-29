@@ -1,5 +1,7 @@
 @page
 @model SBS.WebApp.Pages.Auth.LoginModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     Layout = null;
 }
@@ -411,7 +413,7 @@
     <script>
         $(document).ready(function() {
             // Địa chỉ API trỏ thẳng về API localhost của nhóm đã cấu hình CORS
-            const apiBaseUrl = 'https://localhost:7179';
+            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
 
             // Ẩn/Hiện mật khẩu
             $('#toggle-password-btn').click(function() {
@@ -468,7 +470,7 @@
                             if (role === 'admin') {
                                 window.location.href = '/AdminTest/Dashboard';
                             } else if (role === 'manager') {
-                                window.location.href = '/ManagerTest/Dashboard';
+                                window.location.href = '/Manager/Dashboard';
                             } else if (role === 'staff') {
                                 window.location.href = '/StaffTest/Dashboard';
                             } else if (role === 'customer') {

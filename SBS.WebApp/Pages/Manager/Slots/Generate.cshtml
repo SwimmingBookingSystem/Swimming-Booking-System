@@ -1,0 +1,114 @@
+@page
+@model SBS.WebApp.Pages.Manager.Slots.GenerateModel
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Tạo Ca Bơi Tự Động";
+    ViewData["Breadcrumb"] = "Quản lý / Khung giờ / Tạo tự động";
+}
+
+<div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 700px;">
+    <div class="card-header bg-white border-bottom p-4 d-flex align-items-center">
+        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <h5 class="mb-0 fw-bold">Tạo Ca Bơi Tự Động</h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="alert alert-info small mb-4">
+            <i class="fa-solid fa-circle-info"></i> Hệ thống sẽ tự động rải ca bơi đều nhau dựa trên giờ mở/đóng cửa của bể bơi đã chọn. Các khung giờ bị trùng sẽ được tự động bỏ qua.
+        </div>
+        
+        <form id="generateForm">
+            <div class="mb-4">
+                <label class="form-label fw-medium">Bể bơi <span class="text-danger">*</span></label>
+                <select id="genPoolSelect" class="form-select" required>
+                    <option value="">-- Chọn Bể bơi --</option>
+                </select>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Từ ngày <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="genStartDate" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Đến ngày <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="genEndDate" required>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Độ dài ca (phút) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="genDuration" value="90" required min="30">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Thời gian nghỉ (phút) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="genBreak" value="30" required min="0">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                <a href="/Manager/Slots" class="btn btn-light border px-4">Hủy</a>
+                <button type="button" class="btn btn-warning fw-medium text-dark px-4" onclick="submitGenerate()">
+                    <i class="fa-solid fa-bolt me-2"></i> Bắt đầu Tạo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const today = new Date().toISOString().split('T')[0];
+            $('#genStartDate').attr('min', today);
+            $('#genEndDate').attr('min', today);
+            
+            initData();
+        });
+
+        async function initData() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                const pools = res.items || [];
+                let opts = '<option value="">-- Chọn Bể bơi --</option>';
+                pools.forEach(p => {
+                    opts += `<option value="${p.poolId}">${p.poolName}</option>`;
+                });
+                $('#genPoolSelect').html(opts);
+            } catch(e) {}
+        }
+
+        async function submitGenerate() {
+            if(!$('#generateForm')[0].checkValidity()) {
+                $('#generateForm')[0].reportValidity();
+                return;
+            }
+
+            const poolId = $('#genPoolSelect').val();
+            if (!poolId) {
+                toastr.error('Vui lòng chọn bể bơi.');
+                return;
+            }
+
+            const payload = {
+                startDate: $('#genStartDate').val(),
+                endDate: $('#genEndDate').val(),
+                durationMinutes: parseInt($('#genDuration').val()),
+                breakMinutes: parseInt($('#genBreak').val())
+            };
+
+            if (payload.startDate > payload.endDate) {
+                toastr.error('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
+                return;
+            }
+
+            try {
+                const res = await api.post(`/pools/${poolId}/slots/generate`, payload);
+                toastr.success(res.message || 'Sinh ca bơi tự động thành công!');
+                setTimeout(() => { window.location.href = '/Manager/Slots'; }, 1500);
+            } catch(e) {}
+        }
+    </script>
+}

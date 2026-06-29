@@ -1,0 +1,176 @@
+.master-detail-layout {
+    display: flex;
+    gap: 24px;
+    height: calc(100vh - 120px);
+}
+.master-list {
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+}
+.detail-panel {
+    flex: 1;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+.detail-panel.active {
+    display: flex;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.pool-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+.pool-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgba(2, 132, 199, 0.15);
+}
+.pool-card.active {
+    border: 2px solid #0284c7;
+    box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.25);
+}
+.pool-card-img-wrapper {
+    position: relative;
+    height: 150px;
+    background: #f1f5f9;
+}
+.pool-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.pool-card:hover .pool-card-img {
+    transform: scale(1.05);
+}
+.pool-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(16, 185, 129, 0.95);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.pool-status-badge.closed {
+    background: rgba(239, 68, 68, 0.95);
+    color: #fff;
+}
+.pool-status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+}
+.pool-card-body {
+    padding: 18px;
+}
+
+.list-container {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 8px;
+}
+/* Custom scrollbar for list */
+.list-container::-webkit-scrollbar { width: 6px; }
+.list-container::-webkit-scrollbar-track { background: transparent; }
+.list-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.list-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.toolbar {
+    margin-bottom: 20px;
+    background: transparent;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* UI Chọn Ảnh Bìa (Cover Image Selector) */
+.img-row {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.2s;
+    align-items: center;
+}
+.img-row:hover {
+    border-color: #bae6fd;
+    background: #f0f9ff;
+    box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.05);
+}
+.cover-btn {
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.5px;
+    height: 100%;
+    border: 2px solid transparent;
+}
+.cover-btn:hover {
+    transform: scale(1.02);
+}
+.cover-radio:checked + .cover-btn {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-color: #bae6fd;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    color: white !important;
+}
+.cover-radio:not(:checked) + .cover-btn {
+    background: #e2e8f0;
+    color: #64748b !important;
+}
+.cover-radio:not(:checked) + .cover-btn:hover {
+    background: #cbd5e1;
+    color: #334155 !important;
+}
+.btn-delete-img {
+    height: 100%;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fee2e2;
+    color: #ef4444;
+    transition: all 0.2s;
+}
+.btn-delete-img:hover {
+    background: #f87171;
+    color: white;
+}

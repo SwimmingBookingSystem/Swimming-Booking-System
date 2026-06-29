@@ -1,3 +1,5 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -25,7 +27,7 @@
     <!-- Sidebar -->
     <nav id="sidebar">
         <a href="/Manager/Dashboard" class="brand">
-            <i class="fa-solid fa-water"></i> SBS Admin
+            <i class="fa-solid fa-water"></i> SBS Manager
         </a>
         <div class="nav flex-column">
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Dashboard" ? "active" : "")" href="/Manager/Dashboard">
@@ -55,14 +57,14 @@
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
-                    <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm" type="button" data-bs-toggle="dropdown">
-                        <img src="https://ui-avatars.com/api/?name=Manager&background=0D8ABC&color=fff" class="rounded-circle me-2" width="32" height="32" />
-                        Manager
+                    <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <span id="userNameDisplay">Đang tải...</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#">Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;">Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>
@@ -97,29 +99,65 @@
         });
     </script>
     <script>
-        // Inline manager-api.js to avoid any cache issues during development
+        // --- 1. KIỂM TRA XÁC THỰC (AUTHENTICATION) ---
+        const accessToken = localStorage.getItem('accessToken');
+        const userRole = localStorage.getItem('role');
+        const fullName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Manager';
+
+        // Nếu không có token, hoặc role không phải Manager -> Đẩy về trang Login
+        if (!accessToken || !userRole || userRole.toLowerCase() !== 'manager') {
+            window.location.href = '/Auth/Login';
+        }
+
+        // Hàm Đăng xuất
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('role');
+            localStorage.removeItem('fullName');
+            localStorage.removeItem('userName');
+            window.location.href = '/Auth/Login';
+        }
+
+        // --- 2. HIỂN THỊ THÔNG TIN NGƯỜI DÙNG ---
+        $(document).ready(function() {
+            $('#userNameDisplay').text(fullName);
+            $('#userAvatar').attr('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0D8ABC&color=fff`);
+        });
+
+        // --- 3. CẤU HÌNH GỌI API (MANAGER API INTERCEPTOR) ---
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
+        
+        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+
         const api = {
-            baseURL: 'https://localhost:7179/api/manager',
+            baseURL: window.API_BASE_URL + '/api/manager',
             request: function(method, url, data) {
                 return new Promise((resolve, reject) => {
                     $('#global-loader').css('display', 'flex');
-                    const headers = { 'Content-Type': 'application/json' };
-                    let token = localStorage.getItem('manager_token');
+                    
+                    const token = localStorage.getItem('accessToken');
                     if (!token) {
-                        $.ajax({
-                            url: 'https://localhost:7179/api/Auth/login', type: 'POST', contentType: 'application/json',
-                            data: JSON.stringify({ userName: "manager1", password: "Password@123" }), async: false,
-                            success: function(res) { token = res.accessToken || res.token || res; localStorage.setItem('manager_token', token); },
-                            error: function() { alert('Auto login failed.'); }
-                        });
+                        $('#global-loader').hide();
+                        logout();
+                        reject(new Error("No token available"));
+                        return;
                     }
-                    if (token) headers['Authorization'] = `Bearer ${token}`;
-                    else { $('#global-loader').hide(); reject(new Error("No token")); return; }
+
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    };
                     
                     $.ajax({
-                        url: this.baseURL + url, type: method, headers: headers, data: data ? JSON.stringify(data) : null,
-                        success: function(response) { $('#global-loader').hide(); resolve(response); },
+                        url: this.baseURL + url, 
+                        type: method, 
+                        headers: headers, 
+                        data: data ? JSON.stringify(data) : null,
+                        success: function(response) { 
+                            $('#global-loader').hide(); 
+                            resolve(response); 
+                        },
                         error: function(xhr) {
                             $('#global-loader').hide();
                             console.error("API Error: ", xhr);
@@ -128,8 +166,8 @@
                             try { dataObj = JSON.parse(xhr.responseText); } catch(e) {}
                             
                             if (status === 401) {
-                                toastr.error('Phiên đăng nhập tự động đã làm mới. Vui lòng thử lại.');
-                                localStorage.removeItem('manager_token'); setTimeout(() => window.location.reload(), 1000);
+                                toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                                setTimeout(() => logout(), 1500);
                             } else if (status === 403) {
                                 toastr.error('Bạn không có quyền thực hiện thao tác này.');
                             } else if (status === 400 || status === 404 || status === 422) {
@@ -142,7 +180,7 @@
                                 } else if (errs && typeof errs === 'object') {
                                     Object.values(errs).forEach(errArr => {
                                         if (Array.isArray(errArr)) errArr.forEach(err => toastr.error(err));
-                                        else toastr.error(errArr); // in case it is just a string
+                                        else toastr.error(errArr); 
                                     });
                                 } else if (msg) {
                                     toastr.error(msg);
@@ -152,7 +190,7 @@
                                     toastr.error('Lỗi (' + status + '): ' + (xhr.responseText ? xhr.responseText.substring(0,100) : 'Yêu cầu không hợp lệ.'));
                                 }
                             } else if (status === 500) {
-                                toastr.error('Đã xảy ra lỗi hệ thống (500).');
+                                toastr.error('Đã xảy ra lỗi hệ thống (500). Vui lòng thử lại sau.');
                             } else {
                                 toastr.error('Lỗi máy chủ không xác định.');
                             }

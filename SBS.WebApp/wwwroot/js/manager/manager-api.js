@@ -8,7 +8,7 @@ toastr.options = {
 
 // Tạo một object bọc jQuery AJAX để sử dụng tương tự như Axios (hỗ trợ async/await)
 const api = {
-    baseURL: 'https://localhost:7179/api/manager',
+    baseURL: (window.API_BASE_URL || 'https://localhost:7179') + '/api/manager',
     
     request: function(method, url, data) {
         return new Promise((resolve, reject) => {
@@ -22,7 +22,7 @@ const api = {
             if (!token) {
                 // Auto dev login (Bypass for testing without Login UI)
                 $.ajax({
-                    url: 'https://localhost:7179/api/Auth/login',
+                    url: (window.API_BASE_URL || 'https://localhost:7179') + '/api/Auth/login',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ userName: "manager1", password: "Password@123" }),
