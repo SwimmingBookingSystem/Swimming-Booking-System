@@ -18,11 +18,9 @@ public static class CustomerPoolSeeder
         {
             // Lấy danh sách các loại vé mặc định đã được seeder chính tạo trước đó
             var ticketTypes = await context.TicketTypes.ToListAsync();
-            var adultTicket = ticketTypes.FirstOrDefault(t => t.TicketCode == "SINGLE-ADULT");
-            var childTicket = ticketTypes.FirstOrDefault(t => t.TicketCode == "SINGLE-CHILD");
-            var seniorTicket = ticketTypes.FirstOrDefault(t => t.TicketCode == "SINGLE-SENIOR");
-            var familyCombo = ticketTypes.FirstOrDefault(t => t.TicketCode == "COMBO-FAMILY");
-            var trippleCombo = ticketTypes.FirstOrDefault(t => t.TicketCode == "COMBO-TRIPBLE");
+            var standardTicket = ticketTypes.FirstOrDefault(t => t.TicketCode == "STANDARD");
+            var combo3Ticket = ticketTypes.FirstOrDefault(t => t.TicketCode == "COMBO_3");
+            var combo5Ticket = ticketTypes.FirstOrDefault(t => t.TicketCode == "COMBO_5");
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var tomorrow = today.AddDays(1);
@@ -243,16 +241,12 @@ public static class CustomerPoolSeeder
                 }
 
                 // 2. Thêm giá vé cho bể bơi
-                if (adultTicket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = adultTicket.TicketTypeId, Price = 100000m, Status = "Active" });
-                if (childTicket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = childTicket.TicketTypeId, Price = 70000m, Status = "Active" });
-                if (seniorTicket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = seniorTicket.TicketTypeId, Price = 80000m, Status = "Active" });
-                if (familyCombo != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = familyCombo.TicketTypeId, Price = 289000m, Status = "Active" });
-                if (trippleCombo != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = trippleCombo.TicketTypeId, Price = 270000m, Status = "Active" });
+                if (standardTicket != null)
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = standardTicket.TicketTypeId, Price = 100000m, Status = "Active" });
+                if (combo3Ticket != null)
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo3Ticket.TicketTypeId, Price = 270000m, Status = "Active" });
+                if (combo5Ticket != null)
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo5Ticket.TicketTypeId, Price = 425000m, Status = "Active" });
 
                 // 3. Thêm các slot hoạt động cho hôm nay và ngày mai với sức chứa (Capacity) đa dạng để test bộ lọc
                 var poolCapacities = new[] { 30, 50, 25, 40, 30, 45, 60, 50, 35, 20 };

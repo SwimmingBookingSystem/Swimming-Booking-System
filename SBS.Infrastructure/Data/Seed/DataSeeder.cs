@@ -105,74 +105,50 @@ public static class DataSeeder
         await userManager.AddToRoleAsync(customer, "Customer");
 
         // 3. Seed TicketTypes (Fixed tickets)
-        var adultTicket = new TicketType
+        var standardTicket = new TicketType
         {
-            TicketCode = "SINGLE-ADULT",
-            TicketName = "Vé Người lớn",
+            TicketCode = "STANDARD",
+            TicketName = "Vé Cá nhân",
             Category = "Single",
             BasePrice = 100000m,
             DiscountPercent = 0,
-            Description = "Vé bơi dành cho người lớn"
+            Description = "Vé bơi tiêu chuẩn dành cho 1 người"
         };
-        var childTicket = new TicketType
+        var combo3Ticket = new TicketType
         {
-            TicketCode = "SINGLE-CHILD",
-            TicketName = "Vé Trẻ em",
-            Category = "Single",
-            BasePrice = 70000m,
-            DiscountPercent = 30,
-            Description = "Vé bơi dành cho trẻ em dưới 12 tuổi"
-        };
-        var seniorTicket = new TicketType
-        {
-            TicketCode = "SINGLE-SENIOR",
-            TicketName = "Vé Người già",
-            Category = "Single",
-            BasePrice = 80000m,
-            DiscountPercent = 20,
-            Description = "Vé bơi dành cho người trên 60 tuổi"
-        };
-        var familyCombo = new TicketType
-        {
-            TicketCode = "COMBO-FAMILY",
-            TicketName = "Vé Combo Family",
+            TicketCode = "COMBO_3",
+            TicketName = "Combo 3 Người",
             Category = "Combo",
-            BasePrice = 289000m,
-            DiscountPercent = 15,
-            Description = "Combo 2 người lớn + 2 trẻ em, giảm 15%"
-        };
-        var trippleCombo = new TicketType
-        {
-            TicketCode = "COMBO-TRIPBLE",
-            TicketName = "Vé Combo Tripble",
-            Category = "Combo",
-            BasePrice = 270000m,
+            BasePrice = 300000m,
             DiscountPercent = 10,
-            Description = "Combo 3 người lớn, giảm 10%"
+            Description = "Combo tiết kiệm dành cho 3 người, giảm 10%"
+        };
+        var combo5Ticket = new TicketType
+        {
+            TicketCode = "COMBO_5",
+            TicketName = "Combo 5 Người",
+            Category = "Combo",
+            BasePrice = 500000m,
+            DiscountPercent = 15,
+            Description = "Combo tiết kiệm dành cho nhóm 5 người, giảm 15%"
         };
 
-        context.TicketTypes.AddRange(adultTicket, childTicket, seniorTicket, familyCombo, trippleCombo);
+        context.TicketTypes.AddRange(standardTicket, combo3Ticket, combo5Ticket);
         await context.SaveChangesAsync();
 
         // 4. Seed ComboDetails
         context.ComboDetails.AddRange(
             new ComboDetail
             {
-                ComboTicketTypeId = familyCombo.TicketTypeId,
-                SingleTicketTypeId = adultTicket.TicketTypeId,
-                Quantity = 2
-            },
-            new ComboDetail
-            {
-                ComboTicketTypeId = familyCombo.TicketTypeId,
-                SingleTicketTypeId = childTicket.TicketTypeId,
-                Quantity = 2
-            },
-            new ComboDetail
-            {
-                ComboTicketTypeId = trippleCombo.TicketTypeId,
-                SingleTicketTypeId = adultTicket.TicketTypeId,
+                ComboTicketTypeId = combo3Ticket.TicketTypeId,
+                SingleTicketTypeId = standardTicket.TicketTypeId,
                 Quantity = 3
+            },
+            new ComboDetail
+            {
+                ComboTicketTypeId = combo5Ticket.TicketTypeId,
+                SingleTicketTypeId = standardTicket.TicketTypeId,
+                Quantity = 5
             }
         );
         await context.SaveChangesAsync();
@@ -207,11 +183,9 @@ public static class DataSeeder
         // 7. Seed PoolTicketTypes (prices for each ticket at this pool)
         var poolTicketTypes = new List<PoolTicketType>
         {
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = adultTicket.TicketTypeId, Price = 100000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = childTicket.TicketTypeId, Price = 70000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = seniorTicket.TicketTypeId, Price = 80000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = familyCombo.TicketTypeId, Price = 289000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = trippleCombo.TicketTypeId, Price = 270000m, Status = "Active" }
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = standardTicket.TicketTypeId, Price = 100000m, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo3Ticket.TicketTypeId, Price = 270000m, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo5Ticket.TicketTypeId, Price = 425000m, Status = "Active" }
         };
         context.PoolTicketTypes.AddRange(poolTicketTypes);
         await context.SaveChangesAsync();
