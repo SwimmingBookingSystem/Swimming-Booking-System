@@ -1,0 +1,162 @@
+@page "{id:int}"
+@model SBS.WebApp.Pages.Manager.Pools.EditModel
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Chỉnh sửa Bể bơi";
+    ViewData["Breadcrumb"] = "Quản lý / Bể bơi / Chỉnh sửa";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-bottom p-4">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-pen text-primary me-2"></i>Chỉnh sửa Bể bơi</h5>
+    </div>
+    <div class="card-body p-4">
+        <form id="poolForm">
+            <input type="hidden" id="poolId" value="@Model.Id">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Tên bể bơi <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="poolName" required maxlength="200">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Địa chỉ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="address" required maxlength="500">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ mở cửa <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="openingTime" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ đóng cửa <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="closingTime" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea class="form-control" id="description" rows="4" maxlength="2000"></textarea>
+            </div>
+            
+            <h6 class="fw-bold mb-3 border-bottom pb-2">Hình ảnh (Tối đa 10)</h6>
+            <div id="imageUrlsContainer">
+                <!-- Image inputs -->
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 mb-4" id="btnAddImage" onclick="addImageRow()">
+                <i class="fa-solid fa-plus"></i> Thêm URL ảnh
+            </button>
+            
+            <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                <a href="/Manager/Pools" class="btn btn-light border px-4">Hủy</a>
+                <button type="button" class="btn btn-primary px-4" onclick="savePool()"><i class="fa-solid fa-save me-2"></i>Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const poolId = $('#poolId').val();
+
+        $(document).ready(function() {
+            loadPoolData();
+        });
+
+        async function loadPoolData() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                const pools = res.items || [];
+                const p = pools.find(x => x.poolId == poolId);
+                
+                if(!p) {
+                    toastr.error('Không tìm thấy bể bơi.');
+                    setTimeout(() => { window.location.href = '/Manager/Pools'; }, 1500);
+                    return;
+                }
+
+                $('#poolName').val(p.poolName);
+                $('#address').val(p.address);
+                $('#openingTime').val(p.openingTime.substring(0,5));
+                $('#closingTime').val(p.closingTime.substring(0,5));
+                $('#description').val(p.description);
+                
+                if (p.images && p.images.length > 0) {
+                    p.images.forEach(img => addImageRow(img.imageUrl, img.isCover));
+                } else {
+                    addImageRow();
+                }
+            } catch (e) { }
+        }
+
+        function addImageRow(url = '', isCover = false) {
+            if ($('.img-row').length >= 10) return;
+            const uid = Date.now() + Math.random().toString().slice(2,5);
+            const html = `
+                <div class="row g-2 mb-3 img-row align-items-center" id="img_${uid}">
+                    <div class="col-8">
+                        <input type="url" class="form-control img-url" placeholder="https://..." value="${url}">
+                    </div>
+                    <div class="col-3">
+                        <div class="form-check">
+                            <input class="form-check-input cover-radio" type="radio" name="isCover" id="cover_${uid}" ${isCover ? 'checked' : ''}>
+                            <label class="form-check-label fw-medium" for="cover_${uid}">Ảnh Bìa</label>
+                        </div>
+                    </div>
+                    <div class="col-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="$('#img_${uid}').remove(); checkImageCount();" title="Xóa ảnh">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            $('#imageUrlsContainer').append(html);
+            checkImageCount();
+        }
+
+        function checkImageCount() {
+            if ($('.img-row').length >= 10) $('#btnAddImage').hide();
+            else $('#btnAddImage').show();
+        }
+
+        async function savePool() {
+            if(!$('#poolForm')[0].checkValidity()) {
+                $('#poolForm')[0].reportValidity();
+                return;
+            }
+            
+            const opening = $('#openingTime').val();
+            const closing = $('#closingTime').val();
+            if (opening >= closing) {
+                toastr.error("Giờ đóng cửa phải sau giờ mở cửa.");
+                return;
+            }
+
+            const payload = {
+                poolName: $('#poolName').val(),
+                address: $('#address').val(),
+                openingTime: opening + ":00",
+                closingTime: closing + ":00",
+                description: $('#description').val()
+            };
+
+            const images = [];
+            $('.img-row').each(function() {
+                const url = $(this).find('.img-url').val().trim();
+                const isCover = $(this).find('.cover-radio').is(':checked');
+                if (url) images.push({ imageUrl: url, isCover: isCover });
+            });
+            if (images.length > 0 && !images.some(i => i.isCover)) {
+                images[0].isCover = true;
+            }
+
+            try {
+                await api.put(`/pools/${poolId}`, payload);
+                if (images.length > 0) {
+                    await api.put(`/pools/${poolId}/images`, images);
+                }
+                toastr.success('Cập nhật thành công');
+                setTimeout(() => { window.location.href = '/Manager/Pools'; }, 1000);
+            } catch (e) {}
+        }
+    </script>
+}
