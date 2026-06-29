@@ -8,6 +8,7 @@ using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Identity;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 using SBS.Application.Common.Interfaces;
 using SBS.Infrastructure.Data.Repositories;
@@ -79,6 +80,18 @@ public static class DependencyInjection
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
+            };
+            // CẤU HÌNH LÝ THUYẾT COOKIE: Đọc token từ Cookie tên "accessToken"
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (context.Request.Cookies.ContainsKey("accessToken"))
+                    {
+                        context.Token = context.Request.Cookies["accessToken"];
+                    }
+                    return Task.CompletedTask;
+                }
             };
         });
 
