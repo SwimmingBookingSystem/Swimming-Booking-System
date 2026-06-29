@@ -449,6 +449,9 @@
                     url: `${apiBaseUrl}/api/Auth/login`,
                     type: 'POST',
                     contentType: 'application/json',
+                    xhrFields: {
+                        withCredentials: true // Cho phép trình duyệt lưu Cookie HttpOnly từ API
+                    },
                     data: JSON.stringify({
                         userName: username,
                         password: password
@@ -456,15 +459,8 @@
                     success: function(response) {
                         setLoadingState(false);
                         
-                        // API trả về trực tiếp DTO AuthResponseDto khi đăng nhập thành công
-                        if (response && response.accessToken) {
-                            // Lưu vào localStorage
-                            localStorage.setItem('accessToken', response.accessToken);
-                            localStorage.setItem('refreshToken', response.refreshToken);
-                            localStorage.setItem('role', response.role);
-                            localStorage.setItem('fullName', response.fullName);
-                            localStorage.setItem('userName', response.userName);
-
+                        // Cơ chế mới: KHÔNG lưu bất kỳ thứ gì vào localStorage theo yêu cầu bảo mật
+                        if (response && response.role) {
                             // Điều hướng tùy theo vai trò (Role)
                             const role = response.role.toLowerCase();
                             if (role === 'admin') {

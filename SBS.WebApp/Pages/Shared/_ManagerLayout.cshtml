@@ -99,23 +99,39 @@
         });
     </script>
     <script>
-        // --- 1. KIỂM TRA XÁC THỰC (AUTHENTICATION) ---
-        const accessToken = localStorage.getItem('accessToken');
-        const userRole = localStorage.getItem('role');
-        const fullName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Manager';
+        // Helper đọc cookie
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
 
-        // Nếu không có token, hoặc role không phải Manager -> Đẩy về trang Login
-        if (!accessToken || !userRole || userRole.toLowerCase() !== 'manager') {
+        // --- 1. KIỂM TRA XÁC THỰC (AUTHENTICATION) ---
+        const userRole = getCookie('role');
+        const fullName = decodeURIComponent(getCookie('fullName') || getCookie('userName') || 'Manager');
+
+        // Nếu không có role, hoặc role không phải Manager -> Đẩy về trang Login
+        if (!userRole || userRole.toLowerCase() !== 'manager') {
             window.location.href = '/Auth/Login';
         }
 
         // Hàm Đăng xuất
         function logout() {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('role');
-            localStorage.removeItem('fullName');
-            localStorage.removeItem('userName');
+            // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            
+            // Đồng thời xóa cookie không cần domain chỉ định
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            
             window.location.href = '/Auth/Login';
         }
 
@@ -136,23 +152,25 @@
                 return new Promise((resolve, reject) => {
                     $('#global-loader').css('display', 'flex');
                     
-                    const token = localStorage.getItem('accessToken');
-                    if (!token) {
+                    const role = getCookie('role');
+                    if (!role) {
                         $('#global-loader').hide();
                         logout();
-                        reject(new Error("No token available"));
+                        reject(new Error("No active session available"));
                         return;
                     }
 
                     const headers = { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     };
                     
                     $.ajax({
                         url: this.baseURL + url, 
                         type: method, 
-                        headers: headers, 
+                        headers: headers,
+                        xhrFields: {
+                            withCredentials: true // RẤT QUAN TRỌNG: Tự động gửi kèm Cookie của API
+                        },
                         data: data ? JSON.stringify(data) : null,
                         success: function(response) { 
                             $('#global-loader').hide(); 
