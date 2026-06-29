@@ -11,6 +11,7 @@ namespace SBS.Application.Common.Interfaces;
 /// Cung cấp khả năng tra cứu thông tin User phục vụ các nghiệp vụ của Staff:
 ///   - Enrich thông tin khách hàng vào danh sách/chi tiết booking
 ///   - Tìm kiếm booking theo phone/email của khách
+///   - Kiểm tra quyền truy cập hồ bơi theo phân công
 /// </summary>
 public interface IStaffUserService
 {
@@ -30,4 +31,8 @@ public interface IStaffUserService
         string? phone,
         string? email,
         CancellationToken cancellationToken = default);
+
+    Task<List<int>> GetAssignedPoolIdsAsync(Guid staffId, CancellationToken cancellationToken = default);
+
+    Task<bool> IsStaffAssignedToPoolAsync(Guid staffId, int poolId, CancellationToken cancellationToken = default);
 }
