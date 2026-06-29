@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp", policy =>
     {
-        policy.WithOrigins("https://localhost:7000", "http://localhost:5000") // port của SBS.WebApp
+        policy.SetIsOriginAllowed(origin => true) // Allow all origins for dev
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

@@ -1,0 +1,571 @@
+@page
+@model SBS.WebApp.Pages.Manager.Pools.IndexModel
+@{
+    Layout = "_ManagerLayout";
+}
+
+@section Styles {
+    <style>
+        .master-detail-layout {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 120px);
+        }
+        .master-list {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: transparent;
+        }
+        .detail-panel {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .detail-panel.active {
+            display: flex;
+        }
+        
+        .pool-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .pool-card.active {
+            border: 2px solid var(--sidebar-active);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .pool-card-img-wrapper {
+            position: relative;
+            height: 140px;
+        }
+        .pool-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .pool-status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(34, 197, 94, 0.9);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pool-status-badge.closed {
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+        }
+        .pool-status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .pool-card-body {
+            padding: 16px;
+        }
+        
+        .list-container {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 8px;
+        }
+        /* Custom scrollbar for list */
+        .list-container::-webkit-scrollbar { width: 6px; }
+        .list-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .toolbar {
+            margin-bottom: 16px;
+            background: transparent;
+        }
+        
+        .hover-shadow:hover {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+    </style>
+}
+
+<div class="master-detail-layout">
+    <!-- Master List -->
+    <div class="master-list">
+        <div class="toolbar d-flex gap-3 align-items-center">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên bể bơi...">
+            </div>
+            <select id="statusFilter" class="form-select" style="width: 150px;">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Active">Active</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <button class="btn btn-primary text-nowrap" onclick="openCreateModal()">
+                <i class="fa-solid fa-plus me-1"></i> Tạo bể bơi
+            </button>
+        </div>
+        
+        <div class="list-container" id="poolList">
+            <!-- Pool Cards will be injected here -->
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel" id="detailPanel">
+        <div id="detailContent">
+            <!-- Details will be injected here -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal Create/Update Pool -->
+<div class="modal fade" id="poolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="poolModalTitle">Tạo Bể bơi mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="poolForm">
+                    <input type="hidden" id="poolId">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Tên bể bơi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="poolName" required maxlength="200">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Địa chỉ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="address" required maxlength="500">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Giờ mở cửa <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="openingTime" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Giờ đóng cửa <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="closingTime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Mô tả</label>
+                        <textarea class="form-control" id="description" rows="3" maxlength="2000"></textarea>
+                    </div>
+                    
+                    <h6 class="fw-bold mt-4 mb-3 border-bottom pb-2">Hình ảnh (Tối đa 10)</h6>
+                    <div id="imageUrlsContainer">
+                        <!-- Image inputs -->
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="btnAddImage" onclick="addImageRow()">
+                        <i class="fa-solid fa-plus"></i> Thêm URL ảnh
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="savePool()">Lưu Bể bơi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Close Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận đóng</h5>
+                <p class="text-muted mb-4" id="confirmMessage">Bạn có chắc chắn muốn thực hiện?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let pools = [];
+        let selectedPoolId = null;
+        let poolModal = new bootstrap.Modal(document.getElementById('poolModal'));
+        let confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        let confirmActionCb = null;
+
+        $(document).ready(function() {
+            loadPools();
+
+            $('#searchInput').on('input', function() { filterPools(); });
+            $('#statusFilter').on('change', function() { filterPools(); });
+        });
+
+        async function loadPools() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                pools = res.items || [];
+                filterPools();
+                
+                if (selectedPoolId) {
+                    selectPool(selectedPoolId);
+                } else if (pools.length > 0) {
+                    selectPool(pools[0].poolId);
+                }
+            } catch (error) {}
+        }
+
+        function filterPools() {
+            const search = $('#searchInput').val().toLowerCase();
+            const status = $('#statusFilter').val();
+
+            const filtered = pools.filter(p => {
+                const matchSearch = p.poolName.toLowerCase().includes(search) || p.address.toLowerCase().includes(search);
+                const matchStatus = status === '' || p.status === status;
+                return matchSearch && matchStatus;
+            });
+
+            renderList(filtered);
+        }
+
+        function renderList(list) {
+            let html = '';
+            if (list.length === 0) {
+                html = '<div class="p-4 text-center text-muted"><i class="fa-solid fa-inbox fa-3x mb-3"></i><p>Không tìm thấy bể bơi nào.</p></div>';
+            } else {
+                list.forEach(p => {
+                    const activeClass = p.poolId === selectedPoolId ? 'active' : '';
+                    const isClosed = p.status !== 'Active';
+                    const badgeClass = isClosed ? 'closed' : '';
+                    const badgeText = isClosed ? 'CLOSED' : 'ACTIVE';
+                    
+                    const coverImg = p.images && p.images.length > 0 ? p.images.find(i => i.isCover)?.imageUrl || p.images[0].imageUrl : 'https://placehold.co/600x400?text=No+Image';
+
+                    html += `
+                        <div class="pool-card ${activeClass}" onclick="selectPool(${p.poolId})">
+                            <div class="pool-card-img-wrapper">
+                                <img src="${coverImg}" class="pool-card-img">
+                                <div class="pool-status-badge ${badgeClass}">${badgeText}</div>
+                            </div>
+                            <div class="pool-card-body">
+                                <h5 class="fw-bold mb-3 text-truncate">${p.poolName}</h5>
+                                <div class="text-muted small fw-medium mb-2"><i class="fa-solid fa-location-dot text-primary me-2"></i>${p.address}</div>
+                                <div class="text-muted small fw-medium"><i class="fa-regular fa-clock text-primary me-2"></i>${p.openingTime} - ${p.closingTime}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            $('#poolList').html(html);
+        }
+
+        function selectPool(id) {
+            selectedPoolId = id;
+            $('.pool-card').removeClass('active');
+            $(`.pool-card[onclick="selectPool(${id})"]`).addClass('active');
+            
+            const pool = pools.find(p => p.poolId === id);
+            if (!pool) return;
+
+            $('#detailPanel').addClass('active');
+            renderDetail(pool);
+        }
+
+        function renderDetail(p) {
+            const coverImg = p.images && p.images.length > 0 ? p.images.find(i => i.isCover)?.imageUrl || p.images[0].imageUrl : 'https://placehold.co/1200x400?text=No+Image';
+            
+            const isClosed = p.status !== 'Active';
+            const badgeBg = isClosed ? 'bg-danger' : 'bg-success';
+            const badgeText = isClosed ? 'CLOSED' : 'ACTIVE';
+            
+            const actionBtnHtml = isClosed 
+                ? `<button class="btn btn-outline-success border bg-white text-success px-4" onclick="reopenPool(${p.poolId})"><i class="fa-solid fa-lock-open me-2"></i> Mở lại bể bơi</button>`
+                : `<button class="btn btn-outline-danger border bg-white text-danger px-4" onclick="confirmClose(${p.poolId}, '${p.poolName}')"><i class="fa-solid fa-ban me-2"></i> Đóng bể bơi tạm thời</button>`;
+
+            const html = `
+                <div style="position: relative; height: 300px; border-radius: 12px 12px 0 0; overflow: hidden;">
+                    <img src="${coverImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 24px; color: #fff;">
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge ${badgeBg} rounded-pill px-3 py-2 d-flex align-items-center gap-2"><div style="width:6px;height:6px;background:#fff;border-radius:50%;"></div> ${badgeText}</span>
+                            <span class="badge bg-dark bg-opacity-50 rounded-pill px-3 py-2 border border-secondary fw-normal">Tiêu chuẩn Olympic</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end">
+                            <h2 class="fw-bold mb-0 text-white">${p.poolName}</h2>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-dark rounded-circle border-0 bg-white bg-opacity-25" style="width: 40px; height: 40px;" onclick="openUpdateModal(${p.poolId})"><i class="fa-solid fa-pen text-white"></i></button>
+                                <button class="btn btn-dark rounded-circle border-0 bg-white bg-opacity-25" style="width: 40px; height: 40px;"><i class="fa-solid fa-ellipsis-vertical text-white"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4" style="background: #fdfdfd; flex: 1; overflow-y: auto;">
+                    <!-- Grid Info -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card h-100 border border-light shadow-sm rounded-4 p-3" style="background:#fff">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;"><i class="fa-solid fa-location-dot"></i></div>
+                                    <div>
+                                        <div class="text-muted small mb-1">Địa chỉ</div>
+                                        <div class="fw-medium small" style="line-height: 1.4;">${p.address}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border border-light shadow-sm rounded-4 p-3" style="background:#fff">
+                                <div class="text-muted small mb-1">Độ sâu</div>
+                                <div class="text-primary fw-medium small mb-2">1.2m - 2.0m</div>
+                                <div class="text-muted small mb-1 mt-auto">Số làn bơi</div>
+                                <div class="text-primary fw-medium small">10 Làn</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100 border border-light shadow-sm rounded-4 p-3" style="background:#fff">
+                                <div class="d-flex gap-3 align-items-start mb-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;"><i class="fa-regular fa-clock"></i></div>
+                                    <div>
+                                        <div class="text-muted small mb-1">Giờ hoạt động</div>
+                                        <div class="fw-bold text-dark">${p.openingTime} - ${p.closingTime}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs border-bottom-0 mb-4" style="gap: 24px;">
+                        <li class="nav-item">
+                            <a class="nav-link active fw-bold text-primary px-0 border-0 border-bottom border-primary border-3" href="javascript:void(0)" style="background:transparent;">Khung giờ hoạt động</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium text-muted px-0 border-0" href="javascript:void(0)">Bảng giá vé</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium text-muted px-0 border-0" href="javascript:void(0)">Gallery Ảnh</a>
+                        </li>
+                    </ul>
+
+                    <!-- Slots Preview -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Ca bơi hôm nay</h6>
+                        <a href="/Manager/Slots" class="text-primary text-decoration-none small fw-medium">Chỉnh sửa ca <i class="fa-solid fa-angle-right ms-1"></i></a>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card border border-light shadow-sm rounded-4 p-3" style="background:#fff">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="text-muted small fw-bold">CA SÁNG 1</div>
+                                    <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></div>
+                                </div>
+                                <h5 class="text-primary fw-bold mb-3">${p.openingTime} - 09:00</h5>
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span class="text-muted">Sức chứa</span>
+                                    <span class="fw-bold">45/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border border-light shadow-sm rounded-4 p-3" style="background:#fff">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="text-muted small fw-bold">CA CHIỀU 1</div>
+                                    <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></div>
+                                </div>
+                                <h5 class="text-primary fw-bold mb-3">14:00 - 17:00</h5>
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span class="text-muted">Sức chứa</span>
+                                    <span class="fw-bold">80/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Manager/Slots" class="text-decoration-none">
+                                <div class="card border-0 bg-light rounded-4 p-3 h-100 d-flex flex-column align-items-center justify-content-center text-muted hover-shadow" style="border: 2px dashed #cbd5e1 !important;">
+                                    <i class="fa-solid fa-plus-circle fa-2x mb-2 text-secondary"></i>
+                                    <span class="fw-medium small">Thêm ca bơi</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 border-top bg-light d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    ${actionBtnHtml}
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-white border bg-white px-4">Quản lý ảnh</button>
+                        <button class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i> Lưu thay đổi</button>
+                    </div>
+                </div>
+            `;
+            $('#detailContent').html(html);
+        }
+
+        // FORM LOGIC
+        function openCreateModal() {
+            $('#poolForm')[0].reset();
+            $('#poolId').val('');
+            $('#poolModalTitle').text('Tạo Bể bơi mới');
+            $('#imageUrlsContainer').empty();
+            addImageRow();
+            poolModal.show();
+        }
+
+        function openUpdateModal(id) {
+            const p = pools.find(x => x.poolId === id);
+            if(!p) return;
+
+            $('#poolForm')[0].reset();
+            $('#poolId').val(p.poolId);
+            $('#poolName').val(p.poolName);
+            $('#address').val(p.address);
+            $('#openingTime').val(p.openingTime);
+            $('#closingTime').val(p.closingTime);
+            $('#description').val(p.description);
+            $('#poolModalTitle').text('Sửa Bể bơi');
+            
+            $('#imageUrlsContainer').empty();
+            if (p.images && p.images.length > 0) {
+                p.images.forEach(img => addImageRow(img.imageUrl, img.isCover));
+            } else {
+                addImageRow();
+            }
+
+            poolModal.show();
+        }
+
+        function addImageRow(url = '', isCover = false) {
+            if ($('.img-row').length >= 10) return;
+            const uid = Date.now() + Math.random().toString().slice(2,5);
+            const activeClass = isCover ? 'btn-primary text-white' : 'btn-outline-secondary';
+            const html = `
+                <div class="row g-2 mb-2 img-row" id="img_${uid}">
+                    <div class="col-8">
+                        <input type="url" class="form-control img-url" placeholder="https://..." value="${url}">
+                    </div>
+                    <div class="col-3 d-flex align-items-center">
+                        <input type="radio" name="isCover" id="cover_${uid}" class="d-none cover-radio" ${isCover ? 'checked' : ''}>
+                        <label class="btn ${activeClass} btn-sm w-100 fw-medium d-flex align-items-center justify-content-center gap-1 cover-btn" for="cover_${uid}" onclick="updateCoverStyle(this)">
+                            <i class="fa-solid fa-image"></i> Bìa
+                        </label>
+                    </div>
+                    <div class="col-1">
+                        <button type="button" class="btn btn-light text-danger w-100" onclick="$('#img_${uid}').remove(); checkImageCount();"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            $('#imageUrlsContainer').append(html);
+            checkImageCount();
+        }
+
+        function updateCoverStyle(clickedLabel) {
+            $('.cover-btn').removeClass('btn-primary text-white').addClass('btn-outline-secondary');
+            $(clickedLabel).removeClass('btn-outline-secondary').addClass('btn-primary text-white');
+        }
+
+        function checkImageCount() {
+            if ($('.img-row').length >= 10) $('#btnAddImage').hide();
+            else $('#btnAddImage').show();
+        }
+
+        async function savePool() {
+            if(!$('#poolForm')[0].checkValidity()) {
+                $('#poolForm')[0].reportValidity();
+                return;
+            }
+            
+            const opening = $('#openingTime').val();
+            const closing = $('#closingTime').val();
+            if (opening >= closing) {
+                toastr.error("Giờ đóng cửa phải sau giờ mở cửa.");
+                return;
+            }
+
+            const payload = {
+                poolName: $('#poolName').val(),
+                address: $('#address').val(),
+                openingTime: opening + ":00",
+                closingTime: closing + ":00",
+                description: $('#description').val()
+            };
+
+            const images = [];
+            $('.img-row').each(function() {
+                const url = $(this).find('.img-url').val().trim();
+                const isCover = $(this).find('.cover-radio').is(':checked');
+                if (url) images.push({ imageUrl: url, isCover: isCover });
+            });
+            if (images.length > 0 && !images.some(i => i.isCover)) {
+                images[0].isCover = true;
+            }
+
+            const id = $('#poolId').val();
+            try {
+                if (id) {
+                    await api.put(`/pools/${id}`, payload);
+                    if (images.length > 0) {
+                        await api.put(`/pools/${id}/images`, images);
+                    }
+                    toastr.success('Cập nhật thành công');
+                } else {
+                    const res = await api.post('/pools', payload);
+                    if (images.length > 0 && res) {
+                         await api.put(`/pools/${res.poolId}/images`, images);
+                    }
+                    toastr.success('Tạo bể bơi thành công');
+                }
+                poolModal.hide();
+                loadPools();
+            } catch (e) {
+                // Interceptor handles error toast
+            }
+        }
+
+        function confirmClose(id, name) {
+            $('#confirmTitle').text('Đóng Bể Bơi?');
+            $('#confirmMessage').text(`Bể bơi "${name}" sẽ không nhận Booking mới nữa.`);
+            confirmActionCb = async () => {
+                try {
+                    await api.patch(`/pools/${id}/close`);
+                    toastr.success('Đã đóng bể bơi.');
+                    confirmModal.hide();
+                    loadPools();
+                } catch(e) {}
+            };
+            confirmModal.show();
+        }
+
+        async function reopenPool(id) {
+            try {
+                await api.patch(`/pools/${id}/reopen`);
+                toastr.success('Đã mở lại bể bơi.');
+                loadPools();
+            } catch(e) {}
+        }
+
+        $('#btnConfirmAction').click(function() {
+            if (confirmActionCb) confirmActionCb();
+        });
+    </script>
+}
