@@ -6,57 +6,81 @@
     ViewData["Breadcrumb"] = "Quản lý / Bể bơi";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="d-flex gap-3 align-items-center">
-        <div class="input-group shadow-sm" style="width: 300px;">
-            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-            <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên bể bơi, địa chỉ...">
-        </div>
-        <select id="statusFilter" class="form-select shadow-sm" style="width: 180px;">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Active">Hoạt động (Active)</option>
-            <option value="Closed">Tạm đóng (Closed)</option>
-        </select>
+@section Styles {
+    <link rel="stylesheet" href="~/css/manager-pools-index.css" asp-append-version="true" />
+}
+
+<!-- ── Page Header ───────────────────────────────── -->
+<div class="mb-4">
+    <div class="page-header-pill">
+        <i class="fa-solid fa-water"></i> Quản lý Bể bơi
     </div>
-    <a href="/Manager/Pools/Create" class="btn btn-primary shadow-sm">
-        <i class="fa-solid fa-plus me-1"></i> Tạo bể bơi mới
+    <h4 class="fw-bold text-dark mb-1 mt-1" style="font-size:22px;">Danh sách Bể bơi</h4>
+    <p class="text-muted small mb-0">Theo dõi, cập nhật thông tin và trạng thái các bể bơi trong hệ thống.</p>
+</div>
+
+<!-- ── Filter Bar ────────────────────────────────── -->
+<div class="filter-card">
+    <div class="filter-search">
+        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" id="searchInput" placeholder="Tìm tên bể bơi, địa chỉ...">
+    </div>
+    <select id="statusFilter" class="filter-select">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Active">Đang hoạt động</option>
+        <option value="Closed">Tạm đóng</option>
+    </select>
+    <div class="text-muted small" id="resultCount"></div>
+    <a href="/Manager/Pools/Create" class="btn btn-primary fw-semibold shadow-sm px-4 ms-auto"
+       style="border-radius:12px; padding-top:9px; padding-bottom:9px; white-space:nowrap; flex-shrink:0;">
+        <i class="fa-solid fa-plus me-2"></i>Thêm bể bơi mới
     </a>
 </div>
 
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+<!-- ── Table Card ────────────────────────────────── -->
+<div class="pool-table-card">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+        <table class="table mb-0">
+            <thead>
                 <tr>
-                    <th class="ps-4 text-muted small fw-bold text-uppercase">Bể bơi</th>
-                    <th class="text-muted small fw-bold text-uppercase">Địa chỉ</th>
-                    <th class="text-muted small fw-bold text-uppercase text-center">Giờ hoạt động</th>
-                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
-                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
+                    <th style="padding-left:24px; width:35%;">Bể bơi</th>
+                    <th style="width:30%;">Địa chỉ</th>
+                    <th class="text-center" style="width:15%;">Giờ hoạt động</th>
+                    <th class="text-center" style="width:10%;">Trạng thái</th>
+                    <th class="text-center" style="padding-right:24px; width:10%;">Hành động</th>
                 </tr>
             </thead>
             <tbody id="poolTableBody">
-                <tr><td colspan="5" class="text-center p-4">Đang tải dữ liệu...</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <div class="spinner-border text-primary mb-2" style="width:2rem;height:2rem;"></div>
+                        <div class="small">Đang tải dữ liệu...</div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
-    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 bể bơi</div>
-        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+
+    <!-- ── Pagination (centered) ─────────────────── -->
+    <div class="pagination-wrapper">
+        <div class="page-info-text" id="pageInfo">Hiển thị 0 - 0 trong 0 bể bơi</div>
+        <ul class="custom-pagination" id="pagination"></ul>
     </div>
 </div>
 
-<!-- Confirm Close Modal -->
+<!-- ── Confirm Modal ─────────────────────────────── -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
-                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận đóng</h5>
-                <p class="text-muted mb-4" id="confirmMessage">Bạn có chắc chắn muốn thực hiện?</p>
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px; overflow:hidden;">
+            <div class="modal-body text-center p-5">
+                <div class="mb-4" style="font-size:3rem;">⚠️</div>
+                <h5 class="fw-bold mb-2" id="confirmTitle">Xác nhận</h5>
+                <p class="text-muted mb-4 small" id="confirmMessage">Bạn có chắc chắn muốn thực hiện?</p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light border flex-fill" data-bs-dismiss="modal"
+                            style="border-radius:12px;">Hủy</button>
+                    <button type="button" class="btn btn-danger flex-fill" id="btnConfirmAction"
+                            style="border-radius:12px;">Xác nhận</button>
                 </div>
             </div>
         </div>
@@ -70,15 +94,15 @@
         let currentPage = 1;
         const pageSize = 5;
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             loadPools(1);
 
-            let searchTimeout = null;
-            $('#searchInput').on('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => loadPools(1), 500);
+            let timer = null;
+            $('#searchInput').on('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(() => loadPools(1), 450);
             });
-            $('#statusFilter').on('change', function() { loadPools(1); });
+            $('#statusFilter').on('change', function () { loadPools(1); });
         });
 
         async function loadPools(page) {
@@ -89,90 +113,160 @@
             if (search) url += `&search=${encodeURIComponent(search)}`;
             if (status) url += `&status=${status}`;
 
+            $('#poolTableBody').html(`
+                <tr><td colspan="5" class="text-center py-5 text-muted">
+                    <div class="spinner-border text-primary mb-2" style="width:1.8rem;height:1.8rem;"></div>
+                    <div class="small">Đang tải...</div>
+                </td></tr>`);
+
             try {
                 const res = await api.get(url);
-                renderTable(res.items || []);
+                const items = res.items || [];
+                renderTable(items);
                 renderPagination(res.totalCount, res.page, res.pageSize);
-            } catch (error) {
-                $('#poolTableBody').html('<tr><td colspan="5" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+                updateStats(res.totalCount, items);
+            } catch (e) {
+                $('#poolTableBody').html(`
+                    <tr><td colspan="5" class="text-center py-5 text-danger">
+                        <i class="fa-solid fa-circle-exclamation fa-2x mb-2"></i>
+                        <div class="small">Lỗi tải dữ liệu. Vui lòng thử lại.</div>
+                    </td></tr>`);
             }
+        }
+
+        function updateStats(total, items) {
+            const activeCount = items.filter(p => p.status === 'Active').length;
+            const closedCount = items.filter(p => p.status !== 'Active').length;
+            $('#statTotal').text(total);
+            $('#statActive').text(activeCount);
+            $('#statClosed').text(closedCount);
+            $('#statSlots').text(items.length);
+            $('#resultCount').text(total > 0 ? `Tìm thấy ${total} kết quả` : '');
         }
 
         function renderPagination(totalCount, page, pSize) {
             const totalPages = Math.ceil(totalCount / pSize) || 1;
-            const startItem = (page - 1) * pSize + 1;
+            const startItem = totalCount === 0 ? 0 : (page - 1) * pSize + 1;
             const endItem = Math.min(page * pSize, totalCount);
-            
-            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} bể bơi`);
+
+            $('#pageInfo').html(
+                `Hiển thị <strong>${startItem} \u2013 ${endItem}</strong> trong <strong>${totalCount}</strong> bể bơi`
+            );
 
             let html = '';
-            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadPools(${page - 1}); return false;">Trước</a></li>`;
-            for(let i = 1; i <= totalPages; i++) {
-                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadPools(${i}); return false;">${i}</a></li>`;
+            html += `<li><a class="pg-btn ${page === 1 ? 'disabled' : ''}" href="#"
+                onclick="if(${page}>1){loadPools(${page - 1});} return false;">
+                <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i></a></li>`;
+
+            const delta = 2;
+            let startPage = Math.max(1, page - delta);
+            let endPage   = Math.min(totalPages, page + delta);
+
+            if (startPage > 1) {
+                html += `<li><a class="pg-btn" href="#" onclick="loadPools(1); return false;">1</a></li>`;
+                if (startPage > 2) html += `<li><span class="pg-dots">\u00B7\u00B7\u00B7</span></li>`;
             }
-            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadPools(${page + 1}); return false;">Sau</a></li>`;
-            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li><a class="pg-btn ${page === i ? 'active' : ''}" href="#"
+                    onclick="loadPools(${i}); return false;">${i}</a></li>`;
+            }
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<li><span class="pg-dots">\u00B7\u00B7\u00B7</span></li>`;
+                html += `<li><a class="pg-btn" href="#" onclick="loadPools(${totalPages}); return false;">${totalPages}</a></li>`;
+            }
+
+            html += `<li><a class="pg-btn ${page === totalPages ? 'disabled' : ''}" href="#"
+                onclick="if(${page}<${totalPages}){loadPools(${page + 1});} return false;">
+                <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i></a></li>`;
+
             $('#pagination').html(html);
         }
 
         function renderTable(list) {
-            let html = '';
             if (list.length === 0) {
-                html = '<tr><td colspan="5" class="text-center text-muted p-5"><i class="fa-solid fa-inbox fa-3x mb-3"></i><br>Không tìm thấy bể bơi nào.</td></tr>';
-            } else {
-                list.forEach(p => {
-                    const isClosed = p.status !== 'Active';
-                    const badgeClass = isClosed ? 'bg-danger text-danger' : 'bg-success text-success';
-                    const badgeText = isClosed ? 'CLOSED' : 'ACTIVE';
-                    
-                    const coverImg = p.images && p.images.length > 0 ? p.images.find(i => i.isCover)?.imageUrl || p.images[0].imageUrl : 'https://placehold.co/100x100?text=No+Image';
-
-                    const toggleBtn = isClosed 
-                        ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="reopenPool(${p.poolId})" title="Mở lại"><i class="fa-solid fa-lock-open"></i></button>`
-                        : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmClose(${p.poolId}, '${p.poolName}')" title="Đóng tạm thời"><i class="fa-solid fa-lock"></i></button>`;
-
-                    html += `
-                        <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center gap-3">
-                                    <img src="${coverImg}" alt="${p.poolName}" class="rounded-3 object-fit-cover shadow-sm" width="60" height="60">
-                                    <div class="fw-bold text-dark">${p.poolName}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-muted small" style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    <i class="fa-solid fa-location-dot me-1 text-primary"></i> ${p.address}
-                                </div>
-                            </td>
-                            <td class="text-center fw-medium">
-                                ${p.openingTime.substring(0,5)} - ${p.closingTime.substring(0,5)}
-                            </td>
-                            <td class="text-center">
-                                <span class="badge ${badgeClass} bg-opacity-10 rounded-pill px-3 py-2 fw-bold">${badgeText}</span>
-                            </td>
-                            <td class="text-end pe-4">
-                                ${toggleBtn}
-                                <a href="/Manager/Pools/Edit/${p.poolId}" class="btn btn-sm btn-light text-primary border" title="Chỉnh sửa">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    `;
-                });
+                $('#poolTableBody').html(`
+                    <tr><td colspan="5" class="text-center py-5">
+                        <i class="fa-solid fa-water fa-3x text-muted opacity-25 mb-3 d-block"></i>
+                        <div class="fw-semibold text-muted">Không tìm thấy bể bơi nào</div>
+                        <div class="small text-muted mt-1">Thử thay đổi từ khoá tìm kiếm hoặc bộ lọc</div>
+                    </td></tr>`);
+                return;
             }
+
+            let html = '';
+            list.forEach(p => {
+                const isClosed = p.status !== 'Active';
+                const coverImg = p.images && p.images.length > 0
+                    ? (p.images.find(i => i.isCover)?.imageUrl || p.images[0].imageUrl)
+                    : 'https://placehold.co/60x60/e0f2fe/0284c7?text=Pool';
+
+                const overlay = isClosed
+                    ? `<div class="pool-avatar-overlay"><i class="fa-solid fa-lock"></i></div>` : '';
+
+                const statusBadge = isClosed
+                    ? `<span class="status-badge closed"><span class="status-dot closed"></span>Tạm đóng</span>`
+                    : `<span class="status-badge active"><span class="status-dot active"></span>Hoạt động</span>`;
+
+                const lockBtn = isClosed
+                    ? `<button class="action-btn unlock" onclick="reopenPool(${p.poolId})" title="Mở lại bể bơi">
+                            <i class="fa-solid fa-lock-open"></i></button>`
+                    : `<button class="action-btn open" onclick="confirmClose(${p.poolId}, '${p.poolName.replace(/'/g, "\\'")}')" title="Đóng tạm thời">
+                            <i class="fa-solid fa-lock"></i></button>`;
+
+                html += `
+                <tr>
+                    <td style="padding:14px 16px 14px 24px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="position-relative" style="flex-shrink:0;">
+                                <img src="${coverImg}" alt="${p.poolName}" class="pool-avatar">
+                                ${overlay}
+                            </div>
+                            <div style="min-width:0;">
+                                <div class="fw-semibold text-dark" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${p.poolName}</div>
+                                <div class="text-muted mt-1" style="font-size:12px;">
+                                    <i class="fa-solid fa-ruler-combined text-primary me-1"></i>${p.area ? p.area + ' m²' : 'Chưa có diện tích'}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding:14px 16px;">
+                        <div class="d-flex align-items-start gap-2 text-muted" style="font-size:13px;max-width:260px;">
+                            <i class="fa-solid fa-location-dot text-danger mt-1" style="flex-shrink:0;"></i>
+                            <span style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.address}</span>
+                        </div>
+                    </td>
+                    <td class="text-center" style="padding:14px 16px;">
+                        <span class="time-badge">
+                            <i class="fa-regular fa-clock"></i>
+                            ${p.openingTime.substring(0,5)} \u2013 ${p.closingTime.substring(0,5)}
+                        </span>
+                    </td>
+                    <td class="text-center" style="padding:14px 16px;">
+                        ${statusBadge}
+                    </td>
+                    <td class="text-center" style="padding:14px 24px 14px 16px;">
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+                            ${lockBtn}
+                            <a href="/Manager/Pools/Edit/${p.poolId}" class="action-btn edit" title="Chỉnh sửa">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>`;
+            });
             $('#poolTableBody').html(html);
         }
 
         function confirmClose(id, name) {
-            $('#confirmTitle').text('Đóng Bể Bơi?');
-            $('#confirmMessage').text(`Bể bơi "${name}" sẽ không nhận Booking mới nữa.`);
+            $('#confirmTitle').text('Đóng bể bơi?');
+            $('#confirmMessage').text(`Bể bơi "${name}" sẽ không nhận booking mới. Bạn có chắc chắn?`);
             confirmActionCb = async () => {
                 try {
                     await api.patch(`/pools/${id}/close`);
-                    toastr.success('Đã đóng bể bơi.');
+                    toastr.success('Đã đóng bể bơi thành công.');
                     confirmModal.hide();
-                    loadPools();
-                } catch(e) {}
+                    loadPools(currentPage);
+                } catch (e) {}
             };
             confirmModal.show();
         }
@@ -180,12 +274,12 @@
         async function reopenPool(id) {
             try {
                 await api.patch(`/pools/${id}/reopen`);
-                toastr.success('Đã mở lại bể bơi.');
-                loadPools();
-            } catch(e) {}
+                toastr.success('Đã mở lại bể bơi thành công.');
+                loadPools(currentPage);
+            } catch (e) {}
         }
 
-        $('#btnConfirmAction').click(function() {
+        $('#btnConfirmAction').on('click', function () {
             if (confirmActionCb) confirmActionCb();
         });
     </script>
