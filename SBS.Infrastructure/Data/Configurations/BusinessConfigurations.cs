@@ -360,8 +360,8 @@ public class PoolStaffAssignmentConfiguration : IEntityTypeConfiguration<PoolSta
         builder.Property(e => e.StaffId).IsRequired();
         builder.Property(e => e.AssignedAt).HasDefaultValueSql("GETUTCDATE()");
 
-        // Unique: mỗi cặp (PoolId, StaffId) chỉ tồn tại 1 lần
-        builder.HasIndex(e => new { e.PoolId, e.StaffId }).IsUnique();
+        // Unique: mỗi bể chỉ có tối đa 1 staff duy nhất
+        builder.HasIndex(e => e.PoolId).IsUnique();
 
         // FK tới Pools
         builder.HasOne(e => e.Pool)

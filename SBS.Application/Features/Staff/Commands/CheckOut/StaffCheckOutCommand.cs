@@ -1,0 +1,101 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common.Interfaces;
+using SBS.Domain.Entities;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace SBS.Application.Features.Staff.Commands.CheckOut;
+
+public record StaffCheckOutCommand : IRequest<StaffCheckOutResultDto>
+{
+    public int? BookingId { get; init; }
+    public string? BookingCode { get; init; }
+}
+
+public record StaffCheckOutResultDto
+{
+    public bool Succeeded { get; init; }
+    public string? Message { get; init; }
+    public string? CustomerName { get; init; }
+    public string? SlotTime { get; init; }
+}
+
+public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand, StaffCheckOutResultDto>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IStaffUserService _staffUserService;
+
+    public StaffCheckOutCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService,
+        IStaffUserService staffUserService)
+    {
+        _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
+        _staffUserService = staffUserService;
+    }
+
+    public async Task<StaffCheckOutResultDto> Handle(StaffCheckOutCommand request, CancellationToken cancellationToken)
+    {
+        var staffIdString = _currentUserService.UserId;
+        if (string.IsNullOrEmpty(staffIdString) || !Guid.TryParse(staffIdString, out var staffId))
+            return new StaffCheckOutResultDto { Succeeded = false, Message = "Nhân viên chưa đăng nhập hoặc không hợp lệ." };
+
+        var bookingRepo = _unitOfWork.Repository<Booking>();
+        var query = bookingRepo.Query().Include(b => b.PoolSlot).AsQueryable();
+
+        if (request.BookingId.HasValue && request.BookingId.Value > 0)
+        {
+            query = query.Where(b => b.BookingId == request.BookingId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(request.BookingCode))
+        {
+            query = query.Where(b => b.BookingCode == request.BookingCode.Trim());
+        }
+        else
+        {
+            return new StaffCheckOutResultDto { Succeeded = false, Message = "Vui lòng cung cấp BookingId hoặc BookingCode." };
+        }
+
+        var booking = await _unitOfWork.FirstOrDefaultAsync(query, cancellationToken);
+        if (booking is null)
+            return new StaffCheckOutResultDto { Succeeded = false, Message = "Không tìm thấy booking." };
+
+        // Guard: kiểm tra Staff có được phân công vào hồ bơi của booking này không
+        var isAssigned = await _staffUserService.IsStaffAssignedToPoolAsync(staffId, booking.PoolSlot.PoolId, cancellationToken);
+        if (!isAssigned)
+            return new StaffCheckOutResultDto { Succeeded = false, Message = "Bạn không có quyền quản lý tại hồ bơi này." };
+
+        // Validate trạng thái: chỉ cho phép check-out nếu trạng thái hiện tại là CheckIn
+        if (booking.Status != "CheckIn")
+        {
+            return new StaffCheckOutResultDto
+            {
+                Succeeded = false,
+                Message = $"Booking không thể check-out. Trạng thái hiện tại: {booking.Status} (chỉ cho phép check-out đối với booking ở trạng thái CheckIn)."
+            };
+        }
+
+        // Cập nhật trạng thái thành Completed khi khách check-out
+        booking.Status = "Completed";
+        booking.UpdatedAt = DateTime.UtcNow;
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var customer = await _staffUserService.GetUserBriefAsync(booking.UserId, cancellationToken);
+        var customerName = customer?.FullName ?? "Khách vãng lai";
+        var slotTime = $"{booking.PoolSlot.SlotName} ({booking.PoolSlot.StartTime:hh\\:mm} - {booking.PoolSlot.EndTime:hh\\:mm})";
+
+        return new StaffCheckOutResultDto
+        {
+            Succeeded = true,
+            Message = "Check-out thành công.",
+            CustomerName = customerName,
+            SlotTime = slotTime
+        };
+    }
+}

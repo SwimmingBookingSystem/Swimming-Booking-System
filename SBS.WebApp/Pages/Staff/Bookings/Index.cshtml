@@ -1,0 +1,292 @@
+@page
+@model SBS.WebApp.Pages.Staff.Bookings.IndexModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Quản lý Booking";
+    ViewData["Breadcrumb"] = "Lễ tân / Quản lý Booking";
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-3 mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-muted">Trạng thái</label>
+                        <select id="filter-status" class="form-select">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Confirmed">Confirmed (Đã đặt)</option>
+                            <option value="CheckIn">CheckIn (Đang bơi)</option>
+                            <option value="Completed">Completed (Đã xong)</option>
+                            <option value="Cancelled">Cancelled (Đã hủy)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-muted">Ngày đặt bơi</label>
+                        <input type="date" id="filter-date" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold small text-muted">Tìm kiếm (Mã / SĐT / Email)</label>
+                        <div class="input-group">
+                            <input type="text" id="search-keyword" class="form-control" placeholder="Nhập mã SBS-..., SĐT hoặc Email..." />
+                            <button id="btn-search" class="btn btn-primary" type="button"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm</button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-end pt-4">
+                        <button id="btn-reset" class="btn btn-outline-secondary w-100"><i class="fa-solid fa-rotate me-1"></i> Làm mới</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Booking</th>
+                                    <th>Khách hàng</th>
+                                    <th>Ngày bơi</th>
+                                    <th>Khung giờ / Hạng vé</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-tbody">
+                                <tr><td colspan="7" class="text-center text-muted py-4">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div class="text-muted small">Hiển thị <span id="page-info">0 - 0 / 0</span> booking</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagination-list"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-header-title fw-bold text-primary mb-0"><i class="fa-solid fa-receipt me-2"></i> Chi tiết Booking <span id="modal-booking-code" class="text-dark"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="modal-detail-body">
+                <div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        const pageSize = 15;
+
+        $(document).ready(function () {
+            loadBookings();
+
+            $('#filter-status, #filter-date').on('change', function () {
+                currentPage = 1;
+                loadBookings();
+            });
+
+            $('#btn-search').on('click', function () {
+                performSearch();
+            });
+
+            $('#search-keyword').on('keypress', function (e) {
+                if (e.which === 13) performSearch();
+            });
+
+            $('#btn-reset').on('click', function () {
+                $('#filter-status').val('');
+                $('#filter-date').val('');
+                $('#search-keyword').val('');
+                currentPage = 1;
+                loadBookings();
+            });
+        });
+
+        async function loadBookings() {
+            try {
+                const status = $('#filter-status').val();
+                const date = $('#filter-date').val();
+
+                let query = `?page=${currentPage}&pageSize=${pageSize}`;
+                if (status) query += `&status=${status}`;
+                if (date) query += `&bookingDate=${date}`;
+
+                const res = await staffApi.get('/bookings' + query);
+                renderBookingsTable(res.items || [], res.totalCount || 0);
+            } catch (err) {
+                $('#bookings-tbody').html('<tr><td colspan="7" class="text-center text-danger py-4">Lỗi tải dữ liệu booking.</td></tr>');
+            }
+        }
+
+        async function performSearch() {
+            const kw = $('#search-keyword').val().trim();
+            if (!kw) {
+                loadBookings();
+                return;
+            }
+
+            try {
+                let query = '';
+                if (kw.startsWith('SBS-') || kw.length > 10) {
+                    query = `?bookingCode=${encodeURIComponent(kw)}`;
+                } else if (!isNaN(kw)) {
+                    query = `?phone=${encodeURIComponent(kw)}`;
+                } else {
+                    query = `?email=${encodeURIComponent(kw)}`;
+                }
+
+                const res = await staffApi.get('/bookings/search' + query);
+                const items = Array.isArray(res) ? res : (res.items || [res]);
+                renderBookingsTable(items, items.length);
+            } catch (err) {
+                $('#bookings-tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">Không tìm thấy booking phù hợp.</td></tr>');
+            }
+        }
+
+        function renderBookingsTable(items, totalCount) {
+            let html = '';
+            if (!items || items.length === 0) {
+                html = '<tr><td colspan="7" class="text-center text-muted py-4">Không có dữ liệu booking nào.</td></tr>';
+            } else {
+                items.forEach(b => {
+                    let badgeClass = 'bg-secondary';
+                    if (b.status === 'Confirmed') badgeClass = 'bg-success';
+                    else if (b.status === 'CheckIn') badgeClass = 'bg-info text-dark';
+                    else if (b.status === 'Completed') badgeClass = 'bg-primary';
+                    else if (b.status === 'Cancelled') badgeClass = 'bg-danger';
+
+                    const formattedDate = b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('vi-VN') : '-';
+                    const amount = (b.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+
+                    let actions = `<button class="btn btn-sm btn-light text-primary me-1" onclick="viewDetail(${b.bookingId})"><i class="fa-solid fa-eye"></i> Chi tiết</button>`;
+                    if (b.status === 'Confirmed') {
+                        actions += `<button class="btn btn-sm btn-success me-1" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check"></i> Check-in</button>`;
+                    } else if (b.status === 'CheckIn') {
+                        actions += `<button class="btn btn-sm btn-warning text-dark me-1" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket"></i> Check-out</button>`;
+                    }
+
+                    html += `
+                        <tr>
+                            <td class="fw-bold text-dark">${b.bookingCode || ('#' + b.bookingId)}</td>
+                            <td>
+                                <div class="fw-medium">${b.customerName || 'Khách hàng'}</div>
+                                <div class="text-muted small">${b.phoneNumber || b.email || '-'}</div>
+                            </td>
+                            <td>${formattedDate}</td>
+                            <td>${b.slotName || 'Slot bơi'}</td>
+                            <td class="fw-semibold">${amount}</td>
+                            <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill">${b.status}</span></td>
+                            <td class="text-end">${actions}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#bookings-tbody').html(html);
+
+            // Render Pagination Info
+            const start = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, totalCount);
+            $('#page-info').text(`${start} - ${end} / ${totalCount}`);
+
+            let pageHtml = '';
+            const totalPages = Math.ceil(totalCount / pageSize);
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    pageHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+                }
+            }
+            $('#pagination-list').html(pageHtml);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadBookings();
+        }
+
+        async function viewDetail(bookingId) {
+            $('#modal-booking-code').text('');
+            $('#modal-detail-body').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>');
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+
+            try {
+                const res = await staffApi.get('/bookings/' + bookingId);
+                $('#modal-booking-code').text('(' + res.bookingCode + ')');
+
+                let detailsHtml = '';
+                if (res.details && res.details.length > 0) {
+                    res.details.forEach(d => {
+                        detailsHtml += `<tr><td>${d.ticketName}</td><td>${d.quantity}</td><td class="text-end">${(d.price || 0).toLocaleString('vi-VN')} đ</td></tr>`;
+                    });
+                }
+
+                const content = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small">Khách hàng</p>
+                            <h6 class="fw-bold">${res.customerName || 'Khách vãng lai'}</h6>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-phone me-1"></i> ${res.phoneNumber || 'N/A'}</p>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-envelope me-1"></i> ${res.email || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1 text-muted small">Thông tin lượt bơi</p>
+                            <h6 class="fw-bold text-primary">${res.poolName || 'Bể bơi'}</h6>
+                            <p class="mb-0 small">${res.slotName} (${res.startTime} - ${res.endTime})</p>
+                            <p class="mb-0 small text-muted">Ngày: ${new Date(res.bookingDate).toLocaleDateString('vi-VN')}</p>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <h6 class="fw-bold mb-2">Chi tiết vé đã đặt</h6>
+                            <table class="table table-bordered table-sm">
+                                <thead class="table-light"><tr><th>Loại vé</th><th>Số lượng</th><th class="text-end">Đơn giá</th></tr></thead>
+                                <tbody>${detailsHtml}</tbody>
+                            </table>
+                            <div class="text-end fw-bold fs-5 text-success mt-2">Tổng tiền: ${(res.totalAmount || 0).toLocaleString('vi-VN')} đ</div>
+                        </div>
+                    </div>
+                `;
+                $('#modal-detail-body').html(content);
+            } catch (err) {
+                $('#modal-detail-body').html('<div class="alert alert-danger mb-0">Lỗi lấy thông tin chi tiết booking.</div>');
+            }
+        }
+
+        async function quickCheckIn(bookingId) {
+            try {
+                const res = await staffApi.post('/checkin/manual', { bookingId: bookingId });
+                toastr.success(res.message || 'Check-in thành công!');
+                loadBookings();
+            } catch (err) {}
+        }
+
+        async function quickCheckOut(bookingId) {
+            try {
+                const res = await staffApi.post('/checkin/checkout', { bookingId: bookingId });
+                toastr.success(res.message || 'Check-out thành công!');
+                loadBookings();
+            } catch (err) {}
+        }
+    </script>
+}

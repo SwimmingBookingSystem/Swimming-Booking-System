@@ -60,8 +60,6 @@ public class SeedDefaultTicketsCommandHandler
             await _uow.Repository<TicketType>().AddAsync(ticket, ct);
             await _uow.SaveChangesAsync(ct); // flush để lấy TicketTypeId
 
-            // Giá thực = BasePrice * (1 - Discount/100)
-            decimal actualPrice = d.Base * (1 - d.Disc / 100m);
 
             // Gán vào tất cả pool Active
             foreach (var pool in pools)
@@ -70,7 +68,7 @@ public class SeedDefaultTicketsCommandHandler
                 {
                     PoolId       = pool.PoolId,
                     TicketTypeId = ticket.TicketTypeId,
-                    Price        = actualPrice,
+                    Price        = null, // Dùng giá hệ thống (Fallback)
                     Status       = "Active"
                 }, ct);
             }
