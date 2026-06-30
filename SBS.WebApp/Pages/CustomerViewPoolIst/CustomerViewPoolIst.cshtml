@@ -387,7 +387,7 @@
                 window.location.href = '/Auth/Login';
                 return;
             }
-            alert('Chức năng Đặt lịch cho Bể bơi #' + poolId + ' đang được phát triển!');
+            window.location.href = `/Customer/Bookings/Create?poolId=${poolId}`;
         }
 
         function setupPagination(totalCount, page, pageSize) {
