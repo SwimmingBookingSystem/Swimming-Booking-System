@@ -158,9 +158,11 @@
 
                     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName)}&background=DC2626&color=fff`;
 
-                    const lockBtn = isLocked
-                        ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
-                        : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`;
+                    const lockBtn = u.role === 'Admin'
+                        ? `<span class="text-muted small">---</span>`
+                        : (isLocked
+                            ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
+                            : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`);
 
                     html += `
                         <tr>
