@@ -214,7 +214,10 @@
             list.forEach(t => {
                 const isActive = t.status === 'Active';
                 const isCombo = t.category === 'Combo';
-                const diff = t.price - t.basePrice;
+                const isOverride = t.price !== null && t.price !== undefined;
+                const currentPrice = isOverride ? t.price : t.basePrice;
+                const diff = currentPrice - t.basePrice;
+                
                 let diffHtml = '';
                 if (diff > 0) {
                     diffHtml = `<span class="price-diff up"><i class="fa-solid fa-arrow-up"></i> +${formatMoney(diff)}</span>`;
@@ -223,6 +226,10 @@
                 } else {
                     diffHtml = `<span class="price-diff same">Bằng giá gốc</span>`;
                 }
+                
+                let currentPriceHtml = isOverride 
+                    ? `<span class="price-current">${formatMoney(currentPrice)}</span>` 
+                    : `<span class="price-current text-muted"><i class="fa-solid fa-link me-1"></i>${formatMoney(currentPrice)}</span> <br><small class="text-muted">(Giá gốc)</small>`;
 
                 html += `
                 <tr>
@@ -244,7 +251,7 @@
                         </span>
                     </td>
                     <td><span class="price-base">${formatMoney(t.basePrice)}</span></td>
-                    <td><span class="price-current">${formatMoney(t.price)}</span></td>
+                    <td>${currentPriceHtml}</td>
                     <td>${diffHtml}</td>
                     <td><span class="pricing-status ${isActive ? 'active' : 'closed'}">${isActive ? 'Hoạt động' : 'Đã đóng'}</span></td>
                     <td>
@@ -276,16 +283,20 @@
             $('#editTicketTypeId').val(ticketTypeId);
             $('#priceModalTicketName').text(`${t.ticketCode} — ${t.ticketName}`);
             $('#priceModalBasePrice').text(formatMoney(t.basePrice));
-            $('#newPrice').val(t.price);
+            
+            const isOverride = t.price !== null && t.price !== undefined;
+            $('#newPrice').val(isOverride ? t.price : '');
             priceModal.show();
         }
 
         async function savePrice() {
             const poolId = parseInt($('#editPoolId').val());
             const ticketTypeId = parseInt($('#editTicketTypeId').val());
-            const price = parseFloat($('#newPrice').val());
+            let priceVal = $('#newPrice').val().trim();
+            
+            let price = priceVal === '' ? null : parseFloat(priceVal);
 
-            if (isNaN(price) || price < 0) {
+            if (price !== null && (isNaN(price) || price < 0)) {
                 toastr.warning('Vui lòng nhập giá hợp lệ.');
                 return;
             }
