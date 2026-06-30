@@ -41,7 +41,8 @@ public class GetCustomerPoolDetailQueryHandler : IRequestHandler<GetCustomerPool
             Description = pool.Description,
             OpeningTime = pool.OpeningTime.ToString(@"hh\:mm"),
             ClosingTime = pool.ClosingTime.ToString(@"hh\:mm"),
-            Images = images
+            Images = images,
+            StandardCapacity = pool.StandardCapacity
         };
     }
 }
