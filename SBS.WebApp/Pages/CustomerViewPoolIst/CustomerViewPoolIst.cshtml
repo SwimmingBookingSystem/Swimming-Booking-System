@@ -29,13 +29,6 @@
                             <label for="search-open" class="form-label fw-bold text-dark"><i class="bi bi-clock text-primary"></i> Giờ mở cửa</label>
                             <select id="search-open" class="form-select form-select-lg border-0 rounded-3 shadow-sm">
                                 <option value="">Tất cả</option>
-                                <option value="05:00:00">05:00</option>
-                                <option value="05:30:00">05:30</option>
-                                <option value="06:00:00">06:00</option>
-                                <option value="06:30:00">06:30</option>
-                                <option value="07:00:00">07:00</option>
-                                <option value="07:30:00">07:30</option>
-                                <option value="08:00:00">08:00</option>
                             </select>
                         </div>
 
@@ -44,13 +37,6 @@
                             <label for="search-close" class="form-label fw-bold text-dark"><i class="bi bi-clock-fill text-primary"></i> Giờ đóng cửa</label>
                             <select id="search-close" class="form-select form-select-lg border-0 rounded-3 shadow-sm">
                                 <option value="">Tất cả</option>
-                                <option value="19:00:00">19:00</option>
-                                <option value="19:30:00">19:30</option>
-                                <option value="20:00:00">20:00</option>
-                                <option value="20:30:00">20:30</option>
-                                <option value="21:00:00">21:00</option>
-                                <option value="21:30:00">21:30</option>
-                                <option value="22:00:00">22:00</option>
                             </select>
                         </div>
 
@@ -181,6 +167,9 @@
         let searchTimeout = null;
 
         $(document).ready(function() {
+            // Load dynamic filter choices from DB
+            loadFilterOptions();
+
             // Initial load
             loadPools();
 
@@ -205,6 +194,48 @@
             let parts = value.split("; " + name + "=");
             if (parts.length === 2) return parts.pop().split(";").shift();
             return null;
+        }
+
+        function loadFilterOptions() {
+            $.ajax({
+                url: API_BASE_URL + '/api/customer/pools/filter-options',
+                type: 'GET',
+                success: function(response) {
+                    const openSelect = $('#search-open');
+                    const closeSelect = $('#search-close');
+
+                    // Save selected values
+                    const selectedOpen = openSelect.val();
+                    const selectedClose = closeSelect.val();
+
+                    // Clear options (except first "Tất cả")
+                    openSelect.find('option:not(:first)').remove();
+                    closeSelect.find('option:not(:first)').remove();
+
+                    // Opening Times
+                    if (response.openingTimes && response.openingTimes.length > 0) {
+                        response.openingTimes.forEach(time => {
+                            const display = time.substring(0, 5); // Format hh:mm
+                            openSelect.append(`<option value="${time}">${display}</option>`);
+                        });
+                    }
+
+                    // Closing Times
+                    if (response.closingTimes && response.closingTimes.length > 0) {
+                        response.closingTimes.forEach(time => {
+                            const display = time.substring(0, 5); // Format hh:mm
+                            closeSelect.append(`<option value="${time}">${display}</option>`);
+                        });
+                    }
+
+                    // Restore selection
+                    if (selectedOpen) openSelect.val(selectedOpen);
+                    if (selectedClose) closeSelect.val(selectedClose);
+                },
+                error: function(xhr) {
+                    console.error("Lỗi khi tải danh sách giờ lọc: ", xhr);
+                }
+            });
         }
 
         function resetFilters() {
@@ -291,7 +322,7 @@
                                         <div>
                                             <h4 class="fw-bold hover-primary-text mb-3">${pool.poolName}</h4>
                                             <p class="text-secondary mb-2"><strong>Mô tả:</strong> ${desc}</p>
-                                            <p class="text-secondary mb-2"><strong>Đường:</strong> ${pool.address}</p>
+                                            <p class="text-secondary mb-2"><strong>Địa chỉ:</strong> ${pool.address}</p>
                                             <p class="text-secondary mb-3"><strong>Giờ mở cửa:</strong> ${pool.openingTime} - ${pool.closingTime}</p>
                                         </div>
                                         

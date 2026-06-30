@@ -65,6 +65,14 @@ public class CustomerPoolController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("filter-options")]
+    public async Task<IActionResult> GetFilterOptions()
+    {
+        var query = new GetPoolFilterOptionsQuery();
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPoolDetail(int id)
     {

@@ -45,14 +45,9 @@
                     </div>
 
                     <!-- Pool Title & Location Info Header -->
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom border-light">
-                        <div>
-                            <h1 id="pool-name" class="fw-bold text-dark display-6 mb-2">--</h1>
-                            <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> <span id="pool-street-top">--</span></p>
-                        </div>
-                        <div class="mt-3 mt-md-0">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 rounded-pill px-4 py-2"><i class="bi bi-geo-fill"></i> Thành phố: <span id="pool-city-top">--</span></span>
-                        </div>
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h1 id="pool-name" class="fw-bold text-dark display-6 mb-2">--</h1>
+                        <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> <span id="pool-street-top">--</span></p>
                     </div>
 
                     <!-- Pool Information Table & Details -->
@@ -156,16 +151,6 @@
                     $('#pool-name').text(pool.poolName);
                     $('#pool-street-top').text(pool.address);
                     
-                    let city = 'Khác';
-                    const addrLower = pool.address.toLowerCase();
-                    if (addrLower.includes('hà nội')) city = 'Hà Nội';
-                    else if (addrLower.includes('hồ chí minh') || addrLower.includes('tphcm') || addrLower.includes('sài gòn')) city = 'Hồ Chí Minh';
-                    else if (addrLower.includes('đà nẵng')) city = 'Đà Nẵng';
-                    else if (addrLower.includes('quy nhơn')) city = 'Quy Nhơn';
-                    else if (addrLower.includes('cần thơ')) city = 'Cần Thơ';
-                    else if (addrLower.includes('nha trang')) city = 'Nha Trang';
-                    
-                    $('#pool-city-top').text(city);
                     $('#pool-open').text(pool.openingTime);
                     $('#pool-close').text(pool.closingTime);
                     $('#pool-desc').text(pool.description || 'Chưa có mô tả chi tiết cho bể bơi này.');
