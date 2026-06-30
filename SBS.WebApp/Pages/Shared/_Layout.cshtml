@@ -38,13 +38,16 @@
                             <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")" asp-area="" asp-page="/Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("CustomerViewPoolIst") == true ? "active" : "")" href="/CustomerViewPoolIst/CustomerViewPoolIst">Bể Bơi</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link px-3 fw-medium" href="#features">Tiện ích</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link px-3 fw-medium" href="#pricing">Bảng giá</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link px-3 fw-medium" asp-area="" asp-page="/Privacy">Liên hệ</a>
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Privacy" ? "active" : "")" asp-area="" asp-page="/Privacy">Liên hệ</a>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-2">

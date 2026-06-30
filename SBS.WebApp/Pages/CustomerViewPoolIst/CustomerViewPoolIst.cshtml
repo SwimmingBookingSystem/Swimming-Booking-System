@@ -1,0 +1,394 @@
+@page
+@model CustomerViewPoolIstModel
+@{
+    ViewData["Title"] = "Danh sách bể bơi - PoolHub";
+}
+
+<div class="container py-5">
+    <!-- Hero Header -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-white display-4 mb-2 drop-shadow"><i class="bi bi-water"></i> Khám Phá Hệ Thống Bể Bơi</h1>
+        <p class="text-white-50 fs-5 mb-0 drop-shadow">Tìm kiếm bể bơi yêu thích và lên lịch trải nghiệm ngay hôm nay</p>
+        <div class="divider bg-white mx-auto my-3" style="width: 60px; height: 4px; border-radius: 2px;"></div>
+    </div>
+
+    <!-- Filter Section (Glassmorphism Card) -->
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <div class="card glass-card p-4">
+                <form id="filter-form" onsubmit="event.preventDefault(); loadPools();">
+                    <div class="row g-3 align-items-end">
+                        <!-- Search Box (Name & Address) -->
+                        <div class="col-md-6">
+                            <label for="search-name" class="form-label fw-bold text-dark"><i class="bi bi-search text-primary"></i> Tìm kiếm nhanh</label>
+                            <input type="text" id="search-name" class="form-control form-control-lg border-0 rounded-3 shadow-sm" placeholder="Nhập tên bể bơi hoặc địa chỉ (Ví dụ: Hà Nội)..." />
+                        </div>
+                        
+                        <!-- Opening Time -->
+                        <div class="col-md-2">
+                            <label for="search-open" class="form-label fw-bold text-dark"><i class="bi bi-clock text-primary"></i> Giờ mở cửa</label>
+                            <select id="search-open" class="form-select form-select-lg border-0 rounded-3 shadow-sm">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+
+                        <!-- Closing Time -->
+                        <div class="col-md-2">
+                            <label for="search-close" class="form-label fw-bold text-dark"><i class="bi bi-clock-fill text-primary"></i> Giờ đóng cửa</label>
+                            <select id="search-close" class="form-select form-select-lg border-0 rounded-3 shadow-sm">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="button" onclick="resetFilters()" class="btn btn-light btn-lg rounded-3 text-secondary shadow-sm w-100" id="btn-reset-filters" title="Xóa tất cả bộ lọc"><i class="bi bi-trash"></i> Xóa lọc</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pools List Container (2-column grid of horizontal cards) -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="pools-container" class="row row-cols-1 row-cols-lg-2 g-4">
+                <!-- Loader -->
+                <div class="col-12 text-center my-5" id="pools-loader">
+                    <div class="spinner-border text-white" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-3 text-white fs-6 drop-shadow">Đang tìm kiếm bể bơi phù hợp...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-5 d-none" id="pagination-nav">
+                <ul class="pagination justify-content-center" id="pagination-list"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Extra Google Fonts & Bootstrap Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-image: linear-gradient(rgba(14, 165, 233, 0.15), rgba(15, 23, 42, 0.65)), url('/images/swimming_pool_bg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
+    }
+    .drop-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -15px rgba(2, 132, 199, 0.25);
+    }
+    .pool-card-wrapper {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+        height: 100%;
+        cursor: pointer;
+    }
+    .pool-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+        height: 100%;
+    }
+    .pool-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(2, 132, 199, 0.25) !important;
+        background: rgba(255, 255, 255, 0.95);
+    }
+    .img-container {
+        height: 100%;
+        min-height: 220px;
+        overflow: hidden;
+        position: relative;
+    }
+    .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .pool-card:hover .img-container img {
+        transform: scale(1.08);
+    }
+    .hover-primary-text {
+        color: #0d6efd;
+        transition: color 0.2s;
+    }
+    .pool-card:hover .hover-primary-text {
+        color: #0284c7 !important;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.25);
+    }
+    .pagination .page-link {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        color: #0f172a;
+    }
+    .pagination .page-item.active .page-link {
+        background: #0284c7;
+        border-color: #0284c7;
+        color: white;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const API_BASE_URL = '@Model.ApiBaseUrl';
+        let currentPage = 1;
+        const pageSize = 6;
+        let searchTimeout = null;
+
+        $(document).ready(function() {
+            // Load dynamic filter choices from DB
+            loadFilterOptions();
+
+            // Initial load
+            loadPools();
+
+            // Set up dynamic search for text input (Debounced to 300ms)
+            $('#search-name').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    currentPage = 1;
+                    loadPools();
+                }, 300);
+            });
+
+            // Set up dynamic search for select dropdowns (Instant)
+            $('#search-open, #search-close').on('change', function() {
+                currentPage = 1;
+                loadPools();
+            });
+        });
+
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        function loadFilterOptions() {
+            $.ajax({
+                url: API_BASE_URL + '/api/customer/pools/filter-options',
+                type: 'GET',
+                success: function(response) {
+                    const openSelect = $('#search-open');
+                    const closeSelect = $('#search-close');
+
+                    // Save selected values
+                    const selectedOpen = openSelect.val();
+                    const selectedClose = closeSelect.val();
+
+                    // Clear options (except first "Tất cả")
+                    openSelect.find('option:not(:first)').remove();
+                    closeSelect.find('option:not(:first)').remove();
+
+                    // Opening Times
+                    if (response.openingTimes && response.openingTimes.length > 0) {
+                        response.openingTimes.forEach(time => {
+                            const display = time.substring(0, 5); // Format hh:mm
+                            openSelect.append(`<option value="${time}">${display}</option>`);
+                        });
+                    }
+
+                    // Closing Times
+                    if (response.closingTimes && response.closingTimes.length > 0) {
+                        response.closingTimes.forEach(time => {
+                            const display = time.substring(0, 5); // Format hh:mm
+                            closeSelect.append(`<option value="${time}">${display}</option>`);
+                        });
+                    }
+
+                    // Restore selection
+                    if (selectedOpen) openSelect.val(selectedOpen);
+                    if (selectedClose) closeSelect.val(selectedClose);
+                },
+                error: function(xhr) {
+                    console.error("Lỗi khi tải danh sách giờ lọc: ", xhr);
+                }
+            });
+        }
+
+        function resetFilters() {
+            $('#search-name').val('');
+            $('#search-open').val('');
+            $('#search-close').val('');
+            currentPage = 1;
+            loadPools();
+        }
+
+        function loadPools() {
+            $('#pools-container').html(`
+                <div class="col-12 text-center my-5" id="pools-loader">
+                    <div class="spinner-border text-white" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-3 text-white fs-6 drop-shadow">Đang tìm kiếm bể bơi phù hợp...</p>
+                </div>
+            `);
+            $('#pagination-nav').addClass('d-none');
+
+            const searchName = $('#search-name').val() || '';
+            const openTime = $('#search-open').val() || '';
+            const closeTime = $('#search-close').val() || '';
+
+            const params = {
+                page: currentPage,
+                pageSize: pageSize,
+                searchName: searchName,
+                openingTime: openTime,
+                closingTime: closeTime
+            };
+
+            $.ajax({
+                url: API_BASE_URL + '/api/customer/pools',
+                type: 'GET',
+                data: params,
+                success: function(response) {
+                    displayPools(response.items);
+                    setupPagination(response.totalCount, response.page, response.pageSize);
+                },
+                error: function(xhr) {
+                    console.error("Lỗi khi tải bể bơi: ", xhr);
+                    $('#pools-container').html(`
+                        <div class="col-12 alert alert-danger text-center my-4 border-0 rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Có lỗi xảy ra khi kết nối tới máy chủ. Vui lòng thử lại sau.
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function displayPools(pools) {
+            if (!pools || pools.length === 0) {
+                $('#pools-container').html(`
+                    <div class="col-12 text-center my-5 py-5 glass-card">
+                        <i class="bi bi-search text-muted" style="font-size: 3.5rem;"></i>
+                        <p class="mt-3 text-dark fw-bold fs-5">Không tìm thấy bể bơi nào khớp với bộ lọc của bạn.</p>
+                        <p class="text-secondary small">Vui lòng kiểm tra lại từ khóa hoặc xóa lọc để tải lại.</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            pools.forEach(pool => {
+                const coverImage = pool.coverImageUrl || 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop';
+                const desc = pool.description || 'Chưa có mô tả chi tiết cho bể bơi này.';
+                
+                html += `
+                    <div class="col">
+                        <!-- Entire card is clickable to view detail page -->
+                        <div onclick="window.location.href='/CustomerViewPoolIst/CustomerViewPoolDetail?id=${pool.poolId}'" class="pool-card-wrapper">
+                            <div class="card pool-card border-0 overflow-hidden p-3 h-100">
+                                <div class="row g-0 align-items-stretch h-100">
+                                    <!-- Image Block (Left) - Stretches perfectly to equal-height card -->
+                                    <div class="col-sm-5 position-relative overflow-hidden rounded-3">
+                                        <div class="img-container rounded-3">
+                                            <img src="${coverImage}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop';" alt="${pool.poolName}">
+                                        </div>
+                                    </div>
+                                    <!-- Information Block (Right) -->
+                                    <div class="col-sm-7 ps-sm-4 py-2 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <h4 class="fw-bold hover-primary-text mb-3">${pool.poolName}</h4>
+                                            <p class="text-secondary mb-2"><strong>Mô tả:</strong> ${desc}</p>
+                                            <p class="text-secondary mb-2"><strong>Địa chỉ:</strong> ${pool.address}</p>
+                                            <p class="text-secondary mb-3"><strong>Giờ mở cửa:</strong> ${pool.openingTime} - ${pool.closingTime}</p>
+                                        </div>
+                                        
+                                        <!-- Bottom booking button (left-aligned) -->
+                                        <div>
+                                            <button onclick="event.stopPropagation(); handleBooking(${pool.poolId})" class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm"><i class="bi bi-calendar2-check-fill"></i> Đặt bơi</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#pools-container').html(html);
+        }
+
+        function handleBooking(poolId) {
+            const role = getCookie('role');
+            if (!role || role.toLowerCase() !== 'customer') {
+                window.location.href = '/Auth/Login';
+                return;
+            }
+            alert('Chức năng Đặt lịch cho Bể bơi #' + poolId + ' đang được phát triển!');
+        }
+
+        function setupPagination(totalCount, page, pageSize) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            if (totalPages <= 1) {
+                $('#pagination-nav').addClass('d-none');
+                return;
+            }
+
+            $('#pagination-nav').removeClass('d-none');
+            let html = '';
+
+            // Previous button
+            html += `
+                <li class="page-item ${page === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); changePage(${page - 1})"><i class="bi bi-chevron-left"></i> Trước</a>
+                </li>
+            `;
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <li class="page-item ${page === i ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="event.preventDefault(); changePage(${i})">${i}</a>
+                    </li>
+                `;
+            }
+
+            // Next button
+            html += `
+                <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); changePage(${page + 1})">Sau <i class="bi bi-chevron-right"></i></a>
+                </li>
+            `;
+
+            $('#pagination-list').html(html);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadPools();
+            $('html, body').animate({ scrollTop: 0 }, 'slow');
+        }
+    </script>
+}
