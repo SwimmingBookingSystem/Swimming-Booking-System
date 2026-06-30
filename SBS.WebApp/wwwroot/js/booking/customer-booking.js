@@ -11,9 +11,9 @@ $(document).ready(function () {
         return null;
     }
 
-    const token = getCookie("jwtToken");
-    if (!token) {
-        // Redirect to login if no token
+    const role = getCookie("role");
+    if (!role || role.toLowerCase() !== 'customer') {
+        // Redirect to login if not customer
         window.location.href = '/Auth/Login';
         return;
     }
@@ -57,8 +57,8 @@ $(document).ready(function () {
         $.ajax({
             url: `${API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
             type: 'GET',
-            headers: {
-                "Authorization": `Bearer ${token}`
+            xhrFields: {
+                withCredentials: true
             },
             success: function (slots) {
                 $('#slots-loader').addClass('d-none');
@@ -107,8 +107,8 @@ $(document).ready(function () {
         $.ajax({
             url: `${API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/tickets`,
             type: 'GET',
-            headers: {
-                "Authorization": `Bearer ${token}`
+            xhrFields: {
+                withCredentials: true
             },
             success: function (tickets) {
                 $('#tickets-loader').addClass('d-none');
@@ -233,8 +233,8 @@ $(document).ready(function () {
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(payload),
-            headers: {
-                "Authorization": `Bearer ${token}`
+            xhrFields: {
+                withCredentials: true
             },
             success: function (response) {
                 // response: { bookingId, bookingCode, paymentLink }
