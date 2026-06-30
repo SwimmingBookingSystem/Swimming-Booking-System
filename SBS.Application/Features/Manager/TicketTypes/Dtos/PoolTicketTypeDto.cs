@@ -10,6 +10,7 @@ public class PoolTicketTypeDto
     public string TicketName { get; set; } = null!;
     public string Category { get; set; } = null!; // "Single" / "Combo"
     public decimal BasePrice { get; set; }
+    public decimal DiscountPercent { get; set; }
     public decimal? Price { get; set; }    // Giá riêng tại pool này, null = lấy giá hệ thống
     public string Status { get; set; } = null!;
 }
