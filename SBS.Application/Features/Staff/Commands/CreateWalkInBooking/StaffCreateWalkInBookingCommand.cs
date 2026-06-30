@@ -123,14 +123,15 @@ public class StaffCreateWalkInBookingCommandHandler : IRequestHandler<StaffCreat
         foreach (var ticketOrder in request.Tickets)
         {
             var ptt = poolTicketTypes.First(pt => pt.PoolTicketTypeId == ticketOrder.PoolTicketTypeId);
-            var subTotal = ptt.Price * ticketOrder.Quantity;
+            var actualPrice = ptt.Price ?? Math.Round(ptt.TicketType.BasePrice * (1 - ptt.TicketType.DiscountPercent / 100m), 0);
+            var subTotal = actualPrice * ticketOrder.Quantity;
             totalAmount += subTotal;
 
             bookingDetails.Add(new BookingDetail
             {
                 PoolTicketTypeId = ptt.PoolTicketTypeId,
                 Quantity = ticketOrder.Quantity,
-                UnitPrice = ptt.Price,
+                UnitPrice = actualPrice,
                 SubTotal = subTotal
             });
         }

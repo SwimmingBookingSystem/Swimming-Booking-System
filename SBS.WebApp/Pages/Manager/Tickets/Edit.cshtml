@@ -92,6 +92,14 @@
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
                 <strong>Lưu ý:</strong> Việc thay đổi giá hoặc ưu đãi sẽ có hiệu lực ngay lập tức cho các lượt mua vé mới. 
                 Các hóa đơn mua vé trước đó sẽ giữ nguyên giá cũ và không bị ảnh hưởng. Hệ thống sẽ lưu lại lịch sử biến động giá này.
+                
+                <hr class="border-warning my-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="forceSyncToPools">
+                    <label class="form-check-label fw-bold text-danger" for="forceSyncToPools">
+                        Đồng bộ mức giá mới này cho TẤT CẢ bể bơi (Xóa bỏ các thiết lập giá ghi đè trước đây của từng chi nhánh)
+                    </label>
+                </div>
             </div>
 
             <!-- Description -->
@@ -305,7 +313,8 @@
                 basePrice: cat === 'Single' ? parseFloat($('#basePrice').val()) || 0 : 0,
                 discountPercent: discountPercent,
                 description: $('#ticketDescription').val().trim() || null,
-                comboDetails: null
+                comboDetails: null,
+                forceSyncToPools: $('#forceSyncToPools').is(':checked')
             };
 
             if (cat === 'Combo') {

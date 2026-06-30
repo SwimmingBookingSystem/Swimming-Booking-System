@@ -20,7 +20,8 @@ public record UpdateTicketTypeCommand(
     decimal BasePrice,
     decimal DiscountPercent,
     string? Description,
-    List<ComboDetailRequest>? ComboDetails
+    List<ComboDetailRequest>? ComboDetails,
+    bool ForceSyncToPools = false
 ) : IRequest<CreateTicketTypeResponse>;
 
 // ── Handler 
@@ -116,6 +117,33 @@ public class UpdateTicketTypeCommandHandler
         ticket.Description     = request.Description;
 
         _uow.Repository<TicketType>().Update(ticket);
+
+        if (request.ForceSyncToPools)
+        {
+            var poolTickets = await _uow.ToListAsync(
+                _uow.Repository<PoolTicketType>().Query()
+                    .Where(pt => pt.TicketTypeId == ticket.TicketTypeId), ct);
+                    
+            foreach (var pt in poolTickets)
+            {
+                if (pt.Price.HasValue)
+                {
+                    // Tùy chọn: Ghi lại lịch sử (Reset giá)
+                    await _uow.Repository<PoolTicketPriceHistory>().AddAsync(new PoolTicketPriceHistory
+                    {
+                        PoolTicketTypeId = pt.PoolTicketTypeId,
+                        OldCustomPrice = pt.Price,
+                        NewCustomPrice = null,
+                        ModifiedAt = DateTime.UtcNow,
+                        ModifiedByUserName = "Manager (Force Sync)"
+                    }, ct);
+                    
+                    pt.Price = null;
+                    _uow.Repository<PoolTicketType>().Update(pt);
+                }
+            }
+        }
+
         await _uow.SaveChangesAsync(ct);
 
         return new CreateTicketTypeResponse

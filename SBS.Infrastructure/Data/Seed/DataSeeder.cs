@@ -183,9 +183,9 @@ public static class DataSeeder
         // 7. Seed PoolTicketTypes (prices for each ticket at this pool)
         var poolTicketTypes = new List<PoolTicketType>
         {
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = standardTicket.TicketTypeId, Price = 100000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo3Ticket.TicketTypeId, Price = 270000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo5Ticket.TicketTypeId, Price = 425000m, Status = "Active" }
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = standardTicket.TicketTypeId, Price = null, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo3Ticket.TicketTypeId, Price = null, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo5Ticket.TicketTypeId, Price = null, Status = "Active" }
         };
         context.PoolTicketTypes.AddRange(poolTicketTypes);
         await context.SaveChangesAsync();
