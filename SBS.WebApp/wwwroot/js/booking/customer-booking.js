@@ -69,9 +69,21 @@ $(document).ready(function () {
                 }
 
                 let html = '';
+                const now = new Date();
+
                 slots.forEach(slot => {
-                    const isDisabled = slot.availableCapacity <= 0 ? 'disabled' : '';
-                    const statusText = slot.availableCapacity <= 0 ? '(Hết chỗ)' : `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
+                    const slotDateTimeStr = `${date}T${slot.startTime}`;
+                    const slotDateTime = new Date(slotDateTimeStr);
+                    const isPassed = slotDateTime <= now;
+
+                    const isDisabled = (slot.availableCapacity <= 0 || isPassed) ? 'disabled' : '';
+                    
+                    let statusText = `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
+                    if (isPassed) {
+                        statusText = '(Đã qua)';
+                    } else if (slot.availableCapacity <= 0) {
+                        statusText = '(Hết chỗ)';
+                    }
                     
                     html += `
                         <div class="col-6 col-sm-4">

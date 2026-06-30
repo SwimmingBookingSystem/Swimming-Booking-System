@@ -30,8 +30,8 @@ public class PayOSService : IPayOSService
             amount: (int)amount,
             description: $"Ve {bookingCode}",
             items: items,
-            cancelUrl: $"http://localhost:3000/cancel",
-            returnUrl: $"http://localhost:3000/success",
+            cancelUrl: $"https://localhost:7000/Customer/Bookings/PaymentResult",
+            returnUrl: $"https://localhost:7000/Customer/Bookings/PaymentResult",
             expiredAt: unixTimestamp
         );
 
