@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SBS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SBS.Infrastructure.Data;
 namespace SBS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630071412_UpdatePoolTicketPriceOverride")]
+    partial class UpdatePoolTicketPriceOverride
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -582,10 +585,10 @@ namespace SBS.Infrastructure.Migrations
 
                     b.HasKey("AssignmentId");
 
-                    b.HasIndex("PoolId")
-                        .IsUnique();
-
                     b.HasIndex("StaffId");
+
+                    b.HasIndex("PoolId", "StaffId")
+                        .IsUnique();
 
                     b.ToTable("PoolStaffAssignments", (string)null);
                 });
@@ -617,7 +620,7 @@ namespace SBS.Infrastructure.Migrations
 
                     b.HasIndex("PoolTicketTypeId");
 
-                    b.ToTable("PoolTicketPriceHistories", (string)null);
+                    b.ToTable("PoolTicketPriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
@@ -732,7 +735,7 @@ namespace SBS.Infrastructure.Migrations
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("TicketPriceHistories", (string)null);
+                    b.ToTable("TicketPriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>

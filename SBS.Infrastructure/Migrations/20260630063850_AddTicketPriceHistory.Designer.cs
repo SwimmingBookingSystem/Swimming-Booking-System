@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SBS.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SBS.Infrastructure.Data;
 namespace SBS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630063850_AddTicketPriceHistory")]
+    partial class AddTicketPriceHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -582,42 +585,12 @@ namespace SBS.Infrastructure.Migrations
 
                     b.HasKey("AssignmentId");
 
-                    b.HasIndex("PoolId")
-                        .IsUnique();
-
                     b.HasIndex("StaffId");
 
+                    b.HasIndex("PoolId", "StaffId")
+                        .IsUnique();
+
                     b.ToTable("PoolStaffAssignments", (string)null);
-                });
-
-            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketPriceHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModifiedByUserName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("NewCustomPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("OldCustomPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("PoolTicketTypeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PoolTicketTypeId");
-
-                    b.ToTable("PoolTicketPriceHistories", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
@@ -631,7 +604,7 @@ namespace SBS.Infrastructure.Migrations
                     b.Property<int>("PoolId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
@@ -732,7 +705,7 @@ namespace SBS.Infrastructure.Migrations
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("TicketPriceHistories", (string)null);
+                    b.ToTable("TicketPriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
@@ -1172,17 +1145,6 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Pool");
                 });
 
-            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketPriceHistory", b =>
-                {
-                    b.HasOne("SBS.Domain.Entities.PoolTicketType", "PoolTicketType")
-                        .WithMany("PriceHistories")
-                        .HasForeignKey("PoolTicketTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PoolTicketType");
-                });
-
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
@@ -1271,8 +1233,6 @@ namespace SBS.Infrastructure.Migrations
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
                     b.Navigation("BookingDetails");
-
-                    b.Navigation("PriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>

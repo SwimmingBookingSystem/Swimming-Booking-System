@@ -376,3 +376,29 @@ public class PoolStaffAssignmentConfiguration : IEntityTypeConfiguration<PoolSta
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+// ===== TicketPriceHistory =====
+public class TicketPriceHistoryConfiguration : IEntityTypeConfiguration<TicketPriceHistory>
+{
+    public void Configure(EntityTypeBuilder<TicketPriceHistory> builder)
+    {
+        builder.ToTable("TicketPriceHistories");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.OldBasePrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewBasePrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.OldDiscountPercent).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewDiscountPercent).HasColumnType("decimal(18,2)");
+    }
+}
+
+// ===== PoolTicketPriceHistory =====
+public class PoolTicketPriceHistoryConfiguration : IEntityTypeConfiguration<PoolTicketPriceHistory>
+{
+    public void Configure(EntityTypeBuilder<PoolTicketPriceHistory> builder)
+    {
+        builder.ToTable("PoolTicketPriceHistories");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.OldCustomPrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewCustomPrice).HasColumnType("decimal(18,2)");
+    }
+}

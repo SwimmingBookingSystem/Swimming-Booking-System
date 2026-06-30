@@ -111,6 +111,11 @@ public class ManagerTicketTypeController : ControllerBase
     [HttpPatch("{id:int}/open")]
     public async Task<IActionResult> Open(int id)
         => Ok(await _mediator.Send(new OpenTicketTypeCommand(id)));
+
+    // GET /api/manager/ticket-types/{id}/history
+    [HttpGet("{id:int}/history")]
+    public async Task<IActionResult> GetHistory(int id)
+        => Ok(await _mediator.Send(new SBS.Application.Features.Manager.TicketTypes.Queries.GetTicketTypeHistory.GetTicketTypeHistoryQuery(id)));
 }
 
 // ── Request Models 

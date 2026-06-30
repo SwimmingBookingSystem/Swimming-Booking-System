@@ -8,8 +8,8 @@ public class PoolTicketTypeDto
     public int TicketTypeId { get; set; }
     public string TicketCode { get; set; } = null!;
     public string TicketName { get; set; } = null!;
-    public string Category { get; set; } = null!;
+    public string Category { get; set; } = null!; // "Single" / "Combo"
     public decimal BasePrice { get; set; }
-    public decimal Price { get; set; }    // Giá riêng tại pool này
+    public decimal? Price { get; set; }    // Giá riêng tại pool này, null = lấy giá hệ thống
     public string Status { get; set; } = null!;
 }

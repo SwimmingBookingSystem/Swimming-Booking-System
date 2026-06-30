@@ -14,7 +14,7 @@ namespace SBS.Application.Features.Manager.PoolTickets.Commands.UpdatePoolTicket
 public record UpdatePoolTicketPriceCommand(
     int PoolId,
     int TicketTypeId,
-    decimal Price
+    decimal? Price
 ) : IRequest<SuccessResponse>;
 
 // ── Handler 
@@ -36,13 +36,27 @@ public class UpdatePoolTicketPriceCommandHandler
                 "PoolTicketType",
                 $"Pool {request.PoolId} – TicketType {request.TicketTypeId}");
 
+        if (pt.Price != request.Price)
+        {
+            await _uow.Repository<PoolTicketPriceHistory>().AddAsync(new PoolTicketPriceHistory
+            {
+                PoolTicketTypeId = pt.PoolTicketTypeId,
+                OldCustomPrice = pt.Price,
+                NewCustomPrice = request.Price,
+                ModifiedAt = System.DateTime.UtcNow,
+                ModifiedByUserName = "Manager" // Lấy từ HttpContext nếu có
+            }, ct);
+        }
+
         pt.Price = request.Price;
         _uow.Repository<PoolTicketType>().Update(pt);
         await _uow.SaveChangesAsync(ct);
 
         return new SuccessResponse
         {
-            Message = $"Đã cập nhật giá vé tại bể bơi thành {request.Price:N0}đ."
+            Message = request.Price.HasValue 
+                ? $"Đã cập nhật giá ghi đè thành {request.Price.Value:N0}đ."
+                : "Đã xóa giá ghi đè, hệ thống sẽ sử dụng Giá gốc."
         };
     }
 }
@@ -54,6 +68,7 @@ public class UpdatePoolTicketPriceCommandValidator
     public UpdatePoolTicketPriceCommandValidator()
     {
         RuleFor(x => x.Price)
-            .GreaterThan(0).WithMessage("Giá vé phải lớn hơn 0.");
+            .GreaterThan(0).WithMessage("Giá vé phải lớn hơn 0.")
+            .When(x => x.Price.HasValue);
     }
 }

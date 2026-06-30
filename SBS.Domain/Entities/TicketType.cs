@@ -23,4 +23,6 @@ public class TicketType
 
     // Reverse: this single ticket is included in these combos
     public virtual ICollection<ComboDetail> IncludedInCombos { get; set; } = new List<ComboDetail>();
+
+    public virtual ICollection<TicketPriceHistory> PriceHistories { get; set; } = new List<TicketPriceHistory>();
 }
