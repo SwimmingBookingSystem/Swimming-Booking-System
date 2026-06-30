@@ -10,6 +10,7 @@ using SBS.Application.Features.Auth.Commands.VerifyOtp;
 using SBS.Application.Features.Auth.Commands.ResendOtp;
 using SBS.Application.Features.Auth.Commands.ForgotPassword;
 using SBS.Application.Features.Auth.Commands.ResetPassword;
+using SBS.Application.Features.Auth.Commands.Logout;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -296,5 +297,41 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { message = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại." });
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (!string.IsNullOrEmpty(refreshToken))
+        {
+            await _mediator.Send(new LogoutCommand { RefreshToken = refreshToken });
+        }
+
+        // Xóa các Cookie đăng nhập bằng cách ghi đè cookie hết hạn
+        var expiredCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(-1)
+        };
+
+        var expiredNormalCookieOptions = new CookieOptions
+        {
+            HttpOnly = false,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(-1)
+        };
+
+        Response.Cookies.Append("accessToken", "", expiredCookieOptions);
+        Response.Cookies.Append("refreshToken", "", expiredCookieOptions);
+        Response.Cookies.Append("fullName", "", expiredNormalCookieOptions);
+        Response.Cookies.Append("role", "", expiredNormalCookieOptions);
+        Response.Cookies.Append("userName", "", expiredNormalCookieOptions);
+        Response.Cookies.Append("userId", "", expiredNormalCookieOptions);
+
+        return Ok(new { message = "Đăng xuất thành công." });
     }
 }

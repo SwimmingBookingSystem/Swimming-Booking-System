@@ -10,6 +10,7 @@ public interface IAuthService
 {
     Task<AuthResultDto> LoginAsync(string userName, string password, CancellationToken cancellationToken = default);
     Task<AuthResultDto> RefreshTokenAsync(string accessToken, string refreshToken, CancellationToken cancellationToken = default);
+    Task<ResultDto> LogoutAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task<ResultDto> RegisterAsync(
         string userName,
         string email,
