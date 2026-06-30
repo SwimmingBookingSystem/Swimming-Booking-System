@@ -71,7 +71,7 @@ $(document).ready(function () {
                 let html = '';
                 slots.forEach(slot => {
                     const isDisabled = slot.availableCapacity <= 0 ? 'disabled' : '';
-                    const statusText = slot.availableCapacity <= 0 ? '(Hết chỗ)' : `(Còn ${slot.availableCapacity})`;
+                    const statusText = slot.availableCapacity <= 0 ? '(Hết chỗ)' : `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
                     
                     html += `
                         <div class="col-6 col-sm-4">
