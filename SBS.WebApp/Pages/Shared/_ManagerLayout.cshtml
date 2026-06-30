@@ -117,22 +117,29 @@
         }
 
         // Hàm Đăng xuất
-        function logout() {
-            // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            
-            // Đồng thời xóa cookie không cần domain chỉ định
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            
-            window.location.href = '/Auth/Login';
+        async function logout() {
+            try {
+                // Gọi API Đăng xuất để xóa Refresh Token trong Database và xóa Cookie HttpOnly
+                const baseUrl = '@Configuration["ApiBaseUrl"]';
+                await $.ajax({
+                    url: baseUrl + '/api/auth/logout',
+                    type: 'POST',
+                    xhrFields: { withCredentials: true }
+                });
+            } catch (error) {
+                console.error("Lỗi khi gọi API Đăng xuất:", error);
+            } finally {
+                // Dự phòng: Xóa thủ công các Cookie lưu ở Client
+                const expiredDate = "Thu, 01 Jan 1970 00:00:00 UTC";
+                const cookiesToClear = ["accessToken", "refreshToken", "role", "fullName", "userName", "userId"];
+                
+                cookiesToClear.forEach(cookie => {
+                    document.cookie = `${cookie}=; expires=${expiredDate}; path=/; domain=localhost;`;
+                    document.cookie = `${cookie}=; expires=${expiredDate}; path=/;`; // Cho trường hợp không có domain
+                });
+                
+                window.location.href = '/Index';
+            }
         }
 
         // --- 2. HIỂN THỊ THÔNG TIN NGƯỜI DÙNG ---
