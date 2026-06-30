@@ -215,8 +215,9 @@
                 const isActive = t.status === 'Active';
                 const isCombo = t.category === 'Combo';
                 const isOverride = t.price !== null && t.price !== undefined;
-                const currentPrice = isOverride ? t.price : t.basePrice;
-                const diff = currentPrice - t.basePrice;
+                const trueSystemPrice = t.basePrice * (1 - (t.discountPercent || 0) / 100);
+                const currentPrice = isOverride ? t.price : trueSystemPrice;
+                const diff = currentPrice - trueSystemPrice;
                 
                 let diffHtml = '';
                 if (diff > 0) {
@@ -250,7 +251,10 @@
                             <i class="fa-solid ${isCombo ? 'fa-cubes' : 'fa-ticket'}"></i> ${t.category}
                         </span>
                     </td>
-                    <td><span class="price-base">${formatMoney(t.basePrice)}</span></td>
+                    <td>
+                        <span class="price-base" style="${t.discountPercent > 0 ? 'text-decoration: line-through; color: #999; font-size: 0.85rem;' : ''}">${formatMoney(t.basePrice)}</span>
+                        ${t.discountPercent > 0 ? `<br><span class="price-base text-success fw-bold">${formatMoney(trueSystemPrice)}</span> <span class="badge bg-danger ms-1">-${t.discountPercent}%</span>` : ''}
+                    </td>
                     <td>${currentPriceHtml}</td>
                     <td>${diffHtml}</td>
                     <td><span class="pricing-status ${isActive ? 'active' : 'closed'}">${isActive ? 'Hoạt động' : 'Đã đóng'}</span></td>
@@ -282,7 +286,9 @@
             $('#editPoolId').val(selectedPoolId);
             $('#editTicketTypeId').val(ticketTypeId);
             $('#priceModalTicketName').text(`${t.ticketCode} — ${t.ticketName}`);
-            $('#priceModalBasePrice').text(formatMoney(t.basePrice));
+            
+            const trueSystemPrice = t.basePrice * (1 - (t.discountPercent || 0) / 100);
+            $('#priceModalBasePrice').text(formatMoney(trueSystemPrice));
             
             const isOverride = t.price !== null && t.price !== undefined;
             $('#newPrice').val(isOverride ? t.price : '');

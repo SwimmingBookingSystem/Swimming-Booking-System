@@ -31,6 +31,17 @@ public class ClosePoolTicketCommandHandler
         if (pt.Status == "Inactive")
             throw new BadRequestException("Vé tại bể bơi này đã ở trạng thái Inactive.");
 
+        // Kiểm tra xem vé này có đang được sử dụng trong Booking nào chưa hoàn thành không
+        bool hasActiveBookings = await _uow.AnyAsync(
+            _uow.Repository<BookingDetail>().Query()
+                .Where(bd => bd.PoolTicketTypeId == pt.PoolTicketTypeId 
+                          && (bd.Booking.Status == "PendingPayment" || bd.Booking.Status == "Confirmed")), ct);
+
+        if (hasActiveBookings)
+        {
+            throw new BadRequestException("Không thể ngừng áp dụng vé vì đang có khách hàng (Booking) chờ thanh toán hoặc đã xác nhận sử dụng vé này tại bể bơi.");
+        }
+
         pt.Status = "Inactive";
         _uow.Repository<PoolTicketType>().Update(pt);
         await _uow.SaveChangesAsync(ct);
