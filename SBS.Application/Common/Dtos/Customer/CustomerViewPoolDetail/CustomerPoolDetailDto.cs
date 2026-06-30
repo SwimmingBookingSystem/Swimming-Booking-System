@@ -11,4 +11,5 @@ public class CustomerPoolDetailDto
     public string OpeningTime { get; set; } = null!; // Format: "hh:mm"
     public string ClosingTime { get; set; } = null!; // Format: "hh:mm"
     public List<string> Images { get; set; } = new(); // Sorted List of image URLs
+    public int StandardCapacity { get; set; }
 }

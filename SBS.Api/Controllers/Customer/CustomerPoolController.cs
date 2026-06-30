@@ -10,7 +10,6 @@ namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/customer/pools")]
-[Authorize(Roles = "Customer")]
 public class CustomerPoolController : ControllerBase
 {
     private readonly ISender _mediator;
@@ -27,7 +26,9 @@ public class CustomerPoolController : ControllerBase
         [FromQuery] string? searchName = null,
         [FromQuery] string? address = null,
         [FromQuery] string? openingTime = null,
-        [FromQuery] string? closingTime = null)
+        [FromQuery] string? closingTime = null,
+        [FromQuery] int? minCapacity = null,
+        [FromQuery] int? maxCapacity = null)
     {
         TimeSpan? parsedOpening = null;
         if (!string.IsNullOrEmpty(openingTime))
@@ -55,7 +56,9 @@ public class CustomerPoolController : ControllerBase
             searchName, 
             address, 
             parsedOpening, 
-            parsedClosing
+            parsedClosing,
+            minCapacity,
+            maxCapacity
         );
 
         var result = await _mediator.Send(query);

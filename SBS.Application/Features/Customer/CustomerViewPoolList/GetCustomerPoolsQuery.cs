@@ -16,7 +16,9 @@ public record GetCustomerPoolsQuery(
     string? SearchName = null,
     string? Address = null,
     TimeSpan? OpeningTime = null,
-    TimeSpan? ClosingTime = null
+    TimeSpan? ClosingTime = null,
+    int? MinCapacity = null,
+    int? MaxCapacity = null
 ) : IRequest<PagedResponse<CustomerPoolDto>>;
 
 public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuery, PagedResponse<CustomerPoolDto>>
@@ -35,12 +37,12 @@ public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuer
         // Chỉ lấy những bể bơi đang hoạt động
         query = query.Where(p => p.Status == "Active");
 
-        // Lọc theo tên hoặc mô tả bể bơi (không phân biệt hoa thường)
+        // Lọc theo tên hoặc địa chỉ bể bơi (không phân biệt hoa thường)
         if (!string.IsNullOrWhiteSpace(request.SearchName))
         {
             var search = request.SearchName.ToLower();
             query = query.Where(p => p.PoolName.ToLower().Contains(search) || 
-                                    (p.Description != null && p.Description.ToLower().Contains(search)));
+                                    p.Address.ToLower().Contains(search));
         }
 
         // Lọc theo địa chỉ (Tỉnh/Thành phố/Quận/Huyện...)
@@ -53,11 +55,21 @@ public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuer
         // Lọc theo giờ mở/đóng cửa
         if (request.OpeningTime.HasValue)
         {
-            query = query.Where(p => p.OpeningTime == request.OpeningTime.Value);
+            query = query.Where(p => p.OpeningTime <= request.OpeningTime.Value);
         }
         if (request.ClosingTime.HasValue)
         {
-            query = query.Where(p => p.ClosingTime == request.ClosingTime.Value);
+            query = query.Where(p => p.ClosingTime >= request.ClosingTime.Value);
+        }
+
+        // Lọc theo sức chứa
+        if (request.MinCapacity.HasValue)
+        {
+            query = query.Where(p => p.StandardCapacity >= request.MinCapacity.Value);
+        }
+        if (request.MaxCapacity.HasValue)
+        {
+            query = query.Where(p => p.StandardCapacity <= request.MaxCapacity.Value);
         }
 
         // Đếm tổng số lượng bản ghi thỏa mãn bộ lọc
@@ -77,7 +89,8 @@ public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuer
                       CoverImageUrl = p.PoolImages.Where(img => img.IsCover).Select(img => img.ImageUrl).FirstOrDefault() 
                                       ?? p.PoolImages.OrderBy(img => img.SortOrder).Select(img => img.ImageUrl).FirstOrDefault(),
                       OpeningTime = p.OpeningTime.ToString(@"hh\:mm"),
-                      ClosingTime = p.ClosingTime.ToString(@"hh\:mm")
+                      ClosingTime = p.ClosingTime.ToString(@"hh\:mm"),
+                      StandardCapacity = p.StandardCapacity
                  }), ct);
 
         return new PagedResponse<CustomerPoolDto>
