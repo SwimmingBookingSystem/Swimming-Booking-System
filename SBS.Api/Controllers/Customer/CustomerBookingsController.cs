@@ -14,6 +14,7 @@ namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/customer-bookings")]
+[Authorize(Roles = "Customer")]
 public class CustomerBookingsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -37,7 +38,6 @@ public class CustomerBookingsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize]
     [HttpPost("create")]
     public async Task<ActionResult<CreateBookingResponseDto>> CreateBooking([FromBody] CreateBookingCommand command)
     {
