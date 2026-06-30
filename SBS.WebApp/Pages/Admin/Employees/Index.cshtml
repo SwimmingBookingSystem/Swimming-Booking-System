@@ -1,9 +1,9 @@
 @page
-@model SBS.WebApp.Pages.Admin.Users.IndexModel
+@model SBS.WebApp.Pages.Admin.Employees.IndexModel
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Quản lý Người dùng";
-    ViewData["Breadcrumb"] = "Quản trị / Người dùng";
+    ViewData["Title"] = "Quản lý Nhân sự";
+    ViewData["Breadcrumb"] = "Quản trị / Nhân sự";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,12 +12,24 @@
             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
             <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên, email, tài khoản...">
         </div>
-        <input type="hidden" id="roleFilter" value="Customer">
+        <select id="roleFilter" class="form-select shadow-sm" style="width: 160px;">
+            <option value="">Tất cả vai trò</option>
+            <option value="Staff">Staff</option>
+            <option value="Manager">Manager</option>
+        </select>
         <select id="statusFilter" class="form-select shadow-sm" style="width: 160px;">
             <option value="">Tất cả trạng thái</option>
             <option value="Active">Hoạt động</option>
             <option value="Locked">Khóa</option>
         </select>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Admin/Employees/CreateStaff" class="btn btn-primary fw-semibold shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i>Thêm nhân viên
+        </a>
+        <a href="/Admin/Employees/CreateManager" class="btn btn-warning fw-semibold shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i>Thêm quản lý
+        </a>
     </div>
 </div>
 
@@ -26,7 +38,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th class="ps-4 text-muted small fw-bold text-uppercase">Người dùng</th>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Nhân viên</th>
                     <th class="text-muted small fw-bold text-uppercase">Email</th>
                     <th class="text-muted small fw-bold text-uppercase text-center">Số điện thoại</th>
                     <th class="text-muted small fw-bold text-uppercase text-center">Vai trò</th>
@@ -34,13 +46,13 @@
                     <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
                 </tr>
             </thead>
-            <tbody id="userTableBody">
+            <tbody id="employeeTableBody">
                 <tr><td colspan="6" class="text-center p-4">Đang tải dữ liệu...</td></tr>
             </tbody>
         </table>
     </div>
     <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 người dùng</div>
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 nhân viên</div>
         <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
     </div>
 </div>
@@ -68,26 +80,32 @@
         let confirmActionCb = null;
         let currentPage = 1;
         const pageSize = 10;
-
         $(document).ready(function() {
-            loadUsers(1);
+            loadEmployees(1);
 
             let searchTimeout = null;
             $('#searchInput').on('input', function() {
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => loadUsers(1), 500);
+                searchTimeout = setTimeout(() => loadEmployees(1), 500);
             });
-            $('#statusFilter').on('change', function() { loadUsers(1); });
+            $('#roleFilter').on('change', function() { loadEmployees(1); });
+            $('#statusFilter').on('change', function() { loadEmployees(1); });
+
+            $('#btnConfirmAction').click(function() {
+                if (confirmActionCb) confirmActionCb();
+            });
         });
 
-        async function loadUsers(page) {
+        async function loadEmployees(page) {
             currentPage = page;
             const search = $('#searchInput').val();
+            const role = $('#roleFilter').val();
             const status = $('#statusFilter').val();
 
             try {
-                let res = await api.get('/users');
-                let users = (res || []).filter(u => u.role === 'Customer');
+                const res = await api.get('/users');
+                let users = res || [];
+                users = users.filter(u => u.role === 'Staff' || u.role === 'Manager');
 
                 if (search) {
                     const s = search.toLowerCase();
@@ -96,6 +114,9 @@
                         u.userName.toLowerCase().includes(s) ||
                         u.email.toLowerCase().includes(s)
                     );
+                }
+                if (role) {
+                    users = users.filter(u => u.role === role);
                 }
                 if (status) {
                     users = users.filter(u => u.status === status);
@@ -108,30 +129,30 @@
                 renderTable(paged);
                 renderPagination(totalCount, page, pageSize, totalPages);
             } catch (error) {
-                $('#userTableBody').html('<tr><td colspan="6" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+                $('#employeeTableBody').html('<tr><td colspan="7" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
             }
         }
 
         function renderPagination(totalCount, page, pSize, totalPages) {
             const startItem = (page - 1) * pSize + 1;
             const endItem = Math.min(page * pSize, totalCount);
-            
-            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} người dùng`);
+
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} nhân viên`);
 
             let html = '';
-            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadUsers(${page - 1}); return false;">Trước</a></li>`;
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${page - 1}); return false;">Trước</a></li>`;
             for(let i = 1; i <= totalPages; i++) {
-                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadUsers(${i}); return false;">${i}</a></li>`;
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${i}); return false;">${i}</a></li>`;
             }
-            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadUsers(${page + 1}); return false;">Sau</a></li>`;
-            
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${page + 1}); return false;">Sau</a></li>`;
+
             $('#pagination').html(html);
         }
 
         function renderTable(users) {
             let html = '';
             if (users.length === 0) {
-                html = '<tr><td colspan="6" class="text-center text-muted p-5"><i class="fa-solid fa-users-slash fa-3x mb-3"></i><br>Không tìm thấy người dùng nào.</td></tr>';
+                html = '<tr><td colspan="6" class="text-center text-muted p-5"><i class="fa-solid fa-users-slash fa-3x mb-3"></i><br>Không tìm thấy nhân viên nào.</td></tr>';
             } else {
                 users.forEach(u => {
                     const isLocked = u.status !== 'Active';
@@ -140,13 +161,19 @@
                         : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">ACTIVE</span>';
 
                     let roleBadge = 'secondary';
-                    if (u.role === 'Customer') roleBadge = 'secondary';
+                    if (u.role === 'Manager') roleBadge = 'primary';
+                    else if (u.role === 'Staff') roleBadge = 'info';
+                    else if (u.role === 'Admin') roleBadge = 'danger';
 
                     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName)}&background=DC2626&color=fff`;
 
-                    const lockBtn = isLocked
-                        ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
-                        : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`;
+                    const lockBtn = u.role === 'Admin'
+                        ? `<span class="text-muted small">---</span>`
+                        : (isLocked
+                            ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
+                            : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`);
+
+                    const editBtn = `<a href="/Admin/Employees/Edit/${u.userId}" class="btn btn-sm btn-light text-secondary border me-1" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>`;
 
                     html += `
                         <tr>
@@ -163,12 +190,12 @@
                             <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
                             <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${u.role}</span></td>
                             <td class="text-center">${statusBadge}</td>
-                            <td class="text-end pe-4">${lockBtn}</td>
+                            <td class="text-end pe-4">${editBtn}${lockBtn}</td>
                         </tr>
                     `;
                 });
             }
-            $('#userTableBody').html(html);
+            $('#employeeTableBody').html(html);
         }
 
         function confirmLock(id, name) {
@@ -179,7 +206,7 @@
                     await api.post(`/users/${id}/lock`);
                     toastr.success('Đã khóa tài khoản.');
                     confirmModal.hide();
-                    loadUsers(currentPage);
+                    loadEmployees(currentPage);
                 } catch(e) {}
             };
             confirmModal.show();
@@ -193,14 +220,10 @@
                     await api.post(`/users/${id}/unlock`);
                     toastr.success('Đã mở khóa tài khoản.');
                     confirmModal.hide();
-                    loadUsers(currentPage);
+                    loadEmployees(currentPage);
                 } catch(e) {}
             };
             confirmModal.show();
         }
-
-        $('#btnConfirmAction').click(function() {
-            if (confirmActionCb) confirmActionCb();
-        });
     </script>
 }

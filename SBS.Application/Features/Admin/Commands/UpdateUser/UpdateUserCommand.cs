@@ -6,10 +6,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SBS.Application.Features.Admin.Commands.CreateStaff;
+namespace SBS.Application.Features.Admin.Commands.UpdateUser;
 
-public record CreateStaffCommand : IRequest<ResultDto>
+public record UpdateUserCommand : IRequest<ResultDto>
 {
+    public Guid UserId { get; init; }
     public string UserName { get; init; } = null!;
     public string Email { get; init; } = null!;
     public string FullName { get; init; } = null!;
@@ -17,22 +18,21 @@ public record CreateStaffCommand : IRequest<ResultDto>
     public string? Address { get; init; }
     public string? Gender { get; init; }
     public DateOnly? Dob { get; init; }
-    public string Password { get; init; } = null!;
     public int? PoolId { get; init; }
 }
 
-public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, ResultDto>
+public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ResultDto>
 {
     private readonly IAdminService _adminService;
 
-    public CreateStaffCommandHandler(IAdminService adminService)
+    public UpdateUserCommandHandler(IAdminService adminService)
     {
         _adminService = adminService;
     }
 
-    public async Task<ResultDto> Handle(CreateStaffCommand request, CancellationToken cancellationToken)
+    public async Task<ResultDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        var dto = new CreateUserDto
+        var dto = new UpdateUserDto
         {
             UserName = request.UserName,
             Email = request.Email,
@@ -41,9 +41,9 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Res
             Address = request.Address,
             Gender = request.Gender,
             Dob = request.Dob,
-            Password = request.Password
+            PoolId = request.PoolId
         };
 
-        return await _adminService.CreateStaffAsync(dto, request.PoolId, cancellationToken);
+        return await _adminService.UpdateUserAsync(request.UserId, dto, cancellationToken);
     }
 }
