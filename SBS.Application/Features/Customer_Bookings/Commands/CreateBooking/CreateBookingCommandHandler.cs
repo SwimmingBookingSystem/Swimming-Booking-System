@@ -134,10 +134,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             };
 
             await _unitOfWork.Repository<Booking>().AddAsync(booking, cancellationToken);
-            
-            // Deduct capacity
-            slot.Capacity -= totalQuantity;
-            _unitOfWork.Repository<PoolSlot>().Update(slot);
+
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

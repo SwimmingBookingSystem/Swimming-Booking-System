@@ -46,6 +46,7 @@ public class CustomerBookingsController : ControllerBase
     }
 
     [HttpPost("payos-webhook")]
+    [AllowAnonymous]
     public async Task<IActionResult> PayOSWebhook()
     {
         using var reader = new StreamReader(Request.Body);

@@ -75,6 +75,15 @@ public class ExceptionHandlingMiddleware
                 Message = ex.Message
             });
         }
+        catch (InvalidOperationException ex)
+        {
+            context.Response.StatusCode  = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
         catch (ValidationException ex)
         {
             context.Response.StatusCode  = 400;
