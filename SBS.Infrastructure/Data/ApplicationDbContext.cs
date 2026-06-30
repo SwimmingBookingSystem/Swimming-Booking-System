@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Pool> Pools { get; set; } = null!;
     public DbSet<PoolSlot> PoolSlots { get; set; } = null!;
     public DbSet<TicketType> TicketTypes { get; set; } = null!;
+    public DbSet<TicketPriceHistory> TicketPriceHistories { get; set; } = null!;
     public DbSet<ComboDetail> ComboDetails { get; set; } = null!;
     public DbSet<PoolTicketType> PoolTicketTypes { get; set; } = null!;
     public DbSet<Booking> Bookings { get; set; } = null!;

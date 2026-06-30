@@ -218,22 +218,22 @@
             ).join('');
             
             const html = `
-                <div class="combo-row d-flex gap-3 mb-3 align-items-center p-3 bg-white border rounded shadow-sm" id="combo_${uid}">
-                    <div class="flex-grow-1">
+                <div class="combo-row row g-3 mb-3 align-items-end p-3 bg-white border rounded shadow-sm" id="combo_${uid}">
+                    <div class="col-md-7">
                         <label class="form-label small text-muted mb-1 fw-semibold">Chọn vé đơn</label>
                         <select class="form-select combo-single-select" onchange="calculateComboPrice()">${options}</select>
                     </div>
-                    <div>
+                    <div class="col-md-3">
                         <label class="form-label small text-muted mb-1 fw-semibold">Số lượng</label>
-                        <div class="input-group" style="width: 140px;">
+                        <div class="input-group flex-nowrap">
                             <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', -1)"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" class="form-control text-center qty-input" id="qty_${uid}" min="1" max="20" value="1" oninput="calculateComboPrice()" readonly style="background-color: #fff;">
+                            <input type="number" class="form-control text-center qty-input px-1" id="qty_${uid}" min="1" max="20" value="1" oninput="calculateComboPrice()" readonly style="background-color: #fff;">
                             <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', 1)"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <button type="button" class="btn btn-light text-danger border" onclick="removeComboRow('${uid}')" title="Xóa vé này">
-                            <i class="fa-solid fa-trash"></i>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-light text-danger border w-100" onclick="removeComboRow('${uid}')" title="Xóa vé này">
+                            <i class="fa-solid fa-trash"></i> Xóa
                         </button>
                     </div>
                 </div>`;

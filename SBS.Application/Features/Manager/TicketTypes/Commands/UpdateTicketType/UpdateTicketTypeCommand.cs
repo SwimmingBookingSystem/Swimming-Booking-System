@@ -94,6 +94,22 @@ public class UpdateTicketTypeCommandHandler
             }
         }
 
+        bool isPriceChanged = ticket.BasePrice != finalBasePrice || ticket.DiscountPercent != request.DiscountPercent;
+
+        if (isPriceChanged)
+        {
+            await _uow.Repository<TicketPriceHistory>().AddAsync(new TicketPriceHistory
+            {
+                TicketTypeId = ticket.TicketTypeId,
+                OldBasePrice = ticket.BasePrice,
+                NewBasePrice = finalBasePrice,
+                OldDiscountPercent = ticket.DiscountPercent,
+                NewDiscountPercent = request.DiscountPercent,
+                ModifiedAt = DateTime.UtcNow,
+                ModifiedByUserName = "Manager" // Hoặc lấy từ HttpContext nếu có ICurrentUser
+            }, ct);
+        }
+
         ticket.TicketName      = request.TicketName;
         ticket.BasePrice       = finalBasePrice;
         ticket.DiscountPercent = request.DiscountPercent;

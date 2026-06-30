@@ -87,6 +87,13 @@
                 </div>
             </div>
 
+            <!-- Price Warning -->
+            <div id="priceWarningContainer" class="alert alert-warning mb-4" style="display: none;">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                <strong>Lưu ý:</strong> Việc thay đổi giá hoặc ưu đãi sẽ có hiệu lực ngay lập tức cho các lượt mua vé mới. 
+                Các hóa đơn mua vé trước đó sẽ giữ nguyên giá cũ và không bị ảnh hưởng. Hệ thống sẽ lưu lại lịch sử biến động giá này.
+            </div>
+
             <!-- Description -->
             <div class="mb-4">
                 <label class="form-label fw-semibold">Mô tả</label>
@@ -109,6 +116,9 @@
     <script>
         const ticketId = $('#editTicketId').val();
         let singleTickets = [];
+        let originalBasePrice = 0;
+        let originalDiscount = 0;
+        let originalComboDetailsStr = '';
 
         $(document).ready(async function () {
             await loadSingleTickets();
@@ -136,6 +146,9 @@
                 $('#ticketName').val(t.ticketName);
                 $('#ticketDescription').val(t.description);
                 $('#ticketCategory').val(t.category);
+                
+                originalBasePrice = t.basePrice || 0;
+                originalDiscount = t.discountPercent || 0;
 
                 if (t.category === 'Combo') {
                     $('#comboFields').show();
@@ -143,6 +156,7 @@
                     
                     $('#comboDetailsContainer').empty();
                     if (t.comboDetails && t.comboDetails.length > 0) {
+                        originalComboDetailsStr = JSON.stringify(t.comboDetails.map(c => ({ id: c.singleTicketTypeId, qty: c.quantity })).sort((a,b) => a.id - b.id));
                         t.comboDetails.forEach(d => addComboRow(d.singleTicketTypeId, d.quantity));
                     } else {
                         addComboRow();
@@ -175,16 +189,25 @@
             }
             const actual = base * (1 - discount / 100);
             $('#actualPriceDisplay').text(formatMoney(actual));
+            
+            // Check for changes
+            if (base !== originalBasePrice || discount !== originalDiscount) {
+                $('#priceWarningContainer').slideDown();
+            } else {
+                $('#priceWarningContainer').slideUp();
+            }
         }
 
         function calculateComboPrice() {
             let totalBase = 0;
+            let currentComboArr = [];
             $('.combo-row').each(function () {
                 const id = parseInt($(this).find('.combo-single-select').val());
                 const qty = parseInt($(this).find('.qty-input').val()) || 0;
                 const ticket = singleTickets.find(t => t.ticketTypeId === id);
                 if (ticket) {
                     totalBase += (ticket.basePrice * qty);
+                    currentComboArr.push({ id: id, qty: qty });
                 }
             });
             $('#comboBasePriceDisplay').text(formatMoney(totalBase));
@@ -196,6 +219,14 @@
             }
             const actual = totalBase * (1 - discount / 100);
             $('#comboActualPriceDisplay').text(formatMoney(actual));
+            
+            // Check for changes
+            const currentComboStr = JSON.stringify(currentComboArr.sort((a,b) => a.id - b.id));
+            if (discount !== originalDiscount || currentComboStr !== originalComboDetailsStr) {
+                $('#priceWarningContainer').slideDown();
+            } else {
+                $('#priceWarningContainer').slideUp();
+            }
         }
 
         function addComboRow(selectedId = '', qty = 1) {
@@ -210,22 +241,22 @@
             ).join('');
             
             const html = `
-                <div class="combo-row d-flex gap-3 mb-3 align-items-center p-3 bg-white border rounded shadow-sm" id="combo_${uid}">
-                    <div class="flex-grow-1">
+                <div class="combo-row row g-3 mb-3 align-items-end p-3 bg-white border rounded shadow-sm" id="combo_${uid}">
+                    <div class="col-md-7">
                         <label class="form-label small text-muted mb-1 fw-semibold">Chọn vé đơn</label>
                         <select class="form-select combo-single-select" onchange="calculateComboPrice()">${options}</select>
                     </div>
-                    <div>
+                    <div class="col-md-3">
                         <label class="form-label small text-muted mb-1 fw-semibold">Số lượng</label>
-                        <div class="input-group" style="width: 140px;">
+                        <div class="input-group flex-nowrap">
                             <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', -1)"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" class="form-control text-center qty-input" id="qty_${uid}" min="1" max="20" value="${qty}" oninput="calculateComboPrice()" readonly style="background-color: #fff;">
+                            <input type="number" class="form-control text-center qty-input px-1" id="qty_${uid}" min="1" max="20" value="${qty}" oninput="calculateComboPrice()" readonly style="background-color: #fff;">
                             <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', 1)"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <button type="button" class="btn btn-light text-danger border" onclick="removeComboRow('${uid}')" title="Xóa vé này">
-                            <i class="fa-solid fa-trash"></i>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-light text-danger border w-100" onclick="removeComboRow('${uid}')" title="Xóa vé này">
+                            <i class="fa-solid fa-trash"></i> Xóa
                         </button>
                     </div>
                 </div>`;
