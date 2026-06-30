@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
@@ -29,7 +29,7 @@
             </p>
 
             <div class="hero-buttons">
-                <a asp-area="" asp-page="/Auth/Login" class="btn btn-primary">
+                <a asp-area="" asp-page="/Auth/Login" class="btn btn-primary" id="hero-book-btn">
                     <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
                 </a>
                 <a href="#features" class="btn btn-outline-light">
@@ -228,7 +228,7 @@
                 <h2>Sẵn sàng bơi lội mỗi ngày?</h2>
                 <p>Đăng ký tài khoản ngay hôm nay để nhận ưu đãi giảm 20% cho lần đặt lịch đầu tiên!</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a asp-area="" asp-page="/Auth/Login" class="btn btn-cta">
+                    <a asp-area="" asp-page="/Auth/Login" class="btn btn-cta" id="cta-book-btn">
                         <i class="bi bi-person-plus me-2"></i>Đăng ký ngay
                     </a>
                     <a href="#features" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
@@ -242,8 +242,57 @@
 
 @section Scripts {
     <script>
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        window.logout = function() {
+            // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            
+            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            
+            window.location.href = '/Index';
+        };
+
+        function checkLoginState() {
+            const userName = getCookie('userName');
+            const role = getCookie('role');
+            if (userName && role) {
+                const loginLink = $('.navbar a[href*="/Auth/Login"]');
+                if (loginLink.length > 0) {
+                    const welcomeText = `Chào mừng, <span class="fw-bold text-primary">${decodeURIComponent(userName)}</span>`;
+                    const logoutBtn = `<button class="btn btn-outline-danger rounded-pill px-3 fw-semibold ms-2" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i> Đăng xuất</button>`;
+                    loginLink.parent().html(`<div class="d-flex align-items-center gap-2 text-dark fs-6">${welcomeText} ${logoutBtn}</div>`);
+                }
+
+                // If customer is logged in, change the Booking/CTA button links to the Pools List
+                if (role.toLowerCase() === 'customer') {
+                    $('#hero-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay');
+                    $('#cta-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-swimming me-2"></i>Xem danh sách bể bơi');
+                }
+            }
+        }
+
         $(document).ready(function () {
+            // Check login state and swap navbar controls dynamically
+            checkLoginState();
+
             const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
+            const role = getCookie('role');
 
             $.ajax({
                 url: apiBaseUrl + '/api/public/homepage',
@@ -284,6 +333,8 @@
                                 ? '<span class="pool-card-price">' + Number(pool.minPrice).toLocaleString('vi-VN') + 'đ / lượt</span>'
                                 : '<span class="pool-card-price">Liên hệ</span>';
 
+                            var orderUrl = (role && role.toLowerCase() === 'customer') ? '/CustomerViewPoolIst/CustomerViewPoolIst' : '/Auth/Login';
+
                             html += '<div class="col-lg-4 col-md-6">';
                             html += '<div class="pool-card">';
                             html += '<div class="pool-card-img" style="background: ' + gradient + ';">';
@@ -302,7 +353,7 @@
                             html += '</div>';
                             html += '<div class="pool-card-footer">';
                             html += priceHtml;
-                            html += '<a href="/Auth/Login" class="pool-card-btn">Đặt ngay <i class="bi bi-arrow-right ms-1"></i></a>';
+                            html += '<a href="' + orderUrl + '" class="pool-card-btn">Đặt ngay <i class="bi bi-arrow-right ms-1"></i></a>';
                             html += '</div>';
                             html += '</div>';
                             html += '</div>';
