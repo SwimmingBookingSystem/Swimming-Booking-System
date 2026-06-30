@@ -1,14 +1,10 @@
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SBS.Application.Features.Staff.Commands.CreateWalkInBooking;
 using SBS.Application.Features.Staff.Queries.GetAllBookings;
 using SBS.Application.Features.Staff.Queries.GetBookingDetail;
-using SBS.Application.Features.Staff.Queries.GetTodayAttendance;
 using SBS.Application.Features.Staff.Queries.SearchBookings;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SBS.Api.Controllers.Staff;
@@ -22,14 +18,10 @@ namespace SBS.Api.Controllers.Staff;
 public class StaffBookingController : ControllerBase
 {
     private readonly ISender _mediator;
-    private readonly IValidator<StaffCreateWalkInBookingCommand> _walkInValidator;
 
-    public StaffBookingController(
-        ISender mediator,
-        IValidator<StaffCreateWalkInBookingCommand> walkInValidator)
+    public StaffBookingController(ISender mediator)
     {
         _mediator = mediator;
-        _walkInValidator = walkInValidator;
     }
 
     /// <summary>
@@ -104,42 +96,5 @@ public class StaffBookingController : ControllerBase
 
         return Ok(result);
     }
-
-    /// <summary>
-    /// GET /api/staff/bookings/today-attendance?poolId=1
-    /// Xem danh sách khách hôm nay (đã/chưa check-in).
-    /// </summary>
-    [HttpGet("today-attendance")]
-    public async Task<IActionResult> GetTodayAttendance([FromQuery] int? poolId)
-    {
-        var result = await _mediator.Send(new StaffGetTodayAttendanceQuery { PoolId = poolId });
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// POST /api/staff/bookings/walk-in
-    /// Tạo booking tại quầy cho khách đến trực tiếp (không cần tài khoản).
-    /// </summary>
-    [HttpPost("walk-in")]
-    public async Task<IActionResult> CreateWalkInBooking([FromBody] StaffCreateWalkInBookingCommand command)
-    {
-        var validationResult = await _walkInValidator.ValidateAsync(command);
-        if (!validationResult.IsValid)
-        {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return BadRequest(new { errors });
-        }
-
-        var result = await _mediator.Send(command);
-        if (!result.Succeeded)
-            return BadRequest(new { errors = result.Errors });
-
-        return Ok(new
-        {
-            message = "Tạo walk-in booking thành công.",
-            bookingCode = result.BookingCode,
-            bookingId = result.BookingId,
-            totalAmount = result.TotalAmount
-        });
-    }
 }
+
