@@ -106,14 +106,15 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             foreach (var reqTicket in request.Tickets)
             {
                 var ticketType = ticketTypes.First(t => t.PoolTicketTypeId == reqTicket.PoolTicketTypeId);
-                var subTotal = ticketType.Price * reqTicket.Quantity;
+                var actualPrice = ticketType.Price ?? Math.Round(ticketType.TicketType.BasePrice * (1 - ticketType.TicketType.DiscountPercent / 100m), 0);
+                var subTotal = actualPrice * reqTicket.Quantity;
                 totalAmount += subTotal;
 
                 bookingDetails.Add(new BookingDetail
                 {
                     PoolTicketTypeId = reqTicket.PoolTicketTypeId,
                     Quantity = reqTicket.Quantity,
-                    UnitPrice = ticketType.Price,
+                    UnitPrice = actualPrice,
                     SubTotal = subTotal
                 });
             }

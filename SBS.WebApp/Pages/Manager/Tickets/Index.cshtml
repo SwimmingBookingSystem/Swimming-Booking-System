@@ -94,7 +94,6 @@
     </div>
 </div>
 
-
 <!-- Confirm Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
     <div class="modal-dialog modal-sm">
@@ -107,6 +106,42 @@
                     <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
                     <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-0 py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-clock-rotate-left text-info me-2"></i> Lịch sử biến động giá: <span id="historyTicketName" class="text-primary"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thời gian thay đổi</th>
+                                <th>Giá gốc cũ</th>
+                                <th>Giá gốc mới</th>
+                                <th>Ưu đãi cũ</th>
+                                <th>Ưu đãi mới</th>
+                                <th>Thực hiện bởi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- JS render -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -204,6 +239,7 @@
                     <td>
                         <div class="d-flex gap-1 justify-content-center">
                             <a class="action-btn" title="Chỉnh sửa" href="/Manager/Tickets/Edit?id=${t.ticketTypeId}"><i class="fa-solid fa-pen"></i></a>
+                            <button class="action-btn text-info" title="Lịch sử giá" onclick="viewHistory(${t.ticketTypeId}, '${t.ticketName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
                             ${isActive
                         ? `<button class="action-btn danger" title="Đóng" onclick="toggleStatus(${t.ticketTypeId}, 'close')"><i class="fa-solid fa-ban"></i></button>`
                         : `<button class="action-btn" title="Mở lại" onclick="toggleStatus(${t.ticketTypeId}, 'open')"><i class="fa-solid fa-rotate-left"></i></button>`
@@ -248,6 +284,45 @@
         }
 
         $('#btnConfirmAction').click(function () { if (confirmCb) confirmCb(); });
+
+        // ── HISTORY MODAL ────────────────────────────────────────────
+        let historyModal;
+        $(document).ready(function () {
+            historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+        });
+
+        async function viewHistory(id, name) {
+            $('#historyTicketName').text(name);
+            $('#historyTableBody').html('<tr><td colspan="6"><i class="fa-solid fa-spinner fa-spin my-3"></i> Đang tải lịch sử...</td></tr>');
+            historyModal.show();
+
+            try {
+                const history = await api.get(`/ticket-types/${id}/history`);
+                
+                if (!history || history.length === 0) {
+                    $('#historyTableBody').html('<tr><td colspan="6" class="text-muted py-4"><i class="fa-solid fa-clock text-light fa-3x mb-2 d-block"></i>Chưa có lịch sử thay đổi giá nào cho vé này.</td></tr>');
+                    return;
+                }
+
+                let html = '';
+                history.forEach(h => {
+                    const date = new Date(h.modifiedAt).toLocaleString('vi-VN');
+                    html += `
+                        <tr>
+                            <td><span class="badge bg-light text-dark border"><i class="fa-regular fa-calendar me-1"></i> ${date}</span></td>
+                            <td><span class="text-danger text-decoration-line-through">${formatMoney(h.oldBasePrice)}</span></td>
+                            <td><span class="text-success fw-bold">${formatMoney(h.newBasePrice)}</span></td>
+                            <td>${h.oldDiscountPercent}%</td>
+                            <td><span class="fw-bold">${h.newDiscountPercent}%</span></td>
+                            <td><span class="badge bg-secondary"><i class="fa-solid fa-user-shield me-1"></i> ${h.modifiedByUserName || 'System'}</span></td>
+                        </tr>
+                    `;
+                });
+                $('#historyTableBody').html(html);
+            } catch (e) {
+                $('#historyTableBody').html('<tr><td colspan="6" class="text-danger py-4"><i class="fa-solid fa-circle-xmark me-2"></i>Không thể tải dữ liệu lịch sử.</td></tr>');
+            }
+        }
 
         // ── SEED DEFAULTS ────────────────────────────────────────────
         async function seedDefaults() {

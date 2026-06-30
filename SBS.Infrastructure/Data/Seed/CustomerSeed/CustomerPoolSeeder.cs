@@ -242,11 +242,11 @@ public static class CustomerPoolSeeder
 
                 // 2. Thêm giá vé cho bể bơi
                 if (standardTicket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = standardTicket.TicketTypeId, Price = 100000m, Status = "Active" });
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = standardTicket.TicketTypeId, Price = null, Status = "Active" });
                 if (combo3Ticket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo3Ticket.TicketTypeId, Price = 270000m, Status = "Active" });
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo3Ticket.TicketTypeId, Price = null, Status = "Active" });
                 if (combo5Ticket != null)
-                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo5Ticket.TicketTypeId, Price = 425000m, Status = "Active" });
+                    pool.PoolTicketTypes.Add(new PoolTicketType { TicketTypeId = combo5Ticket.TicketTypeId, Price = null, Status = "Active" });
 
                 // 3. Thêm các slot hoạt động cho hôm nay và ngày mai với sức chứa (Capacity) đa dạng để test bộ lọc
                 var poolCapacities = new[] { 30, 50, 25, 40, 30, 45, 60, 50, 35, 20 };
