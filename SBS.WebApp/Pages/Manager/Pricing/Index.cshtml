@@ -13,24 +13,58 @@
     <h4><i class="fa-solid fa-tags me-2 text-primary"></i>Bảng giá theo Bể bơi</h4>
 </div>
 
-<!-- Pool Tab Bar -->
-<div class="pool-tab-bar" id="poolTabBar">
-    <div class="text-muted small p-2"><i class="fa-solid fa-spinner fa-spin me-1"></i> Đang tải bể bơi...</div>
-</div>
-
-<!-- Pool Info Banner -->
-<div class="pool-info-banner" id="poolInfoBanner" style="display: none;">
-    <img class="pool-avatar" id="bannerAvatar" src="https://placehold.co/56x56?text=?" alt="">
-    <div class="pool-details">
-        <h5 id="bannerPoolName">—</h5>
-        <p id="bannerPoolInfo">—</p>
+<!-- Pool Selector -->
+<div class="row align-items-end mb-4">
+    <div class="col-md-8 col-lg-6">
+        <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Cơ sở / Bể bơi đang chọn</label>
+        <div class="dropdown">
+            <button class="btn w-100 text-start d-flex align-items-center justify-content-between shadow-sm bg-white" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1; transition: all 0.2s;">
+                <div class="d-flex align-items-center gap-3">
+                    <img id="selectorAvatar" src="https://placehold.co/48x48?text=?" class="rounded-3 shadow-sm" style="width: 48px; height: 48px; object-fit: cover; border: 2px solid #fff;" alt="">
+                    <div>
+                        <h6 class="mb-1 fw-bold text-dark" id="selectorPoolName">Đang tải...</h6>
+                        <div class="text-muted" id="selectorPoolInfo" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Vui lòng đợi</div>
+                    </div>
+                </div>
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 32px; height: 32px;">
+                    <i class="fa-solid fa-chevron-down fs-6"></i>
+                </div>
+            </button>
+            <ul class="dropdown-menu w-100 shadow-lg border-0 p-2 mt-2" id="poolDropdownMenu" style="max-height: 400px; overflow-y: auto; border-radius: 12px; animation: dropdownFade 0.2s ease-out;">
+                <!-- js render -->
+            </ul>
+        </div>
     </div>
-    <div class="ms-auto d-flex gap-2">
-        <button class="btn btn-sm btn-outline-primary" onclick="refreshPricing()">
-            <i class="fa-solid fa-rotate me-1"></i> Làm mới
+    <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
+        <button class="btn btn-outline-primary shadow-sm fw-semibold" onclick="refreshPricing()" style="border-radius: 10px; padding: 10px 20px;">
+            <i class="fa-solid fa-rotate-right me-2"></i>Làm mới bảng giá
         </button>
     </div>
 </div>
+
+<style>
+    .dropdown-menu .dropdown-item {
+        padding: 10px 16px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        margin-bottom: 2px;
+    }
+    .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
+        background-color: #f0f9ff;
+        color: #0284c7;
+    }
+    .dropdown-menu .dropdown-item.active {
+        background-color: #0284c7;
+        color: #fff;
+    }
+    .dropdown-menu .dropdown-item.active .text-muted {
+        color: #e0f2fe !important;
+    }
+    @@keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 
 <!-- Pricing Table -->
 <div class="pricing-table-wrapper" id="pricingTableWrapper">
@@ -148,34 +182,44 @@
 
         function renderPoolTabs() {
             if (pools.length === 0) {
-                $('#poolTabBar').html('<p class="text-muted small p-3 mb-0">Chưa có bể bơi nào. Vui lòng tạo bể bơi trước.</p>');
+                $('#poolDropdownMenu').html('<li class="p-3 text-muted text-center small">Chưa có bể bơi nào. Vui lòng tạo bể bơi trước.</li>');
+                $('#selectorPoolName').text('Chưa có dữ liệu');
+                $('#selectorPoolInfo').html('Vui lòng tạo bể bơi mới');
                 return;
             }
             let html = '';
             pools.forEach(p => {
-                html += `<button class="pool-tab" data-pool-id="${p.poolId}" onclick="selectPool(${p.poolId})">
-                    <i class="fa-solid fa-water"></i> ${p.poolName}
-                </button>`;
+                html += `
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-3" href="#" onclick="selectPool(${p.poolId}); return false;" data-pool-id="${p.poolId}">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i class="fa-solid fa-water"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">${p.poolName}</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>${p.address}</div>
+                        </div>
+                    </a>
+                </li>`;
             });
-            $('#poolTabBar').html(html);
+            $('#poolDropdownMenu').html(html);
         }
 
         async function selectPool(poolId) {
             selectedPoolId = poolId;
-            // Update tab active state
-            $('.pool-tab').removeClass('active');
-            $(`.pool-tab[data-pool-id="${poolId}"]`).addClass('active');
+            // Update active state in dropdown
+            $('.dropdown-item').removeClass('active');
+            $(`.dropdown-item[data-pool-id="${poolId}"]`).addClass('active');
 
-            // Update banner
+            // Update selector button banner
             const pool = pools.find(p => p.poolId === poolId);
             if (pool) {
                 const coverImg = pool.images && pool.images.length > 0
                     ? (pool.images.find(i => i.isCover)?.imageUrl || pool.images[0].imageUrl)
                     : 'https://placehold.co/56x56?text=' + encodeURIComponent(pool.poolName.charAt(0));
-                $('#bannerAvatar').attr('src', coverImg);
-                $('#bannerPoolName').text(pool.poolName);
-                $('#bannerPoolInfo').html(`<i class="fa-solid fa-location-dot me-1"></i>${pool.address} &nbsp;|&nbsp; <i class="fa-regular fa-clock me-1"></i>${pool.openingTime} - ${pool.closingTime}`);
-                $('#poolInfoBanner').show();
+                $('#selectorAvatar').attr('src', coverImg);
+                $('#selectorPoolName').text(pool.poolName);
+                $('#selectorPoolInfo').html(`<i class="fa-solid fa-location-dot me-1"></i>${pool.address} &nbsp;|&nbsp; <i class="fa-regular fa-clock me-1"></i>${pool.openingTime} - ${pool.closingTime}`);
             }
 
             await loadPoolTickets(poolId);

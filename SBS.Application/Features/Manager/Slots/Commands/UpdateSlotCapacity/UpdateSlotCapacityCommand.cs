@@ -5,6 +5,7 @@ using SBS.Application.Common.ManagerExceptions;
 using SBS.Application.Common.Interfaces;
 using SBS.Domain.Entities;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +34,18 @@ public class UpdateSlotCapacityCommandHandler
         if (request.Capacity < 1 || request.Capacity > pool.StandardCapacity)
             throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
 
-        slot.Capacity = request.Capacity;
+        // Đếm tổng số lượng vé đã được đặt cho slot này
+        int currentBooked = await _uow.Repository<BookingDetail>().Query()
+            .Where(bd => bd.Booking.PoolSlotId == request.SlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed")
+            .SumAsync(bd => bd.Quantity, ct);
+
+        // Phương án 1: Chặn cứng (Hard Limit)
+        if (request.Capacity < currentBooked)
+        {
+            throw new BadRequestException($"Không thể giảm tổng sức chứa xuống {request.Capacity} vì hiện tại đã có {currentBooked} vé được đặt. Sức chứa tối thiểu cho phép là {currentBooked}.");
+        }
+
+        slot.Capacity = request.Capacity - currentBooked;
         _uow.Repository<PoolSlot>().Update(slot);
         await _uow.SaveChangesAsync(ct);
 
