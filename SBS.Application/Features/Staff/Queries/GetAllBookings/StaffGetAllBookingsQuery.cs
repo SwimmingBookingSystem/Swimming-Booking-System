@@ -14,18 +14,9 @@ namespace SBS.Application.Features.Staff.Queries.GetAllBookings;
 
 public record StaffGetAllBookingsQuery : IRequest<PagedResultDto<BookingListItemDto>>
 {
-    /// <summary>Filter theo trạng thái: PendingPayment, Confirmed, CheckIn, Cancelled, NoShow, Waitlist</summary>
     public string? Status { get; init; }
-
-    /// <summary>Filter theo ngày bơi</summary>
-    public DateOnly? BookingDate { get; init; }
-
-    /// <summary>Filter theo bể bơi</summary>
     public int? PoolId { get; init; }
-
-    /// <summary>Filter theo loại booking: Online, WalkIn</summary>
     public string? BookingType { get; init; }
-
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;
 }
@@ -48,7 +39,6 @@ public class StaffGetAllBookingsQueryHandler : IRequestHandler<StaffGetAllBookin
 
     public async Task<PagedResultDto<BookingListItemDto>> Handle(StaffGetAllBookingsQuery request, CancellationToken cancellationToken)
     {
-        // Guard: lấy danh sách Pool được phân công cho Staff đang đăng nhập
         var staffId = Guid.TryParse(_currentUserService.UserId, out var sid) ? sid : Guid.Empty;
         var assignedPoolIds = await _staffUserService.GetAssignedPoolIdsAsync(staffId, cancellationToken);
 
@@ -58,19 +48,15 @@ public class StaffGetAllBookingsQueryHandler : IRequestHandler<StaffGetAllBookin
                 .ThenInclude(s => s.Pool)
             .AsQueryable();
 
-        // Giới hạn theo hồ bơi được phân công
         if (assignedPoolIds.Count > 0)
             query = query.Where(b => assignedPoolIds.Contains(b.PoolSlot.PoolId));
         else
-            // Staff chưa được phân công hồ nào → trả về rỗng
             return new PagedResultDto<BookingListItemDto> { Items = new(), TotalCount = 0, Page = request.Page, PageSize = request.PageSize };
 
-        // Apply filters
         if (!string.IsNullOrEmpty(request.Status))
             query = query.Where(b => b.Status == request.Status);
 
-        if (request.BookingDate.HasValue)
-            query = query.Where(b => b.BookingDate == request.BookingDate.Value);
+        query = query.Where(b => b.BookingDate == DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)));
 
         if (request.PoolId.HasValue)
             query = query.Where(b => b.PoolSlot.PoolId == request.PoolId.Value);
@@ -78,10 +64,8 @@ public class StaffGetAllBookingsQueryHandler : IRequestHandler<StaffGetAllBookin
         if (!string.IsNullOrEmpty(request.BookingType))
             query = query.Where(b => b.BookingType == request.BookingType);
 
-        // Tổng số bản ghi
         var totalCount = await _readOnlyUnitOfWork.CountAsync(query, cancellationToken);
 
-        // Phân trang + sắp xếp mới nhất trước
         var pagedQuery = query
             .OrderByDescending(b => b.CreatedAt)
             .Skip((request.Page - 1) * request.PageSize)
@@ -89,7 +73,6 @@ public class StaffGetAllBookingsQueryHandler : IRequestHandler<StaffGetAllBookin
 
         var bookings = await _readOnlyUnitOfWork.ToListAsync(pagedQuery, cancellationToken);
 
-        // Enrich thông tin khách hàng từ IStaffUserService
         var items = new List<BookingListItemDto>(bookings.Count);
         foreach (var b in bookings)
         {

@@ -4,6 +4,8 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Quản lý Booking";
     ViewData["Breadcrumb"] = "Lễ tân / Quản lý Booking";
+    var today = DateTime.Today.ToString("dd/MM/yyyy");
+    var todayIso = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
 <div class="container-fluid p-0">
@@ -11,29 +13,31 @@
         <div class="col-md-12">
             <div class="card border-0 shadow-sm p-4">
                 <div class="row g-3 align-items-center">
+                    <div class="col-md-auto">
+                        <label class="form-label fw-semibold small text-muted d-block">Ngày làm việc</label>
+                        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-calendar-day me-2"></i>@today
+                        </span>
+                    </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold small text-muted">Trạng thái</label>
                         <select id="filter-status" class="form-select">
                             <option value="">Tất cả trạng thái</option>
-                            <option value="Confirmed">Confirmed (Đã đặt)</option>
+                            <option value="Paid">Paid (Đã thanh toán)</option>
                             <option value="CheckIn">CheckIn (Đang bơi)</option>
                             <option value="Completed">Completed (Đã xong)</option>
                             <option value="Cancelled">Cancelled (Đã hủy)</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold small text-muted">Ngày đặt bơi</label>
-                        <input type="date" id="filter-date" class="form-control" />
-                    </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold small text-muted">Tìm kiếm (Mã / SĐT / Email)</label>
                         <div class="input-group">
-                            <input type="text" id="search-keyword" class="form-control" placeholder="Nhập mã SBS-..., SĐT hoặc Email..." />
+                            <input type="text" id="search-keyword" class="form-control" placeholder="Nhập mã BK-..., SĐT hoặc Email..." />
                             <button id="btn-search" class="btn btn-primary" type="button"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm</button>
                         </div>
                     </div>
-                    <div class="col-md-2 text-end pt-4">
-                        <button id="btn-reset" class="btn btn-outline-secondary w-100"><i class="fa-solid fa-rotate me-1"></i> Làm mới</button>
+                    <div class="col text-end pt-4">
+                        <button id="btn-reset" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate me-1"></i> Làm mới</button>
                     </div>
                 </div>
             </div>
@@ -51,15 +55,15 @@
                                 <tr>
                                     <th>Mã Booking</th>
                                     <th>Khách hàng</th>
-                                    <th>Ngày bơi</th>
-                                    <th>Khung giờ / Hạng vé</th>
+                                    <th>Khung giờ bơi</th>
+                                    <th>Hồ bơi</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
                                     <th class="text-end">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="bookings-tbody">
-                                <tr><td colspan="7" class="text-center text-muted py-4">Đang tải dữ liệu...</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>Đang tải dữ liệu hôm nay...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -108,7 +112,7 @@
 
             loadBookings();
 
-            $('#filter-status, #filter-date').on('change', function () {
+            $('#filter-status').on('change', function () {
                 currentPage = 1;
                 loadBookings();
             });
@@ -123,7 +127,6 @@
 
             $('#btn-reset').on('click', function () {
                 $('#filter-status').val('');
-                $('#filter-date').val('');
                 $('#search-keyword').val('');
                 currentPage = 1;
                 loadBookings();
@@ -133,11 +136,10 @@
         async function loadBookings() {
             try {
                 const status = $('#filter-status').val();
-                const date = $('#filter-date').val();
 
                 let query = `?page=${currentPage}&pageSize=${pageSize}`;
                 if (status) query += `&status=${status}`;
-                if (date) query += `&bookingDate=${date}`;
+                // Không gửi bookingDate — backend tự giới hạn ngày hôm nay
 
                 const res = await staffApi.get('/bookings' + query);
                 renderBookingsTable(res.items || [], res.totalCount || 0);
@@ -155,7 +157,7 @@
 
             try {
                 let query = '';
-                if (kw.startsWith('SBS-') || kw.length > 10) {
+                if (kw.startsWith('BK-') || kw.length > 10) {
                     query = `?bookingCode=${encodeURIComponent(kw)}`;
                 } else if (!isNaN(kw)) {
                     query = `?phone=${encodeURIComponent(kw)}`;
@@ -174,23 +176,28 @@
         function renderBookingsTable(items, totalCount) {
             let html = '';
             if (!items || items.length === 0) {
-                html = '<tr><td colspan="7" class="text-center text-muted py-4">Không có dữ liệu booking nào.</td></tr>';
+                html = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="fa-solid fa-calendar-xmark me-2"></i>Không có booking nào hôm nay.</td></tr>';
             } else {
                 items.forEach(b => {
                     let badgeClass = 'bg-secondary';
-                    if (b.status === 'Confirmed') badgeClass = 'bg-success';
-                    else if (b.status === 'CheckIn') badgeClass = 'bg-info text-dark';
-                    else if (b.status === 'Completed') badgeClass = 'bg-primary';
-                    else if (b.status === 'Cancelled') badgeClass = 'bg-danger';
+                    let badgeText = b.status;
+                    if (b.status === 'Confirmed') { badgeClass = 'bg-success'; badgeText = 'Đã đặt'; }
+                    else if (b.status === 'CheckIn') { badgeClass = 'bg-info text-dark'; badgeText = 'Đang bơi'; }
+                    else if (b.status === 'Completed') { badgeClass = 'bg-primary'; badgeText = 'Hoàn thành'; }
+                    else if (b.status === 'Cancelled') { badgeClass = 'bg-danger'; badgeText = 'Đã hủy'; }
 
-                    const formattedDate = b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('vi-VN') : '-';
                     const amount = (b.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+                    const slotTime = b.slotTime || '-';
+                    const poolName = b.poolName || '-';
+                    const customerPhone = b.customerPhone || b.phoneNumber || '';
+                    const customerEmail = b.customerEmail || b.email || '';
+                    const contactInfo = customerPhone || customerEmail || '-';
 
-                    let actions = `<button class="btn btn-sm btn-light text-primary me-1" onclick="viewDetail(${b.bookingId})"><i class="fa-solid fa-eye"></i> Chi tiết</button>`;
+                    let actions = `<button class="btn btn-sm btn-outline-primary me-1" onclick="viewDetail(${b.bookingId})" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>`;
                     if (b.status === 'Confirmed') {
-                        actions += `<button class="btn btn-sm btn-success me-1" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check"></i> Check-in</button>`;
+                        actions += `<button class="btn btn-sm btn-success" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check me-1"></i>Check-in</button>`;
                     } else if (b.status === 'CheckIn') {
-                        actions += `<button class="btn btn-sm btn-warning text-dark me-1" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket"></i> Check-out</button>`;
+                        actions += `<button class="btn btn-sm btn-warning text-dark" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</button>`;
                     }
 
                     html += `
@@ -198,12 +205,12 @@
                             <td class="fw-bold text-dark">${b.bookingCode || ('#' + b.bookingId)}</td>
                             <td>
                                 <div class="fw-medium">${b.customerName || 'Khách hàng'}</div>
-                                <div class="text-muted small">${b.phoneNumber || b.email || '-'}</div>
+                                <div class="text-muted small">${contactInfo}</div>
                             </td>
-                            <td>${formattedDate}</td>
-                            <td>${b.slotName || 'Slot bơi'}</td>
+                            <td class="fw-medium">${slotTime}</td>
+                            <td class="text-muted small">${poolName}</td>
                             <td class="fw-semibold">${amount}</td>
-                            <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill">${b.status}</span></td>
+                            <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill">${badgeText}</span></td>
                             <td class="text-end">${actions}</td>
                         </tr>
                     `;
@@ -241,35 +248,72 @@
                 const res = await staffApi.get('/bookings/' + bookingId);
                 $('#modal-booking-code').text('(' + res.bookingCode + ')');
 
-                let detailsHtml = '';
-                if (res.details && res.details.length > 0) {
-                    res.details.forEach(d => {
-                        detailsHtml += `<tr><td>${d.ticketName}</td><td>${d.quantity}</td><td class="text-end">${(d.price || 0).toLocaleString('vi-VN')} đ</td></tr>`;
+                // Tickets (res.tickets từ BookingDetailDto)
+                let ticketsHtml = '';
+                if (res.tickets && res.tickets.length > 0) {
+                    res.tickets.forEach(d => {
+                        ticketsHtml += `<tr>
+                            <td>${d.ticketName}</td>
+                            <td class="text-center">${d.quantity}</td>
+                            <td class="text-end">${(d.unitPrice || 0).toLocaleString('vi-VN')} đ</td>
+                            <td class="text-end fw-semibold">${(d.subTotal || 0).toLocaleString('vi-VN')} đ</td>
+                        </tr>`;
                     });
+                } else {
+                    ticketsHtml = '<tr><td colspan="4" class="text-center text-muted">Không có vé</td></tr>';
+                }
+
+                // Payment info
+                let paymentHtml = '';
+                if (res.payment) {
+                    const payDate = res.payment.paymentDate ? new Date(res.payment.paymentDate).toLocaleString('vi-VN') : 'Chưa thanh toán';
+                    paymentHtml = `<div class="d-flex justify-content-between small mt-2">
+                        <span class="text-muted">Phương thức:</span>
+                        <span class="fw-medium">${res.payment.paymentMethod || '-'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Trạng thái TT:</span>
+                        <span class="fw-medium">${res.payment.status || '-'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Ngày TT:</span>
+                        <span>${payDate}</span>
+                    </div>`;
+                }
+
+                // CheckIn info
+                let checkInBadge = '';
+                if (res.checkIn) {
+                    const ciTime = new Date(res.checkIn.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    checkInBadge = `<span class="badge bg-success ms-2"><i class="fa-solid fa-check me-1"></i>Check-in lúc ${ciTime} (${res.checkIn.checkInMethod})</span>`;
                 }
 
                 const content = `
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <p class="mb-1 text-muted small">Khách hàng</p>
-                            <h6 class="fw-bold">${res.customerName || 'Khách vãng lai'}</h6>
-                            <p class="mb-0 small text-muted"><i class="fa-solid fa-phone me-1"></i> ${res.phoneNumber || 'N/A'}</p>
-                            <p class="mb-0 small text-muted"><i class="fa-solid fa-envelope me-1"></i> ${res.email || 'N/A'}</p>
+                            <p class="mb-1 text-muted small fw-semibold text-uppercase">Khách hàng</p>
+                            <h6 class="fw-bold mb-1">${res.customerName || 'Khách vãng lai'} ${checkInBadge}</h6>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-phone me-1"></i>${res.customerPhone || 'Chưa có SĐT'}</p>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-envelope me-1"></i>${res.customerEmail || 'Chưa có email'}</p>
                         </div>
-                        <div class="col-md-6 text-md-end">
-                            <p class="mb-1 text-muted small">Thông tin lượt bơi</p>
-                            <h6 class="fw-bold text-primary">${res.poolName || 'Bể bơi'}</h6>
-                            <p class="mb-0 small">${res.slotName} (${res.startTime} - ${res.endTime})</p>
-                            <p class="mb-0 small text-muted">Ngày: ${new Date(res.bookingDate).toLocaleDateString('vi-VN')}</p>
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small fw-semibold text-uppercase">Thông tin lượt bơi</p>
+                            <h6 class="fw-bold text-primary mb-1">${res.poolName || 'Hồ bơi'}</h6>
+                            <p class="mb-0 small"><i class="fa-solid fa-clock me-1"></i>${res.slotTime || '-'}</p>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-calendar me-1"></i>Hôm nay (${new Date(res.bookingDate + 'T00:00:00').toLocaleDateString('vi-VN')})</p>
                         </div>
-                        <div class="col-12 mt-3">
+
+                        <div class="col-12">
+                            <hr class="my-1">
                             <h6 class="fw-bold mb-2">Chi tiết vé đã đặt</h6>
-                            <table class="table table-bordered table-sm">
-                                <thead class="table-light"><tr><th>Loại vé</th><th>Số lượng</th><th class="text-end">Đơn giá</th></tr></thead>
-                                <tbody>${detailsHtml}</tbody>
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead class="table-light"><tr><th>Loại vé</th><th class="text-center">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead>
+                                <tbody>${ticketsHtml}</tbody>
                             </table>
-                            <div class="text-end fw-bold fs-5 text-success mt-2">Tổng tiền: ${(res.totalAmount || 0).toLocaleString('vi-VN')} đ</div>
+                            <div class="text-end fw-bold fs-5 text-success mt-2">Tổng: ${(res.totalAmount || 0).toLocaleString('vi-VN')} đ</div>
                         </div>
+
+                        ${res.payment ? `<div class="col-12"><hr class="my-1"><h6 class="fw-bold mb-2">Thanh toán</h6>${paymentHtml}</div>` : ''}
                     </div>
                 `;
                 $('#modal-detail-body').html(content);
@@ -277,6 +321,7 @@
                 $('#modal-detail-body').html('<div class="alert alert-danger mb-0">Lỗi lấy thông tin chi tiết booking.</div>');
             }
         }
+
 
         async function quickCheckIn(bookingId) {
             try {
