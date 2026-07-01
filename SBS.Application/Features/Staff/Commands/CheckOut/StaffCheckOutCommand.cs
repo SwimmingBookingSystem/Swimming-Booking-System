@@ -66,22 +66,17 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
         if (booking is null)
             return new StaffCheckOutResultDto { Succeeded = false, Message = "Không tìm thấy booking." };
 
-        // Guard: kiểm tra Staff có được phân công vào hồ bơi của booking này không
         var isAssigned = await _staffUserService.IsStaffAssignedToPoolAsync(staffId, booking.PoolSlot.PoolId, cancellationToken);
         if (!isAssigned)
             return new StaffCheckOutResultDto { Succeeded = false, Message = "Bạn không có quyền quản lý tại hồ bơi này." };
 
-        // Validate trạng thái: chỉ cho phép check-out nếu trạng thái hiện tại là CheckIn
         if (booking.Status != "CheckIn")
-        {
             return new StaffCheckOutResultDto
             {
                 Succeeded = false,
                 Message = $"Booking không thể check-out. Trạng thái hiện tại: {booking.Status} (chỉ cho phép check-out đối với booking ở trạng thái CheckIn)."
             };
-        }
 
-        // Cập nhật trạng thái thành Completed khi khách check-out
         booking.Status = "Completed";
         booking.UpdatedAt = DateTime.UtcNow;
 

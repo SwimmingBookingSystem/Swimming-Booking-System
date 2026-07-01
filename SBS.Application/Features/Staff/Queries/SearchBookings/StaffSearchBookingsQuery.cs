@@ -12,13 +12,8 @@ namespace SBS.Application.Features.Staff.Queries.SearchBookings;
 
 public record StaffSearchBookingsQuery : IRequest<List<BookingListItemDto>>
 {
-    /// <summary>Tìm chính xác theo mã booking (BookingCode)</summary>
     public string? BookingCode { get; init; }
-
-    /// <summary>Tìm theo số điện thoại khách hàng</summary>
     public string? Phone { get; init; }
-
-    /// <summary>Tìm theo email khách hàng</summary>
     public string? Email { get; init; }
 }
 
@@ -43,14 +38,12 @@ public class StaffSearchBookingsQueryHandler : IRequestHandler<StaffSearchBookin
                 .ThenInclude(s => s.Pool)
             .AsQueryable();
 
-        // Ưu tiên tìm theo BookingCode trước
         if (!string.IsNullOrWhiteSpace(request.BookingCode))
         {
             bookingQuery = bookingQuery.Where(b => b.BookingCode == request.BookingCode.Trim());
         }
         else if (!string.IsNullOrWhiteSpace(request.Phone) || !string.IsNullOrWhiteSpace(request.Email))
         {
-            // Tìm UserId từ IStaffUserService dựa trên phone/email
             var userIds = await _staffUserService.FindUserIdsByPhoneOrEmailAsync(
                 request.Phone?.Trim(),
                 request.Email?.Trim(),
@@ -70,7 +63,6 @@ public class StaffSearchBookingsQueryHandler : IRequestHandler<StaffSearchBookin
             bookingQuery.OrderByDescending(b => b.CreatedAt).Take(50),
             cancellationToken);
 
-        // Enrich thông tin khách hàng từ IStaffUserService
         var result = new List<BookingListItemDto>(bookings.Count);
         foreach (var b in bookings)
         {
