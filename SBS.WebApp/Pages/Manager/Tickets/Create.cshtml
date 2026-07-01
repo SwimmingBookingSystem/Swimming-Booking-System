@@ -103,14 +103,7 @@
                 <textarea class="form-control" id="ticketDescription" rows="3" maxlength="2000" placeholder="Mô tả quyền lợi, quy định của loại vé..."></textarea>
             </div>
 
-            <!-- Apply to Pools -->
-            <div id="applyPoolsSection" class="mb-4">
-                <h6 class="mb-3"><i class="fa-solid fa-swimming-pool me-2 text-info"></i>Áp dụng cho Bể bơi</h6>
-                <div class="pool-checkbox-grid p-3 bg-light rounded border" id="poolCheckboxGrid">
-                    <!-- Pool checkboxes injected here -->
-                </div>
-                <div class="form-text mt-2"><i class="fa-solid fa-circle-info me-1"></i> Chọn bể bơi để áp dụng loại vé này ngay sau khi tạo. Có thể bỏ qua và thêm sau.</div>
-            </div>
+            <!-- Apply to Pools đã được gỡ bỏ (Chuyển sang màn hình Bảng Giá) -->
             
             <hr class="my-4">
             
@@ -130,8 +123,7 @@
         let pools = [];
 
         $(document).ready(async function () {
-            await Promise.all([loadSingleTickets(), loadPools()]);
-            renderPoolCheckboxes();
+            await loadSingleTickets();
             
             // First empty combo row
             addComboRow();
@@ -256,21 +248,7 @@
             calculateComboPrice();
         }
 
-        function renderPoolCheckboxes() {
-            if (pools.length === 0) {
-                $('#poolCheckboxGrid').html('<p class="text-muted small">Chưa có bể bơi nào.</p>');
-                return;
-            }
-            let html = '';
-            pools.filter(p => p.status === 'Active').forEach(p => {
-                html += `
-                    <label class="pool-check-item m-2 p-2 border rounded bg-white d-inline-block cursor-pointer">
-                        <input type="checkbox" class="form-check-input pool-chk me-2" value="${p.poolId}">
-                        <span class="fw-medium"><i class="fa-solid fa-water text-primary me-1"></i> ${p.poolName}</span>
-                    </label>`;
-            });
-            $('#poolCheckboxGrid').html(html);
-        }
+        // Đã gỡ bỏ renderPoolCheckboxes vì chuyển luồng gán Bể bơi sang trang Pricing
 
         async function saveTicket() {
             const cat = $('input[name="category"]:checked').val();
@@ -305,8 +283,7 @@
                 basePrice: cat === 'Single' ? parseFloat($('#basePrice').val()) || 0 : 0,
                 discountPercent: discountPercent,
                 description: $('#ticketDescription').val().trim() || null,
-                comboDetails: null,
-                applyToPoolIds: []
+                comboDetails: null
             };
 
             if (cat === 'Combo') {
@@ -325,10 +302,6 @@
                     return;
                 }
             }
-
-            $('.pool-chk:checked').each(function () {
-                payload.applyToPoolIds.push(parseInt($(this).val()));
-            });
 
             try {
                 $('#btnSave').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang lưu...');

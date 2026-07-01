@@ -25,8 +25,7 @@ public class GetTicketsByPoolQueryHandler
         var activeTickets = await _uow.ToListAsync(
             _uow.Repository<TicketType>().Query()
                 .Where(t => t.Status == "Active")
-                .OrderBy(t => t.Category)
-                .ThenBy(t => t.TicketCode), ct);
+                .OrderBy(t => t.CreatedAt), ct);
 
         // Lấy danh sách ánh xạ giá của riêng Bể bơi này
         var poolTickets = await _uow.ToListAsync(

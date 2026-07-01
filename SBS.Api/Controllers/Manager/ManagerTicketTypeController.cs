@@ -63,8 +63,7 @@ public class ManagerTicketTypeController : ControllerBase
             {
                 SingleTicketTypeId = d.SingleTicketTypeId,
                 Quantity           = d.Quantity
-            }).ToList(),
-            request.ApplyToPoolIds);
+            }).ToList());
 
         var validation = await _createValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -129,7 +128,6 @@ public class CreateTicketTypeRequest
     public decimal DiscountPercent { get; set; }
     public string? Description { get; set; }
     public List<ComboDetailRequestModel>? ComboDetails { get; set; }
-    public List<int>? ApplyToPoolIds { get; set; }      // ID bể bơi muốn áp dụng ngay
 }
 
 public class UpdateTicketTypeRequest

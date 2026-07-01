@@ -35,9 +35,17 @@
             </ul>
         </div>
     </div>
-    <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
-        <button class="btn btn-outline-primary shadow-sm fw-semibold" onclick="refreshPricing()" style="border-radius: 10px; padding: 10px 20px;">
-            <i class="fa-solid fa-rotate-right me-2"></i>Làm mới bảng giá
+    <div class="col-md-4 col-lg-6 d-flex justify-content-md-end align-items-end gap-2 mt-3 mt-md-0">
+        <div>
+            <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Lọc loại vé</label>
+            <select class="form-select shadow-sm" id="categoryFilter" onchange="applyFilter()" style="border-radius: 10px; border: 1px solid #cbd5e1; height: 44px; min-width: 150px;">
+                <option value="All">Tất cả</option>
+                <option value="Single">Chỉ Vé đơn</option>
+                <option value="Combo">Chỉ Combo</option>
+            </select>
+        </div>
+        <button class="btn btn-outline-primary shadow-sm fw-semibold" onclick="refreshPricing()" style="border-radius: 10px; height: 44px; padding: 0 20px;">
+            <i class="fa-solid fa-rotate-right me-2"></i>Làm mới
         </button>
     </div>
 </div>
@@ -229,7 +237,7 @@
         async function loadPoolTickets(poolId) {
             try {
                 poolTickets = await api.get(`/pools/${poolId}/ticket-types`);
-                renderPricingTable(poolTickets);
+                applyFilter();
             } catch (e) {
                 renderPricingTable([]);
             }
@@ -237,6 +245,16 @@
 
         function refreshPricing() {
             if (selectedPoolId) loadPoolTickets(selectedPoolId);
+        }
+
+        function applyFilter() {
+            const filterVal = $('#categoryFilter').val();
+            if (filterVal === 'All') {
+                renderPricingTable(poolTickets);
+            } else {
+                const filtered = poolTickets.filter(t => t.category === filterVal);
+                renderPricingTable(filtered);
+            }
         }
 
         // ── RENDER TABLE ─────────────────────────────────────────────
