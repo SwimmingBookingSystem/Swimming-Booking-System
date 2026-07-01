@@ -54,8 +54,8 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
         }
         else if (!string.IsNullOrWhiteSpace(request.BookingCode))
         {
-            var code = request.BookingCode.Trim();
-            query = query.Where(b => b.BookingCode == code || b.QrCodeData == code);
+            var trimCode = request.BookingCode.Trim();
+            query = query.Where(b => b.QrCodeData == trimCode || b.BookingCode == trimCode);
         }
         else
         {
