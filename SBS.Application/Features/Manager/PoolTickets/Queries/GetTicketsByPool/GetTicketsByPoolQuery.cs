@@ -21,24 +21,44 @@ public class GetTicketsByPoolQueryHandler
     public async Task<List<PoolTicketTypeDto>> Handle(
         GetTicketsByPoolQuery request, CancellationToken ct)
     {
-        return await _uow.ToListAsync(
+        // Lấy toàn bộ Loại vé đang Active trên hệ thống
+        var activeTickets = await _uow.ToListAsync(
+            _uow.Repository<TicketType>().Query()
+                .Where(t => t.Status == "Active")
+                .OrderBy(t => t.CreatedAt), ct);
+
+        // Lấy danh sách ánh xạ giá của riêng Bể bơi này
+        var poolTickets = await _uow.ToListAsync(
             _uow.Repository<PoolTicketType>().Query()
-                .Where(pt => pt.PoolId == request.PoolId)
-                .OrderBy(pt => pt.TicketType.Category)
-                .ThenBy(pt => pt.TicketType.TicketCode)
-                .Select(pt => new PoolTicketTypeDto
-                {
-                    PoolTicketTypeId = pt.PoolTicketTypeId,
-                    PoolId           = pt.PoolId,
-                    PoolName         = pt.Pool.PoolName,
-                    TicketTypeId     = pt.TicketTypeId,
-                    TicketCode       = pt.TicketType.TicketCode,
-                    TicketName       = pt.TicketType.TicketName,
-                    Category         = pt.TicketType.Category,
-                    BasePrice        = pt.TicketType.BasePrice,
-                    DiscountPercent  = pt.TicketType.DiscountPercent,
-                    Price            = pt.Price,
-                    Status           = pt.Status
-                }), ct);
+                .Where(pt => pt.PoolId == request.PoolId), ct);
+
+        var poolName = await _uow.FirstOrDefaultAsync(
+            _uow.Repository<Pool>().Query()
+                .Where(p => p.PoolId == request.PoolId)
+                .Select(p => p.PoolName), ct);
+
+        var result = new List<PoolTicketTypeDto>();
+
+        foreach (var ticket in activeTickets)
+        {
+            var pt = poolTickets.FirstOrDefault(p => p.TicketTypeId == ticket.TicketTypeId);
+
+            result.Add(new PoolTicketTypeDto
+            {
+                PoolTicketTypeId = pt?.PoolTicketTypeId ?? 0,
+                PoolId           = request.PoolId,
+                PoolName         = poolName ?? "Bể bơi chưa xác định",
+                TicketTypeId     = ticket.TicketTypeId,
+                TicketCode       = ticket.TicketCode,
+                TicketName       = ticket.TicketName,
+                Category         = ticket.Category,
+                BasePrice        = ticket.BasePrice,
+                DiscountPercent  = ticket.DiscountPercent,
+                Price            = pt?.Price, // Nếu null => Rơi tự do về BasePrice
+                Status           = pt?.Status ?? "NotApplied" // Nếu chưa có record => "Chưa áp dụng"
+            });
+        }
+
+        return result;
     }
 }

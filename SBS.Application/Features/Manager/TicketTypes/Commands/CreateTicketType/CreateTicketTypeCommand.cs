@@ -27,8 +27,7 @@ public record CreateTicketTypeCommand(
     decimal BasePrice,                      // Nhập thẳng cho Single; Combo sẽ tự tính
     decimal DiscountPercent,
     string? Description,
-    List<ComboDetailRequest>? ComboDetails,
-    List<int>? ApplyToPoolIds              // null = không áp dụng pool nào ngay
+    List<ComboDetailRequest>? ComboDetails
 ) : IRequest<CreateTicketTypeResponse>;
 
 // ── Handler 
@@ -131,27 +130,7 @@ public class CreateTicketTypeCommandHandler
             await _uow.SaveChangesAsync(ct);
         }
 
-        // ── 6. Gắn vào các bể bơi được chỉ định 
-        if (request.ApplyToPoolIds != null && request.ApplyToPoolIds.Any())
-        {
-            var targetPools = await _uow.ToListAsync(
-                _uow.Repository<Pool>().Query()
-                    .Where(p => request.ApplyToPoolIds.Contains(p.PoolId) && p.Status == "Active"), ct);
-
-            foreach (var pool in targetPools)
-            {
-                await _uow.Repository<PoolTicketType>().AddAsync(new PoolTicketType
-                {
-                    PoolId       = pool.PoolId,
-                    TicketTypeId = ticket.TicketTypeId,
-                    Price        = finalBasePrice,
-                    Status       = "Active"
-                }, ct);
-            }
-
-            if (targetPools.Count > 0)
-                await _uow.SaveChangesAsync(ct);
-        }
+        // Nghiệp vụ Phân bổ Bể bơi đã được chuyển sang giao diện Pricing (Manager/PoolTicketType)
 
         return new CreateTicketTypeResponse
         {
