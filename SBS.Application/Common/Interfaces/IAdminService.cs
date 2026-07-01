@@ -15,11 +15,13 @@ public interface IAdminService
 
     Task<ResultDto> UnlockUserAsync(Guid userId, CancellationToken cancellationToken = default);
 
-    Task<ResultDto> CreateStaffAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
+    Task<ResultDto> CreateStaffAsync(CreateUserDto dto, int? poolId = null, CancellationToken cancellationToken = default);
 
     Task<ResultDto> CreateManagerAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
 
-    Task<ResultDto> ChangeUserRoleAsync(Guid userId, string newRole, CancellationToken cancellationToken = default);
+    Task<ResultDto> UpdateUserAsync(Guid userId, UpdateUserDto dto, CancellationToken cancellationToken = default);
+
+    Task<List<AdminPoolDto>> GetPoolsAsync(CancellationToken cancellationToken = default);
 
     Task<List<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default);
 

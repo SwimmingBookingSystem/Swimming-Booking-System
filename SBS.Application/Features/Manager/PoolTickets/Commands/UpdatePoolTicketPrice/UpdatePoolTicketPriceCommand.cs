@@ -41,8 +41,8 @@ public class UpdatePoolTicketPriceCommandHandler
             await _uow.Repository<PoolTicketPriceHistory>().AddAsync(new PoolTicketPriceHistory
             {
                 PoolTicketTypeId = pt.PoolTicketTypeId,
-                OldCustomPrice = pt.Price,
-                NewCustomPrice = request.Price,
+                OldCustomPrice = pt.Price, // Giá cũ
+                NewCustomPrice = request.Price,  // Giá mới
                 ModifiedAt = System.DateTime.UtcNow,
                 ModifiedByUserName = "Manager" // Lấy từ HttpContext nếu có
             }, ct);
@@ -55,8 +55,8 @@ public class UpdatePoolTicketPriceCommandHandler
         return new SuccessResponse
         {
             Message = request.Price.HasValue 
-                ? $"Đã cập nhật giá ghi đè thành {request.Price.Value:N0}đ."
-                : "Đã xóa giá ghi đè, hệ thống sẽ sử dụng Giá gốc."
+                ? $"Đã cập nhật giá áp dụng thành {request.Price.Value:N0}đ."
+                : "Đã xóa, hệ thống sẽ sử dụng Giá gốc."
         };
     }
 }

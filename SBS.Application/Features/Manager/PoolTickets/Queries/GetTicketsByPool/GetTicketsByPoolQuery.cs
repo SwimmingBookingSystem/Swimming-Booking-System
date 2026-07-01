@@ -36,6 +36,7 @@ public class GetTicketsByPoolQueryHandler
                     TicketName       = pt.TicketType.TicketName,
                     Category         = pt.TicketType.Category,
                     BasePrice        = pt.TicketType.BasePrice,
+                    DiscountPercent  = pt.TicketType.DiscountPercent,
                     Price            = pt.Price,
                     Status           = pt.Status
                 }), ct);

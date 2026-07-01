@@ -88,7 +88,8 @@ public class ManagerTicketTypeController : ControllerBase
             {
                 SingleTicketTypeId = d.SingleTicketTypeId,
                 Quantity           = d.Quantity
-            }).ToList());
+            }).ToList(),
+            request.ForceSyncToPools);
 
         var validation = await _updateValidator.ValidateAsync(command);
         if (!validation.IsValid)
@@ -138,6 +139,7 @@ public class UpdateTicketTypeRequest
     public decimal DiscountPercent { get; set; }
     public string? Description { get; set; }
     public List<ComboDetailRequestModel>? ComboDetails { get; set; }
+    public bool ForceSyncToPools { get; set; }
 }
 
 public class ComboDetailRequestModel

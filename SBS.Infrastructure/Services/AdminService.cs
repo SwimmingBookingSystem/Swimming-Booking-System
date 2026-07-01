@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Dtos.Admin;
 using SBS.Application.Common.Dtos.Profile;
 using SBS.Application.Common.Interfaces;
+using SBS.Domain.Entities;
 using SBS.Infrastructure.Data;
 using SBS.Infrastructure.Identity;
 using System;
@@ -16,11 +17,13 @@ namespace SBS.Infrastructure.Services;
 public class AdminService : IAdminService
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly ApplicationDbContext _writeContext;
     private readonly ReadDbContext _readContext;
 
-    public AdminService(UserManager<AppUser> userManager, ReadDbContext readContext)
+    public AdminService(UserManager<AppUser> userManager, ApplicationDbContext writeContext, ReadDbContext readContext)
     {
         _userManager = userManager;
+        _writeContext = writeContext;
         _readContext = readContext;
     }
 
@@ -47,6 +50,16 @@ public class AdminService : IAdminService
                 x => x.roles.DefaultIfEmpty(),
                 (x, r) => new { x.u, r }
             )
+            .GroupJoin(
+                _readContext.PoolStaffAssignments,
+                x => x.u.Id,
+                a => a.StaffId,
+                (x, assignments) => new { x.u, x.r, assignments }
+            )
+            .SelectMany(
+                x => x.assignments.DefaultIfEmpty(),
+                (x, a) => new { x.u, x.r, a }
+            )
             .OrderByDescending(x => x.u.CreatedAt)
             .Select(x => new UserListDto
             {
@@ -55,6 +68,10 @@ public class AdminService : IAdminService
                 Email = x.u.Email ?? string.Empty,
                 FullName = x.u.FullName,
                 PhoneNumber = x.u.PhoneNumber,
+                Gender = x.u.Gender,
+                Dob = x.u.Dob.HasValue ? x.u.Dob.Value.ToString("yyyy-MM-dd") : null,
+                Address = x.u.Address,
+                PoolId = x.a != null ? x.a.PoolId : (int?)null,
                 Status = x.u.Status,
                 Role = x.r!.Name ?? "Customer",
                 CreatedAt = x.u.CreatedAt
@@ -95,6 +112,36 @@ public class AdminService : IAdminService
         if (user.Status == "Active")
             return ResultDto.Failure(new[] { "Tài khoản đang hoạt động." });
 
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Contains("Manager"))
+        {
+            var activeManagerExists = await _readContext.Users
+                .GroupJoin(
+                    _readContext.UserRoles,
+                    u => u.Id,
+                    ur => ur.UserId,
+                    (u, userRoles) => new { u, userRoles }
+                )
+                .SelectMany(
+                    x => x.userRoles.DefaultIfEmpty(),
+                    (x, ur) => new { x.u, ur }
+                )
+                .GroupJoin(
+                    _readContext.Roles,
+                    x => x.ur!.RoleId,
+                    r => r.Id,
+                    (x, rolesJoin) => new { x.u, rolesJoin }
+                )
+                .SelectMany(
+                    x => x.rolesJoin.DefaultIfEmpty(),
+                    (x, r) => new { x.u, RoleName = r!.Name }
+                )
+                .AnyAsync(x => x.RoleName == "Manager" && x.u.Status == "Active" && x.u.Id != userId, cancellationToken);
+
+            if (activeManagerExists)
+                return ResultDto.Failure(new[] { "Đã có manager đang hoạt động. Vui lòng khóa manager hiện tại trước khi mở khóa manager này." });
+        }
+
         user.Status = "Active";
         user.UpdatedAt = DateTime.UtcNow;
         var updateResult = await _userManager.UpdateAsync(user);
@@ -107,7 +154,7 @@ public class AdminService : IAdminService
         return ResultDto.Success();
     }
 
-    public async Task<ResultDto> CreateStaffAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
+    public async Task<ResultDto> CreateStaffAsync(CreateUserDto dto, int? poolId = null, CancellationToken cancellationToken = default)
     {
         var user = new AppUser
         {
@@ -130,11 +177,59 @@ public class AdminService : IAdminService
 
         await _userManager.AddToRoleAsync(user, "Staff");
 
+        if (poolId.HasValue)
+        {
+            var poolExists = await _readContext.Pools.AnyAsync(p => p.PoolId == poolId.Value, cancellationToken);
+            if (!poolExists)
+                return ResultDto.Failure(new[] { "Bể bơi không tồn tại." });
+
+            var alreadyAssigned = await _readContext.PoolStaffAssignments
+                .AnyAsync(a => a.PoolId == poolId.Value, cancellationToken);
+            if (alreadyAssigned)
+                return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên phụ trách." });
+
+            var assignment = new PoolStaffAssignment
+            {
+                PoolId = poolId.Value,
+                StaffId = user.Id,
+                AssignedAt = DateTime.UtcNow
+            };
+
+            _writeContext.PoolStaffAssignments.Add(assignment);
+            await _writeContext.SaveChangesAsync(cancellationToken);
+        }
+
         return ResultDto.Success();
     }
 
     public async Task<ResultDto> CreateManagerAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
     {
+        var existingActiveManager = await _readContext.Users
+            .GroupJoin(
+                _readContext.UserRoles,
+                u => u.Id,
+                ur => ur.UserId,
+                (u, userRoles) => new { u, userRoles }
+            )
+            .SelectMany(
+                x => x.userRoles.DefaultIfEmpty(),
+                (x, ur) => new { x.u, ur }
+            )
+            .GroupJoin(
+                _readContext.Roles,
+                x => x.ur!.RoleId,
+                r => r.Id,
+                (x, roles) => new { x.u, roles }
+            )
+            .SelectMany(
+                x => x.roles.DefaultIfEmpty(),
+                (x, r) => new { x.u, RoleName = r!.Name }
+            )
+            .FirstOrDefaultAsync(x => x.RoleName == "Manager" && x.u.Status == "Active", cancellationToken);
+
+        if (existingActiveManager != null)
+            return ResultDto.Failure(new[] { "Manager hiện tại đang hoạt động. Vui lòng khóa manager cũ trước khi tạo mới." });
+
         var user = new AppUser
         {
             Id = Guid.NewGuid(),
@@ -159,26 +254,89 @@ public class AdminService : IAdminService
         return ResultDto.Success();
     }
 
-    public async Task<ResultDto> ChangeUserRoleAsync(Guid userId, string newRole, CancellationToken cancellationToken = default)
+    public async Task<ResultDto> UpdateUserAsync(Guid userId, UpdateUserDto dto, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
             return ResultDto.Failure(new[] { "Người dùng không tồn tại." });
 
-        var validRoles = new[] { "Customer", "Staff", "Manager", "Admin" };
-        if (!validRoles.Contains(newRole))
-            return ResultDto.Failure(new[] { "Vai trò không hợp lệ." });
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.FullName = dto.FullName;
+        user.PhoneNumber = dto.PhoneNumber;
+        user.Address = dto.Address;
+        user.Gender = dto.Gender;
+        user.Dob = dto.Dob;
+        user.UpdatedAt = DateTime.UtcNow;
 
-        var currentRoles = await _userManager.GetRolesAsync(user);
-        var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-        if (!removeResult.Succeeded)
-            return ResultDto.Failure(removeResult.Errors.Select(e => e.Description));
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+            return ResultDto.Failure(updateResult.Errors.Select(e => e.Description));
 
-        var addResult = await _userManager.AddToRoleAsync(user, newRole);
-        if (!addResult.Succeeded)
-            return ResultDto.Failure(addResult.Errors.Select(e => e.Description));
+        // Handle pool assignment change
+        var currentAssignment = await _writeContext.PoolStaffAssignments
+            .FirstOrDefaultAsync(a => a.StaffId == userId, cancellationToken);
+
+        if (dto.PoolId.HasValue)
+        {
+            var poolExists = await _readContext.Pools.AnyAsync(p => p.PoolId == dto.PoolId.Value, cancellationToken);
+            if (!poolExists)
+                return ResultDto.Failure(new[] { "Bể bơi không tồn tại." });
+
+            if (currentAssignment != null)
+            {
+                if (currentAssignment.PoolId != dto.PoolId.Value)
+                {
+                    var alreadyAssigned = await _readContext.PoolStaffAssignments
+                        .AnyAsync(a => a.PoolId == dto.PoolId.Value && a.StaffId != userId, cancellationToken);
+                    if (alreadyAssigned)
+                        return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên khác phụ trách." });
+
+                    currentAssignment.PoolId = dto.PoolId.Value;
+                    await _writeContext.SaveChangesAsync(cancellationToken);
+                }
+            }
+            else
+            {
+                var alreadyAssigned = await _readContext.PoolStaffAssignments
+                    .AnyAsync(a => a.PoolId == dto.PoolId.Value, cancellationToken);
+                if (alreadyAssigned)
+                    return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên phụ trách." });
+
+                var assignment = new PoolStaffAssignment
+                {
+                    PoolId = dto.PoolId.Value,
+                    StaffId = userId,
+                    AssignedAt = DateTime.UtcNow
+                };
+                _writeContext.PoolStaffAssignments.Add(assignment);
+                await _writeContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+        else
+        {
+            if (currentAssignment != null)
+            {
+                _writeContext.PoolStaffAssignments.Remove(currentAssignment);
+                await _writeContext.SaveChangesAsync(cancellationToken);
+            }
+        }
 
         return ResultDto.Success();
+    }
+
+    public async Task<List<AdminPoolDto>> GetPoolsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _readContext.Pools
+            .Where(p => p.Status == "Active")
+            .OrderBy(p => p.PoolName)
+            .Select(p => new AdminPoolDto
+            {
+                PoolId = p.PoolId,
+                PoolName = p.PoolName,
+                Address = p.Address
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)

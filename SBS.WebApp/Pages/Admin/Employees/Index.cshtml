@@ -1,0 +1,230 @@
+@page
+@model SBS.WebApp.Pages.Admin.Employees.IndexModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Nhân sự";
+    ViewData["Breadcrumb"] = "Quản trị / Nhân sự";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-3 align-items-center">
+        <div class="input-group shadow-sm" style="width: 300px;">
+            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên, email, tài khoản...">
+        </div>
+        <select id="roleFilter" class="form-select shadow-sm" style="width: 160px;">
+            <option value="">Tất cả vai trò</option>
+            <option value="Staff">Nhân viên</option>
+            <option value="Manager">Quản lý</option>
+        </select>
+        <select id="statusFilter" class="form-select shadow-sm" style="width: 160px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Active">Hoạt động</option>
+            <option value="Locked">Khóa</option>
+        </select>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Admin/Employees/CreateStaff" class="btn btn-primary fw-semibold shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i>Thêm nhân viên
+        </a>
+        <a href="/Admin/Employees/CreateManager" class="btn btn-warning fw-semibold shadow-sm px-4">
+            <i class="fa-solid fa-plus me-2"></i>Thêm quản lý
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Nhân viên</th>
+                    <th class="text-muted small fw-bold text-uppercase">Email</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Số điện thoại</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Vai trò</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
+                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                <tr><td colspan="6" class="text-center p-4">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 nhân viên</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận</h5>
+                <p class="text-muted mb-4" id="confirmMessage">Bạn có chắc chắn muốn thực hiện?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        let confirmActionCb = null;
+        let currentPage = 1;
+        const pageSize = 10;
+        $(document).ready(function() {
+            loadEmployees(1);
+
+            let searchTimeout = null;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => loadEmployees(1), 500);
+            });
+            $('#roleFilter').on('change', function() { loadEmployees(1); });
+            $('#statusFilter').on('change', function() { loadEmployees(1); });
+
+            $('#btnConfirmAction').click(function() {
+                if (confirmActionCb) confirmActionCb();
+            });
+        });
+
+        async function loadEmployees(page) {
+            currentPage = page;
+            const search = $('#searchInput').val();
+            const role = $('#roleFilter').val();
+            const status = $('#statusFilter').val();
+
+            try {
+                const res = await api.get('/users');
+                let users = res || [];
+                users = users.filter(u => u.role === 'Staff' || u.role === 'Manager');
+
+                if (search) {
+                    const s = search.toLowerCase();
+                    users = users.filter(u =>
+                        u.fullName.toLowerCase().includes(s) ||
+                        u.userName.toLowerCase().includes(s) ||
+                        u.email.toLowerCase().includes(s)
+                    );
+                }
+                if (role) {
+                    users = users.filter(u => u.role === role);
+                }
+                if (status) {
+                    users = users.filter(u => u.status === status);
+                }
+
+                const totalCount = users.length;
+                const totalPages = Math.ceil(totalCount / pageSize) || 1;
+                const paged = users.slice((page - 1) * pageSize, page * pageSize);
+
+                renderTable(paged);
+                renderPagination(totalCount, page, pageSize, totalPages);
+            } catch (error) {
+                $('#employeeTableBody').html('<tr><td colspan="7" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
+        }
+
+        function renderPagination(totalCount, page, pSize, totalPages) {
+            const startItem = (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} nhân viên`);
+
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${page - 1}); return false;">Trước</a></li>`;
+            for(let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadEmployees(${page + 1}); return false;">Sau</a></li>`;
+
+            $('#pagination').html(html);
+        }
+
+        function renderTable(users) {
+            let html = '';
+            if (users.length === 0) {
+                html = '<tr><td colspan="6" class="text-center text-muted p-5"><i class="fa-solid fa-users-slash fa-3x mb-3"></i><br>Không tìm thấy nhân viên nào.</td></tr>';
+            } else {
+                users.forEach(u => {
+                    const isLocked = u.status !== 'Active';
+                    const statusBadge = isLocked
+                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">Bị khóa</span>'
+                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">Đang hoạt động</span>';
+
+                    let roleBadge = 'secondary';
+                    if (u.role === 'Manager') roleBadge = 'primary';
+                    else if (u.role === 'Staff') roleBadge = 'info';
+                    else if (u.role === 'Admin') roleBadge = 'danger';
+
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName)}&background=DC2626&color=fff`;
+
+                    const lockBtn = u.role === 'Admin'
+                        ? `<span class="text-muted small">---</span>`
+                        : (isLocked
+                            ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
+                            : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`);
+
+                    const editBtn = `<a href="/Admin/Employees/Edit/${u.userId}" class="btn btn-sm btn-light text-secondary border me-1" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>`;
+
+                    const roleMap = { Customer: 'Khách hàng', Staff: 'Nhân viên', Manager: 'Quản lý', Admin: 'Quản trị viên' };
+                    html += `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="${avatarUrl}" alt="${u.fullName}" class="rounded-circle object-fit-cover shadow-sm" width="40" height="40">
+                                    <div>
+                                        <div class="fw-bold text-dark">${u.fullName}</div>
+                                        <small class="text-muted">@@${u.userName}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="text-muted small">${u.email}</span></td>
+                            <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
+                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${roleMap[u.role] || u.role}</span></td>
+                            <td class="text-center">${statusBadge}</td>
+                            <td class="text-end pe-4">${editBtn}${lockBtn}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#employeeTableBody').html(html);
+        }
+
+        function confirmLock(id, name) {
+            $('#confirmTitle').text('Khóa tài khoản?');
+            $('#confirmMessage').text(`Tài khoản "${name}" sẽ không thể đăng nhập.`);
+            confirmActionCb = async () => {
+                try {
+                    await api.post(`/users/${id}/lock`);
+                    toastr.success('Đã khóa tài khoản.');
+                    confirmModal.hide();
+                    loadEmployees(currentPage);
+                } catch(e) {}
+            };
+            confirmModal.show();
+        }
+
+        function confirmUnlock(id, name) {
+            $('#confirmTitle').text('Mở khóa tài khoản?');
+            $('#confirmMessage').text(`Tài khoản "${name}" sẽ có thể đăng nhập lại.`);
+            confirmActionCb = async () => {
+                try {
+                    await api.post(`/users/${id}/unlock`);
+                    toastr.success('Đã mở khóa tài khoản.');
+                    confirmModal.hide();
+                    loadEmployees(currentPage);
+                } catch(e) {}
+            };
+            confirmModal.show();
+        }
+    </script>
+}
