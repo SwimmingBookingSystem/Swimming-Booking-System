@@ -52,7 +52,7 @@ public class StaffQrCheckInCommandHandler : IRequestHandler<StaffQrCheckInComman
             bookingRepo.Query()
                 .Include(b => b.CheckIn)
                 .Include(b => b.PoolSlot)
-                .Where(b => b.BookingCode == request.BookingCode),
+                .Where(b => b.QrCodeData == request.BookingCode || b.BookingCode == request.BookingCode),
             cancellationToken);
 
         if (booking is null)

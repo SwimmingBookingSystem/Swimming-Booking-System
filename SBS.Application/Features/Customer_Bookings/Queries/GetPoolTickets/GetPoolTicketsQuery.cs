@@ -32,7 +32,7 @@ public class GetPoolTicketsQueryHandler : IRequestHandler<GetPoolTicketsQuery, L
                 PoolTicketTypeId = pt.PoolTicketTypeId,
                 TicketName = pt.TicketType.TicketName,
                 Category = pt.TicketType.Category,
-                Price = pt.Price,
+                Price = pt.Price ?? (pt.TicketType.BasePrice * (1 - pt.TicketType.DiscountPercent / 100m)),
                 Description = pt.TicketType.Description
             })
             .ToListAsync(cancellationToken);
