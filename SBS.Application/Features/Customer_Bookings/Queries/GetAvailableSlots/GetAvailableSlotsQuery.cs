@@ -39,7 +39,11 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 SlotDate = s.SlotDate,
-                Capacity = s.Capacity
+                Capacity = s.Capacity,
+                AvailableCapacity = s.Capacity - s.Bookings
+                    .Where(b => b.Status != "Cancelled" && b.Status != "Failed" && b.Status != "Refunded")
+                    .SelectMany(b => b.BookingDetails)
+                    .Sum(bd => (int?)bd.Quantity) ?? s.Capacity
             })
             .ToListAsync(cancellationToken);
 

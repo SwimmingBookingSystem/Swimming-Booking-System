@@ -38,7 +38,7 @@ public class GetTicketTypeHistoryQueryHandler : IRequestHandler<GetTicketTypeHis
         var history = await _uow.ToListAsync(
             _uow.Repository<TicketPriceHistory>().Query()
                 .Where(h => h.TicketTypeId == request.TicketTypeId)
-                .OrderByDescending(h => h.ModifiedAt), ct);
+                .OrderBy(h => h.ModifiedAt), ct);
 
         return history.Select(h => new TicketPriceHistoryDto
         {

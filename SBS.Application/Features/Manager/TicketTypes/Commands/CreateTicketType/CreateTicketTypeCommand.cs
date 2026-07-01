@@ -97,7 +97,7 @@ public class CreateTicketTypeCommandHandler
                 decimal singleActual = single.BasePrice * (1 - single.DiscountPercent / 100m);
                 sumPrice += singleActual * d.Quantity;
             }
-            finalBasePrice = Math.Round(sumPrice * (1 - request.DiscountPercent / 100m), 0);
+            finalBasePrice = sumPrice;
         }
 
         // ── 4. Tạo TicketType ─

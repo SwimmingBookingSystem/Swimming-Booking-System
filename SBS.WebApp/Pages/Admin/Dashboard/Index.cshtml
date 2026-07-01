@@ -1,0 +1,154 @@
+@page
+@model SBS.WebApp.Pages.Admin.Dashboard.IndexModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Tổng quan";
+    ViewData["Breadcrumb"] = "Quản trị / Tổng quan";
+}
+
+@section Styles {
+    <style>
+        .stat-card { border-radius: 16px; border: none; background: #fff; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); height: 100%; }
+        .stat-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; line-height: 1.2; }
+        .stat-card .label { font-size: 13px; color: #64748b; font-weight: 500; }
+        .stat-card .change { font-size: 12px; font-weight: 600; }
+        .recent-table { font-size: 13px; }
+        .recent-table th { font-weight: 600; color: #64748b; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; padding: 12px 16px; background: #f8fafc; }
+        .recent-table td { padding: 12px 16px; vertical-align: middle; }
+        .booking-status { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    </style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1" style="font-size: 22px;">Tổng quan</h4>
+        <p class="text-muted small mb-0">Tổng quan hoạt động hệ thống bể bơi SBS</p>
+    </div>
+</div>
+
+<!-- Stat cards row 1 -->
+<div class="row g-3 mb-3" id="statsRow1"></div>
+
+<!-- Stat cards row 2 -->
+<div class="row g-3 mb-4" id="statsRow2"></div>
+
+<!-- Recent bookings -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+        <h5 class="fw-bold mb-0" style="font-size: 15px;"><i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i>Đặt chỗ gần đây</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table recent-table mb-0">
+            <thead>
+                <tr>
+                    <th>Mã đặt chỗ</th>
+                    <th>Khách hàng</th>
+                    <th>Số tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                </tr>
+            </thead>
+            <tbody id="recentTableBody">
+                <tr><td colspan="5" class="text-center text-muted py-4">Đang tải...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() { loadDashboard(); });
+
+        async function loadDashboard() {
+            try {
+                const d = await api.get('/dashboard');
+                renderStats(d.overview);
+                renderRecent(d.recentBookings);
+            } catch (e) {
+                $('#statsRow1').html('<div class="col-12 text-center text-danger py-5">Lỗi tải dữ liệu.</div>');
+            }
+        }
+
+        function renderStats(o) {
+            const fmt = n => n.toLocaleString('vi-VN');
+            const money = n => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+            $('#statsRow1').html(`
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#e0f2fe;color:#0284c7;"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div><div class="value">${money(o.totalRevenue)}</div><div class="label">Tổng doanh thu</div></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#dcfce7;color:#16a34a;"><i class="fa-solid fa-users"></i></div>
+                        <div><div class="value">${fmt(o.totalUsers)}</div><div class="label">Người dùng</div></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#fef3c7;color:#d97706;"><i class="fa-solid fa-ticket"></i></div>
+                        <div><div class="value">${fmt(o.totalBookings)}</div><div class="label">Đặt chỗ</div></div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#e0e7ff;color:#4f46e5;"><i class="fa-solid fa-water"></i></div>
+                        <div><div class="value">${fmt(o.totalPools)}</div><div class="label">Bể bơi</div></div>
+                    </div>
+                </div>
+            `);
+
+            $('#statsRow2').html(`
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#fce7f3;color:#db2777;"><i class="fa-solid fa-calendar-day"></i></div>
+                        <div><div class="value">${fmt(o.todayBookings)}</div><div class="label">Đặt chỗ hôm nay</div></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#d1fae5;color:#059669;"><i class="fa-solid fa-chart-line"></i></div>
+                        <div><div class="value">${money(o.thisMonthRevenue)}</div><div class="label">Doanh thu tháng này</div></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card d-flex align-items-center gap-3">
+                        <div class="icon" style="background:#ede9fe;color:#7c3aed;"><i class="fa-solid fa-user-plus"></i></div>
+                        <div><div class="value">${fmt(o.newUsersThisMonth)}</div><div class="label">Người dùng mới (tháng)</div></div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function renderRecent(bookings) {
+            if (!bookings || bookings.length === 0) {
+                $('#recentTableBody').html('<tr><td colspan="5" class="text-center text-muted py-4">Chưa có đặt chỗ nào.</td></tr>');
+                return;
+            }
+            const statusMap = {
+                PendingPayment: { label: 'Chờ thanh toán', cls: 'bg-warning bg-opacity-10 text-warning' },
+                Paid: { label: 'Đã thanh toán', cls: 'bg-info bg-opacity-10 text-info' },
+                Confirmed: { label: 'Đã xác nhận', cls: 'bg-primary bg-opacity-10 text-primary' },
+                Completed: { label: 'Hoàn thành', cls: 'bg-success bg-opacity-10 text-success' },
+                Cancelled: { label: 'Đã hủy', cls: 'bg-danger bg-opacity-10 text-danger' }
+            };
+            const money = n => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+            let html = '';
+            bookings.forEach(b => {
+                const st = statusMap[b.status] || { label: b.status, cls: 'bg-secondary bg-opacity-10 text-secondary' };
+                const time = new Date(b.createdAt).toLocaleString('vi-VN');
+                html += `<tr>
+                    <td class="fw-medium">${b.bookingCode}</td>
+                    <td>${b.customerName}</td>
+                    <td class="fw-medium">${money(b.totalAmount)}</td>
+                    <td><span class="booking-status ${st.cls}">${st.label}</span></td>
+                    <td class="text-muted small">${time}</td>
+                </tr>`;
+            });
+            $('#recentTableBody').html(html);
+        }
+    </script>
+}

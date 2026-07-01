@@ -31,5 +31,9 @@ public class CreateStaffCommandValidator : AbstractValidator<CreateStaffCommand>
         RuleFor(x => x.Address)
             .MaximumLength(200).WithMessage("Địa chỉ không được vượt quá 200 ký tự.")
             .When(x => !string.IsNullOrEmpty(x.Address));
+
+        RuleFor(x => x.PoolId)
+            .GreaterThan(0).WithMessage("Bể bơi không hợp lệ.")
+            .When(x => x.PoolId.HasValue);
     }
 }

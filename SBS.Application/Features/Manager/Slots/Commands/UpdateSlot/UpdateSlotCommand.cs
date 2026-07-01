@@ -5,6 +5,7 @@ using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Manager.Slots.Dtos;
 using SBS.Domain.Entities;
 using System;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
@@ -78,7 +79,20 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
         slot.StartTime = request.StartTime;
         slot.EndTime   = request.EndTime;
         slot.SlotDate  = request.SlotDate;
-        slot.Capacity  = request.Capacity;
+
+        // Tính tổng số lượng vé đã được đặt cho slot này
+        int currentBooked = await _uow.Repository<BookingDetail>().Query()
+            .Where(bd => bd.Booking.PoolSlotId == request.SlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed")
+            .SumAsync(bd => bd.Quantity, ct);
+
+        // Phương án 1: Chặn cứng (Hard Limit)
+        if (request.Capacity < currentBooked)
+        {
+            throw new BadRequestException($"Không thể giảm tổng sức chứa xuống {request.Capacity} vì hiện tại đã có {currentBooked} vé được đặt cho ca bơi này. Sức chứa tối thiểu cho phép là {currentBooked}.");
+        }
+
+        // Vì hệ thống lưu Capacity dưới dạng "Sức chứa CÒN LẠI", ta phải trừ đi số vé đã đặt
+        slot.Capacity  = request.Capacity - currentBooked;
 
         _uow.Repository<PoolSlot>().Update(slot);
         await _uow.SaveChangesAsync(ct);

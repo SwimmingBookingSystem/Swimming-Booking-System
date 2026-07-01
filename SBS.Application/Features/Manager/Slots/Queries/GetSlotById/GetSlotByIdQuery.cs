@@ -4,6 +4,7 @@ using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Manager.Slots.Dtos;
 using SBS.Domain.Entities;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +25,10 @@ public class GetSlotByIdQueryHandler : IRequestHandler<GetSlotByIdQuery, PoolSlo
                 .Where(s => s.PoolSlotId == request.SlotId), ct)
             ?? throw new NotFoundException(nameof(PoolSlot), request.SlotId);
 
+        var currentBooked = await _uow.Repository<BookingDetail>().Query()
+            .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed")
+            .SumAsync(bd => bd.Quantity, ct);
+
         return new PoolSlotDto
         {
             PoolSlotId = slot.PoolSlotId,
@@ -32,7 +37,7 @@ public class GetSlotByIdQueryHandler : IRequestHandler<GetSlotByIdQuery, PoolSlo
             StartTime  = slot.StartTime.ToString(@"hh\:mm"),
             EndTime    = slot.EndTime.ToString(@"hh\:mm"),
             SlotDate   = slot.SlotDate.ToString("yyyy-MM-dd"),
-            Capacity   = slot.Capacity,
+            Capacity   = slot.Capacity + currentBooked,
             Status     = slot.Status,
             CreatedAt  = slot.CreatedAt
         };

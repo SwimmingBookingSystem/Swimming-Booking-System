@@ -60,5 +60,5 @@ public class ManagerPoolTicketController : ControllerBase
 // ── Request Model 
 public class UpdatePoolTicketPriceRequest
 {
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; }
 }

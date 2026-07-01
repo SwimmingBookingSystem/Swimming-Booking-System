@@ -2,11 +2,12 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SBS.Application.Features.Admin.Commands.ChangeUserRole;
 using SBS.Application.Features.Admin.Commands.CreateManager;
 using SBS.Application.Features.Admin.Commands.CreateStaff;
 using SBS.Application.Features.Admin.Commands.LockUser;
 using SBS.Application.Features.Admin.Commands.UnlockUser;
+using SBS.Application.Features.Admin.Commands.UpdateUser;
+using SBS.Application.Features.Admin.Queries.GetAdminPools;
 using SBS.Application.Features.Admin.Queries.GetRoles;
 using SBS.Application.Features.Admin.Queries.GetUsers;
 using System;
@@ -23,18 +24,18 @@ public class AdminUsersController : ControllerBase
     private readonly ISender _mediator;
     private readonly IValidator<CreateStaffCommand> _createStaffValidator;
     private readonly IValidator<CreateManagerCommand> _createManagerValidator;
-    private readonly IValidator<ChangeUserRoleCommand> _changeRoleValidator;
+    private readonly IValidator<UpdateUserCommand> _updateUserValidator;
 
     public AdminUsersController(
         ISender mediator,
         IValidator<CreateStaffCommand> createStaffValidator,
         IValidator<CreateManagerCommand> createManagerValidator,
-        IValidator<ChangeUserRoleCommand> changeRoleValidator)
+        IValidator<UpdateUserCommand> updateUserValidator)
     {
         _mediator = mediator;
         _createStaffValidator = createStaffValidator;
         _createManagerValidator = createManagerValidator;
-        _changeRoleValidator = changeRoleValidator;
+        _updateUserValidator = updateUserValidator;
     }
 
     [HttpGet]
@@ -60,6 +61,22 @@ public class AdminUsersController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(new { errors = result.Errors });
         return Ok(new { message = "Mở khóa tài khoản thành công." });
+    }
+
+    [HttpPut("{userId:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserCommand command)
+    {
+        if (userId != command.UserId)
+            return BadRequest(new { errors = new[] { "UserId trong URL không khớp với body." } });
+
+        var validationResult = await _updateUserValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+            return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors });
+        return Ok(new { message = "Cập nhật thông tin thành công." });
     }
 
     [HttpPost("create-staff")]
@@ -88,26 +105,17 @@ public class AdminUsersController : ControllerBase
         return Ok(new { message = "Tạo quản lý thành công." });
     }
 
-    [HttpPut("{userId:guid}/role")]
-    public async Task<IActionResult> ChangeUserRole(Guid userId, [FromBody] ChangeUserRoleCommand command)
-    {
-        if (userId != command.UserId)
-            return BadRequest(new { errors = new[] { "UserId trong URL không khớp với body." } });
-
-        var validationResult = await _changeRoleValidator.ValidateAsync(command);
-        if (!validationResult.IsValid)
-            return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
-
-        var result = await _mediator.Send(command);
-        if (!result.Succeeded)
-            return BadRequest(new { errors = result.Errors });
-        return Ok(new { message = "Thay đổi vai trò thành công." });
-    }
-
     [HttpGet("roles")]
     public async Task<IActionResult> GetRoles()
     {
         var roles = await _mediator.Send(new GetRolesQuery());
         return Ok(roles);
+    }
+
+    [HttpGet("pools")]
+    public async Task<IActionResult> GetPools()
+    {
+        var pools = await _mediator.Send(new GetAdminPoolsQuery());
+        return Ok(pools);
     }
 }

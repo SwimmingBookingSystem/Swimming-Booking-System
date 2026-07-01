@@ -12,13 +12,7 @@
             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
             <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên, email, tài khoản...">
         </div>
-        <select id="roleFilter" class="form-select shadow-sm" style="width: 160px;">
-            <option value="">Tất cả vai trò</option>
-            <option value="Admin">Admin</option>
-            <option value="Manager">Manager</option>
-            <option value="Staff">Staff</option>
-            <option value="Customer">Customer</option>
-        </select>
+        <input type="hidden" id="roleFilter" value="Customer">
         <select id="statusFilter" class="form-select shadow-sm" style="width: 160px;">
             <option value="">Tất cả trạng thái</option>
             <option value="Active">Hoạt động</option>
@@ -83,19 +77,17 @@
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => loadUsers(1), 500);
             });
-            $('#roleFilter').on('change', function() { loadUsers(1); });
             $('#statusFilter').on('change', function() { loadUsers(1); });
         });
 
         async function loadUsers(page) {
             currentPage = page;
             const search = $('#searchInput').val();
-            const role = $('#roleFilter').val();
             const status = $('#statusFilter').val();
 
             try {
-                const res = await api.get('/users');
-                let users = res || [];
+                let res = await api.get('/users');
+                let users = (res || []).filter(u => u.role === 'Customer');
 
                 if (search) {
                     const s = search.toLowerCase();
@@ -104,9 +96,6 @@
                         u.userName.toLowerCase().includes(s) ||
                         u.email.toLowerCase().includes(s)
                     );
-                }
-                if (role) {
-                    users = users.filter(u => u.role === role);
                 }
                 if (status) {
                     users = users.filter(u => u.status === status);
@@ -147,14 +136,11 @@
                 users.forEach(u => {
                     const isLocked = u.status !== 'Active';
                     const statusBadge = isLocked
-                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">LOCKED</span>'
-                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">ACTIVE</span>';
+                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">Bị khóa</span>'
+                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">Đang hoạt động</span>';
 
                     let roleBadge = 'secondary';
-                    if (u.role === 'Admin') roleBadge = 'danger';
-                    else if (u.role === 'Manager') roleBadge = 'primary';
-                    else if (u.role === 'Staff') roleBadge = 'info';
-                    else if (u.role === 'Customer') roleBadge = 'secondary';
+                    if (u.role === 'Customer') roleBadge = 'secondary';
 
                     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName)}&background=DC2626&color=fff`;
 
@@ -162,6 +148,7 @@
                         ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
                         : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`;
 
+                    const roleMap = { Customer: 'Khách hàng', Staff: 'Nhân viên', Manager: 'Quản lý', Admin: 'Quản trị viên' };
                     html += `
                         <tr>
                             <td class="ps-4">
@@ -175,7 +162,7 @@
                             </td>
                             <td><span class="text-muted small">${u.email}</span></td>
                             <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
-                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${u.role}</span></td>
+                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${roleMap[u.role] || u.role}</span></td>
                             <td class="text-center">${statusBadge}</td>
                             <td class="text-end pe-4">${lockBtn}</td>
                         </tr>

@@ -237,6 +237,13 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<ResultDto> LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        var cacheKey = $"refreshToken:{refreshToken}";
+        await _cache.RemoveAsync(cacheKey, cancellationToken);
+        return ResultDto.Success();
+    }
+
     public async Task<ResultDto> RegisterAsync(
         string userName,
         string email,

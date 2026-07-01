@@ -18,6 +18,7 @@ public record CreateStaffCommand : IRequest<ResultDto>
     public string? Gender { get; init; }
     public DateOnly? Dob { get; init; }
     public string Password { get; init; } = null!;
+    public int? PoolId { get; init; }
 }
 
 public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, ResultDto>
@@ -43,6 +44,6 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Res
             Password = request.Password
         };
 
-        return await _adminService.CreateStaffAsync(dto, cancellationToken);
+        return await _adminService.CreateStaffAsync(dto, request.PoolId, cancellationToken);
     }
 }
