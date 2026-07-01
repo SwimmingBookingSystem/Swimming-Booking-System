@@ -33,15 +33,21 @@ body {
     z-index: 1000;
     transition: all 0.3s;
 }
+#sidebar .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 20px 24px;
+}
 #sidebar .brand {
     font-size: 22px;
     font-weight: 700;
-    text-align: center;
-    margin-bottom: 30px;
     color: #fff;
     text-decoration: none;
-    display: block;
+    display: flex;
+    align-items: center;
     letter-spacing: 0.5px;
+    margin: 0;
 }
 #sidebar .nav-link {
     color: var(--sidebar-text);
@@ -153,4 +159,35 @@ body {
     background: #fef2f2;
     border: 1px solid #fecaca;
     color: #991b1b;
+}
+
+/* Sidebar Overlay for mobile */
+#sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+}
+
+/* Responsive adjustments for mobile/tablet */
+@media (max-width: 768px) {
+    #sidebar {
+        left: -260px;
+    }
+    #sidebar.active {
+        left: 0;
+    }
+    #content {
+        margin-left: 0;
+        transition: all 0.3s;
+    }
+    .topbar {
+        padding: 0 16px;
+    }
+    .page-content {
+        padding: 16px;
+    }
 }
