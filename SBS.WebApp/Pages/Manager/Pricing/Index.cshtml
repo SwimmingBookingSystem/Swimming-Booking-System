@@ -301,16 +301,23 @@
                     </td>
                     <td>${currentPriceHtml}</td>
                     <td>${diffHtml}</td>
-                    <td><span class="pricing-status ${isActive ? 'active' : 'closed'}">${isActive ? 'Hoạt động' : 'Đã đóng'}</span></td>
+                    <td>
+                        <span class="pricing-status ${isActive ? 'active' : (t.status === 'NotApplied' ? 'not-applied' : 'closed')}" 
+                              style="${t.status === 'NotApplied' ? 'background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1;' : ''}">
+                            ${isActive ? 'Hoạt động' : (t.status === 'NotApplied' ? 'Chưa áp dụng' : 'Đã đóng')}
+                        </span>
+                    </td>
                     <td>
                         <div class="d-flex gap-1 justify-content-center">
-                            <button class="pricing-action-btn" title="Sửa giá" onclick="openPriceModal(${t.ticketTypeId})">
+                            <button class="pricing-action-btn" title="Sửa giá" onclick="openPriceModal(${t.ticketTypeId})" ${t.status === 'NotApplied' ? 'disabled style="opacity: 0.5;"' : ''}>
                                 <i class="fa-solid fa-pen"></i>
                             </button>
                             ${isActive
-                    ? `<button class="pricing-action-btn" title="Đóng vé tại bể này" onclick="togglePoolTicket(${t.ticketTypeId}, 'close')" style="color:#ef4444;"><i class="fa-solid fa-ban"></i></button>`
-                    : `<button class="pricing-action-btn" title="Mở lại" onclick="togglePoolTicket(${t.ticketTypeId}, 'open')"><i class="fa-solid fa-rotate-left"></i></button>`
-                }
+                                ? `<button class="pricing-action-btn" title="Ngừng bán vé tại bể này" onclick="togglePoolTicket(${t.ticketTypeId}, 'close')" style="color:#ef4444;"><i class="fa-solid fa-ban"></i></button>`
+                                : `<button class="pricing-action-btn" title="${t.status === 'NotApplied' ? 'Áp dụng bán' : 'Mở lại'}" onclick="togglePoolTicket(${t.ticketTypeId}, 'open')" style="${t.status === 'NotApplied' ? 'color:#10b981;' : ''}">
+                                    <i class="fa-solid ${t.status === 'NotApplied' ? 'fa-check' : 'fa-rotate-left'}"></i>
+                                   </button>`
+                            }
                         </div>
                     </td>
                 </tr>`;
@@ -362,7 +369,7 @@
         // ── TOGGLE STATUS ────────────────────────────────────────────
         function togglePoolTicket(ticketTypeId, action) {
             const t = poolTickets.find(x => x.ticketTypeId === ticketTypeId);
-            const label = action === 'close' ? 'đóng' : 'mở lại';
+            const label = action === 'close' ? 'ngừng bán' : (t.status === 'NotApplied' ? 'áp dụng (bật bán)' : 'mở lại');
             $('#confirmTitle').text(`Xác nhận ${label} vé?`);
             $('#confirmMessage').text(`Bạn có chắc muốn ${label} vé "${t?.ticketName}" tại bể bơi này?`);
             confirmCb = async () => {
