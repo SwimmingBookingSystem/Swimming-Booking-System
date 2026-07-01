@@ -136,8 +136,8 @@
                 users.forEach(u => {
                     const isLocked = u.status !== 'Active';
                     const statusBadge = isLocked
-                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">LOCKED</span>'
-                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">ACTIVE</span>';
+                        ? '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold">Bị khóa</span>'
+                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">Đang hoạt động</span>';
 
                     let roleBadge = 'secondary';
                     if (u.role === 'Customer') roleBadge = 'secondary';
@@ -148,6 +148,7 @@
                         ? `<button class="btn btn-sm btn-light text-success border me-1" onclick="confirmUnlock('${u.userId}', '${u.fullName}')" title="Mở khóa"><i class="fa-solid fa-lock-open"></i></button>`
                         : `<button class="btn btn-sm btn-light text-warning border me-1" onclick="confirmLock('${u.userId}', '${u.fullName}')" title="Khóa"><i class="fa-solid fa-lock"></i></button>`;
 
+                    const roleMap = { Customer: 'Khách hàng', Staff: 'Nhân viên', Manager: 'Quản lý', Admin: 'Quản trị viên' };
                     html += `
                         <tr>
                             <td class="ps-4">
@@ -161,7 +162,7 @@
                             </td>
                             <td><span class="text-muted small">${u.email}</span></td>
                             <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
-                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${u.role}</span></td>
+                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${roleMap[u.role] || u.role}</span></td>
                             <td class="text-center">${statusBadge}</td>
                             <td class="text-end pe-4">${lockBtn}</td>
                         </tr>
