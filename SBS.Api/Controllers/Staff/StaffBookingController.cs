@@ -31,20 +31,14 @@ public class StaffBookingController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllBookings(
         [FromQuery] string? status,
-        [FromQuery] string? bookingDate,
         [FromQuery] int? poolId,
         [FromQuery] string? bookingType,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        DateOnly? parsedDate = null;
-        if (!string.IsNullOrWhiteSpace(bookingDate) && DateOnly.TryParse(bookingDate, out var d))
-            parsedDate = d;
-
         var query = new StaffGetAllBookingsQuery
         {
             Status = status,
-            BookingDate = parsedDate,
             PoolId = poolId,
             BookingType = bookingType,
             Page = Math.Max(1, page),
