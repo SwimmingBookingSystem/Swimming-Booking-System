@@ -102,8 +102,9 @@
                 $('#endTime').val(s.endTime.substring(0,5));
                 $('#capacity').val(s.capacity);
 
-                // Disable form on edit (business logic simulation)
-                toggleFieldsLock(true);
+                // Disable form on edit if there are bookings
+                $('#poolSelect').prop('disabled', true);
+                toggleFieldsLock(s.hasBookings);
             } catch(e) {
                 toastr.error('Không tải được thông tin slot.');
                 setTimeout(() => { window.location.href = '/Manager/Slots'; }, 1500);
@@ -111,7 +112,6 @@
         }
 
         function toggleFieldsLock(lock) {
-            $('#poolSelect').prop('disabled', lock);
             $('#slotDate').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
             $('#startTime').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
             $('#endTime').prop('readonly', lock).css('background-color', lock ? '#f8fafc' : '');
