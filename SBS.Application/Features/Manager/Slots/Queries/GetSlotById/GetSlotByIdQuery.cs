@@ -37,7 +37,7 @@ public class GetSlotByIdQueryHandler : IRequestHandler<GetSlotByIdQuery, PoolSlo
             StartTime  = slot.StartTime.ToString(@"hh\:mm"),
             EndTime    = slot.EndTime.ToString(@"hh\:mm"),
             SlotDate   = slot.SlotDate.ToString("yyyy-MM-dd"),
-            Capacity   = slot.Capacity + currentBooked,
+            Capacity   = slot.Capacity,
             Status     = slot.Status,
             CreatedAt  = slot.CreatedAt,
             HasBookings = currentBooked > 0

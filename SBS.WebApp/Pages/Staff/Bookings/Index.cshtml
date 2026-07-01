@@ -101,6 +101,11 @@
         const pageSize = 15;
 
         $(document).ready(function () {
+            // Mặc định chọn ngày hôm nay
+            const today = new Date();
+            const todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            $('#filter-date').val(todayString);
+
             loadBookings();
 
             $('#filter-status, #filter-date').on('change', function () {

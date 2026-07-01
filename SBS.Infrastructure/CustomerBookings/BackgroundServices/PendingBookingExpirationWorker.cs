@@ -59,13 +59,8 @@ public class PendingBookingExpirationWorker : BackgroundService
             booking.Status = "Cancelled";
             booking.UpdatedAt = now;
 
-            // Refund capacity to the slot
-            var slot = await context.PoolSlots.FindAsync(new object[] { booking.PoolSlotId }, stoppingToken);
-            if (slot != null)
-            {
-                var totalTickets = booking.BookingDetails.Sum(bd => bd.Quantity);
-                slot.Capacity += totalTickets;
-            }
+            // Removed capacity modification because slot.Capacity stores Total Capacity.
+            // Available capacity is calculated dynamically by subtracting valid bookings.
 
             _logger.LogInformation("Cancelled booking {BookingId} due to payment timeout.", booking.BookingId);
         }

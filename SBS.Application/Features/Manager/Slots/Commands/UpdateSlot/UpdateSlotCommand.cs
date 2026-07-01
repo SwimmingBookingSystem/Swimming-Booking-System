@@ -91,8 +91,8 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
             throw new BadRequestException($"Không thể giảm tổng sức chứa xuống {request.Capacity} vì hiện tại đã có {currentBooked} vé được đặt cho ca bơi này. Sức chứa tối thiểu cho phép là {currentBooked}.");
         }
 
-        // Vì hệ thống lưu Capacity dưới dạng "Sức chứa CÒN LẠI", ta phải trừ đi số vé đã đặt
-        slot.Capacity  = request.Capacity - currentBooked;
+        // Sức chứa của ca bơi là Sức chứa tối đa, luôn lưu đúng giá trị Manager truyền vào.
+        slot.Capacity  = request.Capacity;
 
         _uow.Repository<PoolSlot>().Update(slot);
         await _uow.SaveChangesAsync(ct);

@@ -72,7 +72,11 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             }
 
             // 2. Check Capacity
-            if (slot.Capacity < totalQuantity)
+            var currentBooked = await _unitOfWork.Repository<BookingDetail>().Query()
+                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed" && bd.Booking.Status != "Refunded")
+                .SumAsync(bd => bd.Quantity, cancellationToken);
+
+            if (slot.Capacity - currentBooked < totalQuantity)
             {
                 throw new SlotFullException(slot.PoolSlotId, slot.SlotDate);
             }
