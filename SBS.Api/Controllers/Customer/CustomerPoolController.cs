@@ -10,7 +10,6 @@ namespace SBS.Api.Controllers.Customer;
 
 [ApiController]
 [Route("api/customer/pools")]
-[Authorize(Roles = "Customer")]
 public class CustomerPoolController : ControllerBase
 {
     private readonly ISender _mediator;
@@ -21,7 +20,6 @@ public class CustomerPoolController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetPools(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -68,7 +66,6 @@ public class CustomerPoolController : ControllerBase
     }
 
     [HttpGet("filter-options")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetFilterOptions()
     {
         var query = new GetPoolFilterOptionsQuery();
@@ -77,7 +74,6 @@ public class CustomerPoolController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetPoolDetail(int id)
     {
         var query = new GetCustomerPoolDetailQuery(id);

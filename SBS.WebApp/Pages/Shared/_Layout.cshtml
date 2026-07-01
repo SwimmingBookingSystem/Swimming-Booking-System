@@ -1,3 +1,5 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -51,9 +53,26 @@
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-2">
-                        <a class="btn btn-outline-primary rounded-pill px-4 fw-semibold" asp-area="" asp-page="/Auth/Login">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
-                        </a>
+                        @{
+                            var userName = Context.Request.Cookies["userName"];
+                            var role = Context.Request.Cookies["role"];
+                        }
+                        @if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(role))
+                        {
+                            var decodedUserName = System.Net.WebUtility.UrlDecode(userName);
+                            <div class="d-flex align-items-center gap-2 text-dark fs-6">
+                                <span>Chào mừng, <span class="fw-bold text-primary">@decodedUserName</span></span>
+                                <button class="btn btn-outline-danger rounded-pill px-3 fw-semibold ms-2" onclick="logout()">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-primary rounded-pill px-4 fw-semibold" asp-area="" asp-page="/Auth/Login">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
@@ -140,6 +159,36 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';
+        window.logout = function() {
+            $.ajax({
+                url: window.API_BASE_URL + '/api/Auth/logout',
+                type: 'POST',
+                xhrFields: {
+                    withCredentials: true
+                },
+                complete: function() {
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    window.location.href = '/Index';
+                }
+            });
+        };
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

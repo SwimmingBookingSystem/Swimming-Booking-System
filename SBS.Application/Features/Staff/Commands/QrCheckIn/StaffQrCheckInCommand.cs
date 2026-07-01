@@ -80,6 +80,28 @@ public class StaffQrCheckInCommandHandler : IRequestHandler<StaffQrCheckInComman
                 Message = $"Booking chỉ hợp lệ vào ngày {booking.BookingDate:dd/MM/yyyy}. Hôm nay là {today:dd/MM/yyyy}."
             };
 
+        // Validate thời gian ca bơi (Cho phép trước tối đa 15 phút và trong suốt ca bơi)
+        var localNow = DateTime.UtcNow.AddHours(7);
+        var slotStartTime = TimeOnly.FromTimeSpan(booking.PoolSlot.StartTime);
+        var slotEndTime = TimeOnly.FromTimeSpan(booking.PoolSlot.EndTime);
+        var slotStartDateTime = booking.BookingDate.ToDateTime(slotStartTime);
+        var slotEndDateTime = booking.BookingDate.ToDateTime(slotEndTime);
+        var allowedCheckInStart = slotStartDateTime.AddMinutes(-15);
+
+        if (localNow < allowedCheckInStart)
+            return new StaffCheckInResultDto
+            {
+                Succeeded = false,
+                Message = $"Ca bơi chưa bắt đầu. Bạn chỉ có thể check-in từ {allowedCheckInStart:HH:mm} (trước giờ bơi tối đa 15 phút)."
+            };
+
+        if (localNow > slotEndDateTime)
+            return new StaffCheckInResultDto
+            {
+                Succeeded = false,
+                Message = $"Ca bơi đã kết thúc vào lúc {slotEndTime:HH:mm}. Không thể check-in."
+            };
+
         // 5. Kiểm tra đã check-in chưa
         if (booking.CheckIn is not null)
             return new StaffCheckInResultDto
