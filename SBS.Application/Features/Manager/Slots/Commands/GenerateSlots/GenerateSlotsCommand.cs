@@ -32,6 +32,13 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
             _uow.Repository<Pool>().Query().Where(p => p.PoolId == request.PoolId), ct)
             ?? throw new NotFoundException(nameof(Pool), request.PoolId);
 
+        // Lấy tất cả Slot hiện có của Bể bơi trong khoảng thời gian này (In-Memory Check để chống N+1 Query)
+        var existingSlots = await _uow.ToListAsync(
+            _uow.Repository<PoolSlot>().Query()
+            .Where(s => s.PoolId == request.PoolId 
+                     && s.SlotDate >= request.StartDate 
+                     && s.SlotDate <= request.EndDate), ct);
+
         var slotsToInsert = new List<PoolSlot>();
         
         for (var date = request.StartDate; date <= request.EndDate; date = date.AddDays(1))
@@ -42,13 +49,11 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
             {
                 var endTime = currentTime.Add(TimeSpan.FromMinutes(request.DurationMinutes));
                 
-                // Check overlap
-                bool overlap = await _uow.AnyAsync(
-                    _uow.Repository<PoolSlot>().Query()
-                    .Where(s => s.PoolId == request.PoolId 
-                             && s.SlotDate == date 
-                             && s.StartTime < endTime 
-                             && s.EndTime > currentTime), ct);
+                // Check overlap In-Memory
+                bool overlap = existingSlots.Any(s => 
+                       s.SlotDate == date 
+                    && s.StartTime < endTime 
+                    && s.EndTime > currentTime);
 
                 if (!overlap)
                 {
@@ -69,11 +74,13 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
             }
         }
 
-        if (slotsToInsert.Any())
+        if (slotsToInsert.Count == 0)
         {
-            await _uow.Repository<PoolSlot>().AddRangeAsync(slotsToInsert, ct);
-            await _uow.SaveChangesAsync(ct);
+            throw new BadRequestException("Không có ca bơi nào được tạo. Toàn bộ các khung giờ trong khoảng thời gian này đã bị trùng lịch với các ca bơi hiện có.");
         }
+
+        await _uow.Repository<PoolSlot>().AddRangeAsync(slotsToInsert, ct);
+        await _uow.SaveChangesAsync(ct);
 
         return new SuccessResponse { Message = $"Đã tạo tự động thành công {slotsToInsert.Count} ca bơi." };
     }

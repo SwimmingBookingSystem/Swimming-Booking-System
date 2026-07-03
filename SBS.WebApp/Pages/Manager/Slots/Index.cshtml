@@ -69,18 +69,35 @@
         const pageSize = 10;
 
         $(document).ready(function() {
-            // Set today for date picker
-            document.getElementById('filterDate').valueAsDate = new Date();
-            
+            // Khôi phục bộ lọc từ SessionStorage
+            const savedDate = sessionStorage.getItem('Slots_Filter_Date');
+            if (savedDate) {
+                $('#filterDate').val(savedDate);
+            } else {
+                document.getElementById('filterDate').valueAsDate = new Date();
+            }
+
+            const savedStatus = sessionStorage.getItem('Slots_Filter_Status');
+            if (savedStatus) $('#filterStatus').val(savedStatus);
+
             initData();
 
-            $('#filterPool, #filterDate, #filterStatus').on('change', function() {
+            $('#filterPool').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_PoolId', $(this).val());
                 loadSlots(1);
-                
-                // Cập nhật link Tạo slot để truyền sẵn poolId
-                const poolId = $('#filterPool').val();
+                const poolId = $(this).val();
                 const createUrl = poolId ? `/Manager/Slots/Create?poolId=${poolId}` : `/Manager/Slots/Create`;
                 $('#btnCreateSlot').attr('href', createUrl);
+            });
+
+            $('#filterDate').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_Date', $(this).val());
+                loadSlots(1);
+            });
+
+            $('#filterStatus').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_Status', $(this).val());
+                loadSlots(1);
             });
         });
 
@@ -95,15 +112,29 @@
                 });
                 $('#filterPool').html(opts);
 
-                if(allPools.length > 0) {
+                const savedPool = sessionStorage.getItem('Slots_Filter_PoolId');
+                if (savedPool && allPools.find(p => p.poolId == savedPool)) {
+                    $('#filterPool').val(savedPool);
+                } else if(allPools.length > 0) {
                     $('#filterPool').val(allPools[0].poolId);
-                    $('#filterPool').trigger('change');
                 }
+                
+                let initialPage = 1;
+                const savedPage = sessionStorage.getItem('Slots_Filter_Page');
+                if (savedPage) initialPage = parseInt(savedPage);
+
+                const poolId = $('#filterPool').val();
+                const createUrl = poolId ? `/Manager/Slots/Create?poolId=${poolId}` : `/Manager/Slots/Create`;
+                $('#btnCreateSlot').attr('href', createUrl);
+
+                loadSlots(initialPage);
             } catch(e) {}
         }
 
         async function loadSlots(page = 1) {
             currentPage = page;
+            sessionStorage.setItem('Slots_Filter_Page', page);
+            
             const poolId = $('#filterPool').val();
             const date = $('#filterDate').val();
             const status = $('#filterStatus').val();

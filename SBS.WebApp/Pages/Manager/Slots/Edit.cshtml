@@ -50,8 +50,12 @@
             
             <div class="mb-4">
                 <label class="form-label fw-medium">Sức chứa <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="capacity" required value="50" min="1">
-                <div class="form-text small" id="capacityHint">Sức chứa ca bơi phụ thuộc vào tiêu chuẩn an toàn của bể.</div>
+                <div class="d-flex align-items-center gap-3">
+                    <input type="number" class="form-control w-25" id="capacity" required value="50" min="1">
+                    <div class="alert alert-info py-2 px-3 mb-0 flex-grow-1" id="capacityHint" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i> Sức chứa ca bơi phụ thuộc vào tiêu chuẩn an toàn của bể.
+                    </div>
+                </div>
             </div>
             
             <div class="d-flex justify-content-end gap-2 border-top pt-4">
@@ -93,8 +97,28 @@
                     
                     const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
                     $('#capacity').attr('max', maxCap);
-                    $('#capacityHint').html(`Sức chứa tối đa của bể này là <strong>${maxCap} khách</strong>.`);
+                    
+                    const val = parseInt($('#capacity').val());
+                    if(val > maxCap) {
+                        $('#capacityHint').html(`<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> <strong>Lưu ý:</strong> Sức chứa đang vượt quá tiêu chuẩn an toàn (${maxCap} khách).`);
+                        $('#capacityHint').removeClass('alert-success alert-info').addClass('alert-warning');
+                    } else {
+                        $('#capacityHint').html(`<i class="fa-solid fa-circle-check text-success me-1"></i> Sức chứa an toàn tối đa: <strong>${maxCap} khách/ca</strong> (Khuyến nghị).`);
+                        $('#capacityHint').removeClass('alert-warning alert-info').addClass('alert-success');
+                    }
                 }
+
+                $('#capacity').on('input', function() {
+                    const max = parseInt($(this).attr('max'));
+                    const val = parseInt($(this).val());
+                    if(max && val > max) {
+                        $('#capacityHint').html(`<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> <strong>Lưu ý:</strong> Sức chứa đang vượt quá tiêu chuẩn an toàn (${max} khách).`);
+                        $('#capacityHint').removeClass('alert-success alert-info').addClass('alert-warning');
+                    } else if (max) {
+                        $('#capacityHint').html(`<i class="fa-solid fa-circle-check text-success me-1"></i> Sức chứa an toàn tối đa: <strong>${max} khách/ca</strong> (Khuyến nghị).`);
+                        $('#capacityHint').removeClass('alert-warning alert-info').addClass('alert-success');
+                    }
+                });
 
                 $('#slotName').val(s.slotName);
                 $('#slotDate').val(s.slotDate);
@@ -139,8 +163,13 @@
 
             const p = allPools.find(x => x.poolId == poolId);
             if(p) {
-                if(startTime < p.openingTime || endTime > p.closingTime) {
-                    toastr.error(`Slot phải nằm trong giờ hoạt động của bể bơi (${p.openingTime.substring(0,5)} - ${p.closingTime.substring(0,5)})`);
+                const checkStart = startTime.substring(0,5);
+                const checkEnd = endTime.substring(0,5);
+                const pOpen = p.openingTime.substring(0,5);
+                const pClose = p.closingTime.substring(0,5);
+
+                if(checkStart < pOpen || checkEnd > pClose) {
+                    toastr.error(`Slot phải nằm trong giờ hoạt động của bể bơi (${pOpen} - ${pClose})`);
                     return;
                 }
                 const maxCap = p.standardCapacity > 0 ? p.standardCapacity : 100;
