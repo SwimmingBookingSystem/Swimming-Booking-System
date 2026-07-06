@@ -1,0 +1,1000 @@
+@page
+@model SBS.WebApp.Pages.Auth.RegisterModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký tài khoản - Swimming Booking System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Nhập font chữ Inter đồng bộ với Trang chủ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            --card-bg: rgba(255, 255, 255, 0.88);
+            --text-color: #0f172a;
+            --shadow-premium: 0 20px 40px -15px rgba(2, 132, 199, 0.25), 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-image: linear-gradient(rgba(14, 165, 233, 0.1), rgba(15, 23, 42, 0.4)), url('/images/swimming_pool_bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 15px;
+            position: relative;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 750px; /* Độ rộng lớn hơn để thiết kế form 2 cột thoáng mát */
+            z-index: 10;
+        }
+
+        .register-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(16px);
+            padding: 45px 40px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+
+        .register-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -20px rgba(2, 132, 199, 0.35);
+        }
+
+        .brand-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 8px 16px rgba(2, 132, 199, 0.2);
+            color: white;
+            font-size: 2.2rem;
+            animation: pulse-wave 3s infinite ease-in-out;
+        }
+
+        @@keyframes pulse-wave {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .brand-title {
+            color: #0369a1;
+            font-weight: 800;
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.98rem;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .form-group-custom {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+        }
+
+        .input-icon-left {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+            z-index: 5;
+        }
+
+        .form-control {
+            border-radius: 14px;
+            padding: 13px 15px 13px 44px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            background-color: rgba(248, 250, 252, 0.8);
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2rem;
+            z-index: 5;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            transform: scale(1.01);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-register:active {
+            transform: scale(0.99);
+        }
+
+        .btn-register:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .login-prompt {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 25px;
+            color: #64748b;
+        }
+
+        .login-prompt a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .login-prompt a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
+        }
+
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .back-home a {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-home a:hover {
+            color: var(--text-color);
+        }
+
+        /* Waves Animation Styling */
+        .waves-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .waves {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            margin-bottom: -7px;
+        }
+
+        .parallax > use {
+            animation: move-forever 20s cubic-bezier(.55,.5,.45,.5) infinite;
+        }
+        .parallax > use:nth-child(1) {
+            animation-delay: -2s;
+            animation-duration: 9s;
+        }
+        .parallax > use:nth-child(2) {
+            animation-delay: -3s;
+            animation-duration: 12s;
+        }
+        .parallax > use:nth-child(3) {
+            animation-delay: -4s;
+            animation-duration: 15s;
+        }
+        .parallax > use:nth-child(4) {
+            animation-delay: -5s;
+            animation-duration: 25s;
+        }
+
+        @@keyframes move-forever {
+            0% { transform: translate3d(-90px,0,0); }
+            100% { transform: translate3d(85px,0,0); }
+        }
+
+        .alert-custom {
+            font-size: 0.9rem;
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            display: none;
+            align-items: flex-start;
+            gap: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            transition: all 0.3s ease;
+        }
+
+        .alert-custom i {
+            font-size: 1.15rem;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .alert-error {
+            background-color: #fff1f2;
+            color: #e11d48;
+            border: 1px solid rgba(225, 29, 72, 0.15);
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.05);
+        }
+
+        .alert-success {
+            background-color: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid rgba(22, 163, 74, 0.15);
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.05);
+        }
+
+        /* OTP Input styling */
+        .otp-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 25px 0;
+        }
+
+        .otp-digit {
+            width: 50px;
+            height: 55px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background-color: rgba(248, 250, 252, 0.8);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .otp-digit:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+        }
+
+        /* Countdown text */
+        .timer-text {
+            text-align: center;
+            font-size: 0.88rem;
+            color: #64748b;
+            margin-top: 15px;
+        }
+
+        .btn-resend-otp {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .btn-resend-otp:disabled {
+            color: #94a3b8;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <div class="register-card">
+            <!-- Icon Sóng nước trang trí -->
+            <div class="brand-icon-wrapper">
+                <i class="bi bi-water"></i>
+            </div>
+            
+            <h2 class="brand-title" id="page-title">Đăng ký tài khoản</h2>
+            <div class="brand-subtitle" id="page-subtitle">Nhập thông tin của bạn để trở thành thành viên hệ thống</div>
+            
+            <!-- Alert báo lỗi/thành công -->
+            <div id="alert-box" class="alert-custom" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" id="alert-icon"></i>
+                <span id="alert-text">Thông báo lỗi</span>
+            </div>
+
+            <!-- BƯỚC 1: FORM ĐĂNG KÝ -->
+            <form id="register-form" novalidate>
+                <div class="row">
+                    <!-- Họ và tên -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="fullname" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-person-fill input-icon-left"></i>
+                                <input type="text" class="form-control" id="fullname" placeholder="Nguyễn Văn A" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tên đăng nhập -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="username" class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-person-badge input-icon-left"></i>
+                                <input type="text" class="form-control" id="username" placeholder="username123" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-envelope-fill input-icon-left"></i>
+                                <input type="text" class="form-control" id="email" placeholder="example@gmail.com" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Số điện thoại -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-telephone-fill input-icon-left"></i>
+                                <input type="text" class="form-control" id="phone" placeholder="0912345678" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Ngày sinh -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="dob" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-calendar-event input-icon-left"></i>
+                                <input type="date" class="form-control" id="dob" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Địa chỉ -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="address" class="form-label">Địa chỉ</label>
+                            <div class="input-group-custom">
+                                <i class="bi bi-geo-alt-fill input-icon-left"></i>
+                                <input type="text" class="form-control" id="address" placeholder="123 Đường ABC, Quận X" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Mật khẩu -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                            <div class="input-group-custom password-container">
+                                <i class="bi bi-lock-fill input-icon-left"></i>
+                                <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" autocomplete="new-password" />
+                                <button type="button" class="password-toggle toggle-pass" data-target="password" aria-label="Hiển thị mật khẩu">
+                                    <i class="bi bi-eye pass-icon" id="password-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Xác nhận mật khẩu -->
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label for="confirm-password" class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                            <div class="input-group-custom password-container">
+                                <i class="bi bi-shield-lock-fill input-icon-left"></i>
+                                <input type="password" class="form-control" id="confirm-password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+                                <button type="button" class="password-toggle toggle-pass" data-target="confirm-password" aria-label="Hiển thị mật khẩu">
+                                    <i class="bi bi-eye pass-icon" id="confirm-password-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút Đăng ký -->
+                <button type="submit" class="btn-register" id="register-submit-btn">
+                    <span id="register-btn-text">Đăng ký ngay</span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="register-btn-spinner" role="status" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <!-- BƯỚC 2: FORM XÁC THỰC OTP (Mặc định ẩn) -->
+            <form id="otp-form" class="d-none">
+                <div class="text-center mb-4">
+                    <p class="text-muted">Chúng tôi đã gửi một mã OTP gồm 6 chữ số vào địa chỉ email của bạn. Vui lòng nhập mã vào ô dưới đây để hoàn tất đăng ký.</p>
+                    <p class="fw-bold text-primary" id="target-email-text"></p>
+                </div>
+
+                <div class="otp-input-container">
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required />
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required disabled />
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required disabled />
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required disabled />
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required disabled />
+                    <input type="text" class="otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required disabled />
+                </div>
+
+                <button type="submit" class="btn-register" id="otp-submit-btn">
+                    <span id="otp-btn-text">Xác minh tài khoản</span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="otp-btn-spinner" role="status" aria-hidden="true"></span>
+                </button>
+
+                <div class="timer-text">
+                    Không nhận được mã? 
+                    <button type="button" class="btn-resend-otp" id="btn-resend-otp" disabled>Gửi lại mã</button>
+                    <span id="countdown-text">(30s)</span>
+                </div>
+            </form>
+
+            <div class="login-prompt" id="switch-login-prompt">
+                Bạn đã có tài khoản? <a href="/Auth/Login">Đăng nhập ngay</a>
+            </div>
+
+            <div class="back-home">
+                <a href="/"><i class="bi bi-arrow-left"></i> Quay lại trang chủ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Sóng nước chuyển nhấp nhô -->
+    <div class="waves-container">
+        <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+             viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z" />
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(2, 132, 199, 0.2)" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(2, 132, 199, 0.12)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(224, 247, 255, 0.45)" />
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(224, 247, 255, 0.85)" />
+            </g>
+        </svg>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
+            let registeredEmail = "";
+            let countdownInterval = null;
+            let secondsRemaining = 60;
+
+            // Ẩn/Hiện mật khẩu
+            $('.toggle-pass').click(function() {
+                const targetId = $(this).attr('data-target');
+                const passwordInput = $(`#${targetId}`);
+                const toggleIcon = $(this).find('.pass-icon');
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    toggleIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    toggleIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            // Thiết lập ngày sinh tối đa là ngày hôm qua (ngày sinh phải là ngày trong quá khứ)
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            $('#dob').attr('max', yesterdayStr);
+
+            // Kiểm tra mật khẩu khớp nhau bằng Custom Validity của HTML5
+            function validatePasswordMatch() {
+                const password = $('#password')[0];
+                const confirmPassword = $('#confirm-password')[0];
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity("Xác nhận mật khẩu không khớp.");
+                } else {
+                    confirmPassword.setCustomValidity("");
+                }
+            }
+            $('#password, #confirm-password').on('input change', validatePasswordMatch);
+
+            // Gửi Form Đăng ký qua AJAX (Bước 1)
+            $('#register-form').submit(function(e) {
+                e.preventDefault();
+
+                const fullname = $('#fullname').val().trim();
+                const username = $('#username').val().trim();
+                const email = $('#email').val().trim();
+                const phone = $('#phone').val().trim();
+                const dob = $('#dob').val();
+                const address = $('#address').val().trim();
+                const password = $('#password').val();
+                const confirmPassword = $('#confirm-password').val();
+
+                const fullnameInput = $('#fullname')[0];
+                const usernameInput = $('#username')[0];
+                const emailInput = $('#email')[0];
+                const phoneInput = $('#phone')[0];
+                const dobInput = $('#dob')[0];
+                const passwordInput = $('#password')[0];
+                const confirmPasswordInput = $('#confirm-password')[0];
+
+                // Reset all custom validity
+                fullnameInput.setCustomValidity("");
+                usernameInput.setCustomValidity("");
+                emailInput.setCustomValidity("");
+                phoneInput.setCustomValidity("");
+                dobInput.setCustomValidity("");
+                passwordInput.setCustomValidity("");
+                confirmPasswordInput.setCustomValidity("");
+
+                // --- VALIDATE FRONTEND THEO CÁC RULE BACKEND ---
+                // 1. Họ và tên
+                const fullnameRegex = /^[\p{L}\s]+$/u;
+                if (!fullname) {
+                    fullnameInput.setCustomValidity("Họ và tên không được để trống.");
+                    fullnameInput.reportValidity();
+                    return;
+                } else if (fullname.length > 100) {
+                    fullnameInput.setCustomValidity("Họ và tên không quá 100 ký tự.");
+                    fullnameInput.reportValidity();
+                    return;
+                } else if (!fullnameRegex.test(fullname)) {
+                    fullnameInput.setCustomValidity("Họ và tên chỉ được chứa chữ cái và khoảng trắng.");
+                    fullnameInput.reportValidity();
+                    return;
+                }
+
+                // 2. Tên đăng nhập
+                const usernameRegex = /^[a-zA-Z0-9_]+$/;
+                if (!username) {
+                    usernameInput.setCustomValidity("Tên đăng nhập không được để trống.");
+                    usernameInput.reportValidity();
+                    return;
+                } else if (username.length < 3) {
+                    usernameInput.setCustomValidity("Tên đăng nhập phải có ít nhất 3 ký tự.");
+                    usernameInput.reportValidity();
+                    return;
+                } else if (username.length > 50) {
+                    usernameInput.setCustomValidity("Tên đăng nhập không quá 50 ký tự.");
+                    usernameInput.reportValidity();
+                    return;
+                } else if (!usernameRegex.test(username)) {
+                    usernameInput.setCustomValidity("Tên đăng nhập chỉ được chứa chữ cái, chữ số và dấu gạch dưới.");
+                    usernameInput.reportValidity();
+                    return;
+                }
+
+                // 3. Email
+                const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                if (!email) {
+                    emailInput.setCustomValidity("Email không được để trống.");
+                    emailInput.reportValidity();
+                    return;
+                } else if (!emailRegex.test(email)) {
+                    emailInput.setCustomValidity("Email không đúng định dạng.");
+                    emailInput.reportValidity();
+                    return;
+                }
+
+                // 4. Số điện thoại
+                const phoneRegex = /^0[0-9]{9}$/;
+                if (!phone) {
+                    phoneInput.setCustomValidity("Số điện thoại không được để trống.");
+                    phoneInput.reportValidity();
+                    return;
+                } else if (!phoneRegex.test(phone)) {
+                    phoneInput.setCustomValidity("Số điện thoại phải bắt đầu bằng số 0 và gồm đúng 10 chữ số.");
+                    phoneInput.reportValidity();
+                    return;
+                }
+
+                // 5. Ngày sinh
+                if (!dob) {
+                    dobInput.setCustomValidity("Ngày sinh không được để trống.");
+                    dobInput.reportValidity();
+                    return;
+                } else {
+                    const dobDate = new Date(dob);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (dobDate >= today) {
+                        dobInput.setCustomValidity("Ngày sinh phải là ngày trong quá khứ.");
+                        dobInput.reportValidity();
+                        return;
+                    }
+                }
+
+                // 6. Mật khẩu
+                if (!password) {
+                    passwordInput.setCustomValidity("Mật khẩu không được để trống.");
+                    passwordInput.reportValidity();
+                    return;
+                } else if (password.length < 6) {
+                    passwordInput.setCustomValidity("Mật khẩu phải có ít nhất 6 ký tự.");
+                    passwordInput.reportValidity();
+                    return;
+                }
+
+                // 7. Xác nhận mật khẩu
+                if (!confirmPassword) {
+                    confirmPasswordInput.setCustomValidity("Xác nhận mật khẩu không được để trống.");
+                    confirmPasswordInput.reportValidity();
+                    return;
+                } else if (password !== confirmPassword) {
+                    confirmPasswordInput.setCustomValidity("Xác nhận mật khẩu không khớp.");
+                    confirmPasswordInput.reportValidity();
+                    return;
+                }
+
+                // Khi các trường đã hợp lệ, reset lại lỗi trước khi gửi request
+                fullnameInput.setCustomValidity("");
+                usernameInput.setCustomValidity("");
+                emailInput.setCustomValidity("");
+                phoneInput.setCustomValidity("");
+                dobInput.setCustomValidity("");
+                passwordInput.setCustomValidity("");
+                confirmPasswordInput.setCustomValidity("");
+
+                setLoadingState(true);
+                hideAlert();
+
+                // Dữ liệu payload khớp với RegisterCommand
+                const payload = {
+                    fullName: fullname,
+                    userName: username,
+                    email: email,
+                    password: password,
+                    confirmPassword: confirmPassword,
+                    phoneNumber: phone || null,
+                    dob: dob || null,
+                    address: address || null
+                };
+
+                $.ajax({
+                    url: `${apiBaseUrl}/api/Auth/register`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(response) {
+                        setLoadingState(false);
+                        registeredEmail = email;
+                        
+                        // Chuyển sang Bước 2: Nhập OTP
+                        showSuccess("Đăng ký thành công! Vui lòng nhập mã OTP được gửi vào email của bạn.");
+                        transitionToOtpStep();
+                    },
+                    error: function(xhr) {
+                        setLoadingState(false);
+                        console.error('Lỗi chi tiết từ Server:', xhr.responseJSON || xhr.responseText);
+                        let errorMsg = 'Đăng ký thất bại. Kết nối tới máy chủ gặp lỗi.';
+                        if (xhr.responseJSON) {
+                            if (xhr.status === 500 && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = `Lỗi hệ thống: ${xhr.responseJSON.errors[0]}`;
+                            } else if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = xhr.responseJSON.errors.join('<br>');
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
+                        showError(errorMsg);
+                    }
+                });
+            });
+
+            // Khi người dùng nhập liệu, tự động reset lỗi custom để trình duyệt cập nhật lại trạng thái hợp lệ
+            $('#fullname, #username, #email, #phone, #dob, #password, #confirm-password').on('input change', function() {
+                this.setCustomValidity("");
+            });
+
+
+            // Chuyển đổi giao diện sang nhập OTP
+            function transitionToOtpStep() {
+                $('#register-form').addClass('d-none');
+                $('#otp-form').removeClass('d-none');
+                $('#page-title').text('Xác minh OTP');
+                $('#page-subtitle').text('Nhập mã OTP để kích hoạt tài khoản');
+                $('#target-email-text').text(registeredEmail);
+                
+                // Focus vào ô OTP đầu tiên
+                setTimeout(() => {
+                    $('.otp-digit').first().focus();
+                }, 200);
+
+                // Khởi động bộ đếm ngược resend OTP
+                startCountdown();
+            }
+
+            // Xử lý khi nhập OTP (Auto focus ô tiếp theo)
+            const otpInputs = $('.otp-digit');
+            otpInputs.on('input', function(e) {
+                const index = otpInputs.index(this);
+                const val = $(this).val();
+
+                // Chỉ cho nhập số
+                if (!/^[0-9]$/.test(val)) {
+                    $(this).val('');
+                    return;
+                }
+
+                if (val && index < otpInputs.length - 1) {
+                    otpInputs.eq(index + 1).prop('disabled', false).focus();
+                }
+            });
+
+            otpInputs.on('keydown', function(e) {
+                const index = otpInputs.index(this);
+                if (e.key === 'Backspace') {
+                    if (!$(this).val() && index > 0) {
+                        otpInputs.eq(index).val('').prop('disabled', true);
+                        otpInputs.eq(index - 1).focus();
+                    } else {
+                        $(this).val('');
+                    }
+                }
+            });
+
+            // Gửi OTP xác minh (Bước 2)
+            $('#otp-form').submit(function(e) {
+                e.preventDefault();
+
+                let otpCode = "";
+                otpInputs.each(function() {
+                    otpCode += $(this).val();
+                });
+
+                if (otpCode.length !== 6) {
+                    showError("Vui lòng nhập đầy đủ mã OTP 6 chữ số.");
+                    return;
+                }
+
+                setOtpLoadingState(true);
+                hideAlert();
+
+                const payload = {
+                    email: registeredEmail,
+                    otp: otpCode
+                };
+
+                $.ajax({
+                    url: `${apiBaseUrl}/api/Auth/verify-otp`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(response) {
+                        setOtpLoadingState(false);
+                        showSuccess("Xác minh thành công! Đang chuyển hướng bạn sang trang đăng nhập...");
+                        
+                        // Chuyển hướng về trang đăng nhập sau 2.5 giây
+                        setTimeout(function() {
+                            window.location.href = '/Auth/Login';
+                        }, 2500);
+                    },
+                    error: function(xhr) {
+                        setOtpLoadingState(false);
+                        console.error('Lỗi chi tiết từ Server:', xhr.responseJSON || xhr.responseText);
+                        let errorMsg = 'Xác minh OTP thất bại. Vui lòng thử lại.';
+                        if (xhr.responseJSON) {
+                            if (xhr.status === 500 && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = `Lỗi hệ thống: ${xhr.responseJSON.errors[0]}`;
+                            } else if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = xhr.responseJSON.errors.join('<br>');
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
+                        showError(errorMsg);
+                        
+                        // Clear sạch OTP và reset focus để nhập lại
+                        otpInputs.val('');
+                        otpInputs.not(':first').prop('disabled', true);
+                        otpInputs.first().focus();
+                    }
+                });
+            });
+
+            // Gửi lại mã OTP
+            $('#btn-resend-otp').click(function() {
+                hideAlert();
+                $('#btn-resend-otp').prop('disabled', true);
+                $('#countdown-text').text('(Đang gửi...)');
+
+                $.ajax({
+                    url: `${apiBaseUrl}/api/Auth/resend-otp`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ email: registeredEmail }),
+                    success: function(response) {
+                        showSuccess("Mã OTP mới đã được gửi vào Email của bạn.");
+                        startCountdown();
+                    },
+                    error: function(xhr) {
+                        $('#btn-resend-otp').prop('disabled', false);
+                        $('#countdown-text').text('');
+                        console.error('Lỗi chi tiết từ Server:', xhr.responseJSON || xhr.responseText);
+                        let errorMsg = 'Không thể gửi lại OTP. Vui lòng kiểm tra lại kết nối.';
+                        if (xhr.responseJSON) {
+                            if (xhr.status === 500 && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = `Lỗi hệ thống: ${xhr.responseJSON.errors[0]}`;
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
+                        showError(errorMsg);
+                    }
+                });
+            });
+
+            // Bộ đếm thời gian
+            function startCountdown() {
+                clearInterval(countdownInterval);
+                secondsRemaining = 30;
+                $('#btn-resend-otp').prop('disabled', true);
+                $('#countdown-text').text(`(${secondsRemaining}s)`);
+
+                countdownInterval = setInterval(function() {
+                    secondsRemaining--;
+                    if (secondsRemaining <= 0) {
+                        clearInterval(countdownInterval);
+                        $('#btn-resend-otp').prop('disabled', false);
+                        $('#countdown-text').text('');
+                    } else {
+                        $('#countdown-text').text(`(${secondsRemaining}s)`);
+                    }
+                }, 1000);
+            }
+
+            // Các hàm trợ giúp hiển thị thông báo
+            function showError(message) {
+                $('#alert-box')
+                    .removeClass('alert-success')
+                    .addClass('alert-error')
+                    .css('display', 'flex')
+                    .html(`<i class="bi bi-exclamation-triangle-fill" id="alert-icon"></i> <span>${message}</span>`)
+                    .fadeIn();
+            }
+
+            function showSuccess(message) {
+                $('#alert-box')
+                    .removeClass('alert-error')
+                    .addClass('alert-success')
+                    .css('display', 'flex')
+                    .html(`<i class="bi bi-check-circle-fill" id="alert-icon"></i> <span>${message}</span>`)
+                    .fadeIn();
+            }
+
+            function hideAlert() {
+                $('#alert-box').hide();
+            }
+
+            function setLoadingState(isLoading) {
+                const btn = $('#register-submit-btn');
+                const text = $('#register-btn-text');
+                const spinner = $('#register-btn-spinner');
+
+                if (isLoading) {
+                    btn.prop('disabled', true);
+                    text.text('Đang xử lý...');
+                    spinner.removeClass('d-none');
+                } else {
+                    btn.prop('disabled', false);
+                    text.text('Đăng ký ngay');
+                    spinner.addClass('d-none');
+                }
+            }
+
+            function setOtpLoadingState(isLoading) {
+                const btn = $('#otp-submit-btn');
+                const text = $('#otp-btn-text');
+                const spinner = $('#otp-btn-spinner');
+
+                if (isLoading) {
+                    btn.prop('disabled', true);
+                    text.text('Đang xác minh...');
+                    spinner.removeClass('d-none');
+                } else {
+                    btn.prop('disabled', false);
+                    text.text('Xác minh tài khoản');
+                    spinner.addClass('d-none');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
