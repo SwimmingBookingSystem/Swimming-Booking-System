@@ -44,7 +44,6 @@ public class StaffBookingController : ControllerBase
         var query = new StaffGetAllBookingsQuery
         {
             Status = status,
-            BookingDate = parsedDate,
             PoolId = poolId,
             BookingType = bookingType,
             Page = Math.Max(1, page),
