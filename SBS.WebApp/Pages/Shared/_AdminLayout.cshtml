@@ -30,6 +30,9 @@
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Employees/Index" ? "active" : "")" href="/Admin/Employees">
                 <i class="fa-solid fa-user-tie w-20px"></i> Nhân sự
             </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Contacts/Index" ? "active" : "")" href="/Admin/Contacts">
+                <i class="fa-solid fa-headset w-20px"></i> Liên hệ
+            </a>
         </div>
     </nav>
 
