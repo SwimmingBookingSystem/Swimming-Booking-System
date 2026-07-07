@@ -1,6 +1,8 @@
 $(document).ready(function () {
     let selectedSlotId = null;
     let selectedSlotTime = null;
+    let isSelectedSlotFull = false;
+    let isSelectedSlotLate = false;
     let ticketsData = [];
 
     // Lấy cookie
@@ -51,8 +53,13 @@ $(document).ready(function () {
         // Reset selected slot
         selectedSlotId = null;
         selectedSlotTime = null;
+        isSelectedSlotFull = false;
+        isSelectedSlotLate = false;
+        isSelectedSlotInWaitlist = false;
+        selectedWaitlistEntryId = null;
         updateSummaryTime();
         checkSubmitEnable();
+        updateSubmitButtonUI();
 
         $.ajax({
             url: `${API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
@@ -73,21 +80,38 @@ $(document).ready(function () {
 
                 slots.forEach(slot => {
                     const slotDateTimeStr = `${date}T${slot.startTime}`;
-                    const slotDateTime = new Date(slotDateTimeStr);
-                    const isPassed = slotDateTime <= now;
+                    const slotStartDateTime = new Date(slotDateTimeStr);
+                    
+                    // Allow late booking up to 30 mins
+                    const lateLimitDateTime = new Date(slotStartDateTime.getTime() + 30 * 60000);
+                    
+                    const isLate = slotStartDateTime <= now && now <= lateLimitDateTime;
+                    const isPassed = now > lateLimitDateTime;
+                    const isFull = slot.availableCapacity <= 0;
 
-                    const isDisabled = (slot.availableCapacity <= 0 || isPassed) ? 'disabled' : '';
+                    // Chỉ vô hiệu hóa nếu đã qua (kể cả quá 30p)
+                    let isDisabled = isPassed ? 'disabled' : '';
                     
                     let statusText = `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
                     if (isPassed) {
                         statusText = '(Đã qua)';
-                    } else if (slot.availableCapacity <= 0) {
-                        statusText = '(Hết chỗ)';
+                    } else if (slot.isInWaitlist) {
+                        statusText = `<span class="text-primary fw-bold">Đã vào hàng chờ (Vị trí: ${slot.waitlistPosition} / ${slot.totalWaitlistCount})</span>`;
+                    } else if (isFull) {
+                        statusText = `<span class="text-warning fw-bold">(Hết chỗ - ${slot.totalWaitlistCount} người đang chờ)</span>`;
+                    } else if (isLate) {
+                        statusText = `<span class="text-warning fw-bold">(Còn ${slot.availableCapacity} - Vào trễ)</span>`;
                     }
                     
+                    // Thêm class đặc biệt nếu full hoặc late
+                    let extraClass = '';
+                    if (slot.isInWaitlist) extraClass = 'border-primary';
+                    else if (isFull && !isPassed) extraClass = 'border-warning';
+                    else if (isLate && !isPassed) extraClass = 'border-info';
+
                     html += `
                         <div class="col-6 col-sm-4">
-                            <button type="button" class="slot-btn" data-id="${slot.poolSlotId}" data-time="${slot.startTime.substring(0,5)} - ${slot.endTime.substring(0,5)}" ${isDisabled}>
+                            <button type="button" class="slot-btn ${extraClass}" data-id="${slot.poolSlotId}" data-time="${slot.startTime.substring(0,5)} - ${slot.endTime.substring(0,5)}" data-full="${isFull}" data-late="${isLate}" data-inwaitlist="${slot.isInWaitlist}" data-waitlistid="${slot.waitlistEntryId || ''}" ${isDisabled}>
                                 <div class="fs-5 fw-bold">${slot.startTime.substring(0,5)}</div>
                                 <div class="small">${slot.endTime.substring(0,5)}</div>
                                 <div class="small text-muted mt-1" style="font-size: 0.75rem;">${statusText}</div>
@@ -104,8 +128,23 @@ $(document).ready(function () {
                     $(this).addClass('selected');
                     selectedSlotId = $(this).data('id');
                     selectedSlotTime = $(this).data('time');
+                    isSelectedSlotFull = $(this).data('full');
+                    isSelectedSlotLate = $(this).data('late');
+                    isSelectedSlotInWaitlist = $(this).data('inwaitlist') === true;
+                    selectedWaitlistEntryId = $(this).data('waitlistid');
+                    
+                    if (isSelectedSlotLate) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Ca bơi đã bắt đầu!',
+                            text: 'Cảnh báo: Ca bơi này đã bắt đầu. Nếu bạn đặt bây giờ, bạn sẽ có ít thời gian bơi hơn.',
+                            confirmButtonColor: '#0ea5e9'
+                        });
+                    }
+
                     updateSummaryTime();
                     checkSubmitEnable();
+                    updateSubmitButtonUI();
                 });
             },
             error: function () {
@@ -113,6 +152,20 @@ $(document).ready(function () {
                 $('#slots-error').removeClass('d-none').text('Đã xảy ra lỗi khi tải danh sách giờ. Vui lòng kiểm tra lại kết nối hoặc đăng nhập.');
             }
         });
+    }
+
+    function updateSubmitButtonUI() {
+        const btn = $('#btn-submit-booking');
+        if (isSelectedSlotInWaitlist) {
+            btn.removeClass('btn-primary btn-warning').addClass('btn-danger');
+            btn.html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
+        } else if (isSelectedSlotFull) {
+            btn.removeClass('btn-primary btn-danger').addClass('btn-warning');
+            btn.html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+        } else {
+            btn.removeClass('btn-warning btn-danger').addClass('btn-primary');
+            btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+        }
     }
 
     function loadTickets() {
@@ -203,14 +256,12 @@ $(document).ready(function () {
     }
 
     function checkSubmitEnable() {
-        let hasTicket = false;
+        let count = 0;
         ticketsData.forEach(ticket => {
-            if (parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0) > 0) {
-                hasTicket = true;
-            }
+            count += parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
         });
 
-        if (selectedSlotId && hasTicket) {
+        if (selectedSlotId && (count > 0 || isSelectedSlotInWaitlist)) {
             $('#btn-submit-booking').prop('disabled', false);
         } else {
             $('#btn-submit-booking').prop('disabled', true);
@@ -221,11 +272,12 @@ $(document).ready(function () {
     $('#btn-submit-booking').on('click', function () {
         const btn = $(this);
         
-        // Build request body
+        let count = 0;
         const tickets = [];
         ticketsData.forEach(ticket => {
             const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
             if (qty > 0) {
+                count += qty;
                 tickets.push({
                     poolTicketTypeId: ticket.poolTicketTypeId,
                     quantity: qty
@@ -233,40 +285,169 @@ $(document).ready(function () {
             }
         });
 
-        const payload = {
-            poolSlotId: selectedSlotId,
-            tickets: tickets
-        };
+        if (isSelectedSlotInWaitlist) {
+            // Cancel Waitlist Logic
+            Swal.fire({
+                title: 'Hủy đăng ký hàng chờ?',
+                text: "Bạn có chắc chắn muốn hủy bỏ tham gia hàng chờ cho ca bơi này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Không'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
 
-        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+                    $.ajax({
+                        url: `${API_BASE_URL}/api/customer-bookings/waitlist/cancel`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ waitlistEntryId: selectedWaitlistEntryId }),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: 'Đã hủy tham gia danh sách chờ thành công.',
+                                confirmButtonColor: '#0ea5e9'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function (xhr) {
+                            btn.prop('disabled', false).html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
+                            let msg = "Đã xảy ra lỗi khi hủy danh sách chờ.";
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                msg = xhr.responseJSON.message;
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: msg,
+                                confirmButtonColor: '#0ea5e9'
+                            });
+                        }
+                    });
+                }
+            });
+        } else if (isSelectedSlotFull) {
+            // Join Waitlist logic
+            Swal.fire({
+                title: 'Ca bơi đã đầy',
+                text: "Bạn có muốn tham gia danh sách chờ? Nếu có người hủy vé, chúng tôi sẽ thông báo cho bạn qua Email.",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#eab308',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Tham gia hàng chờ',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const payload = {
+                        poolSlotId: selectedSlotId,
+                        quantity: count
+                    };
 
-        $.ajax({
-            url: `${API_BASE_URL}/api/customer-bookings/create`,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function (response) {
-                // response: { bookingId, bookingCode, paymentLink }
-                if (response.paymentLink) {
-                    window.location.href = response.paymentLink;
-                } else {
-                    alert("Đặt lịch thành công nhưng không tìm thấy link thanh toán.");
-                    btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+                    $.ajax({
+                        url: `${API_BASE_URL}/api/customer-bookings/waitlist/join`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(payload),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: function (response) {
+                            if (response.succeeded === false) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi',
+                                    text: response.message || "Đã xảy ra lỗi khi tham gia danh sách chờ.",
+                                    confirmButtonColor: '#0ea5e9'
+                                });
+                                btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+                                return;
+                            }
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: response.message || "Tham gia danh sách chờ thành công! Vui lòng kiểm tra email của bạn khi có chỗ trống.",
+                                confirmButtonColor: '#0ea5e9'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function (xhr) {
+                            btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+                            let msg = "Đã xảy ra lỗi khi tham gia danh sách chờ.";
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                msg = xhr.responseJSON.message;
+                            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                                msg = Object.values(xhr.responseJSON.errors).join('\n');
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: msg,
+                                confirmButtonColor: '#0ea5e9'
+                            });
+                        }
+                    });
                 }
-            },
-            error: function (xhr) {
-                btn.prop('disabled', false).html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
-                console.error("Booking error:", xhr);
-                let msg = "Đã xảy ra lỗi khi tạo đặt lịch. Vui lòng thử lại.";
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
+            });
+        } else {
+            // Normal Booking logic
+            const payload = {
+                poolSlotId: selectedSlotId,
+                tickets: tickets
+            };
+
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+            $.ajax({
+                url: `${API_BASE_URL}/api/customer-bookings/create`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                xhrFields: {
+                    withCredentials: true
+                },
+                success: function (response) {
+                    if (response.paymentLink) {
+                        window.location.href = response.paymentLink;
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cảnh báo',
+                            text: "Đặt lịch thành công nhưng không tìm thấy link thanh toán.",
+                            confirmButtonColor: '#0ea5e9'
+                        });
+                        btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+                    }
+                },
+                error: function (xhr) {
+                    btn.prop('disabled', false).html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+                    let msg = "Đã xảy ra lỗi khi tạo đặt lịch. Vui lòng thử lại.";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        msg = Object.values(xhr.responseJSON.errors).join('\n');
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: msg,
+                        confirmButtonColor: '#0ea5e9'
+                    });
                 }
-                alert(msg);
-            }
-        });
+            });
+        }
     });
 
 });

@@ -3,7 +3,7 @@ using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
 using System.Threading.Tasks;
 
-namespace SBS.Infrastructure.CustomerBookings.Messaging;
+namespace SBS.Application.Features.Customer_Bookings.Consumers;
 
 public class SendBookingConfirmationConsumer : IConsumer<BookingConfirmedEvent>
 {
