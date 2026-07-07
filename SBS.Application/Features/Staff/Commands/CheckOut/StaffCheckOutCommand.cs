@@ -1,6 +1,8 @@
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Interfaces;
+using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Domain.Entities;
 using System;
 using System.Linq;
@@ -28,15 +30,18 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IStaffUserService _staffUserService;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public StaffCheckOutCommandHandler(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
-        IStaffUserService staffUserService)
+        IStaffUserService staffUserService,
+        IPublishEndpoint publishEndpoint)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _staffUserService = staffUserService;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<StaffCheckOutResultDto> Handle(StaffCheckOutCommand request, CancellationToken cancellationToken)
@@ -46,7 +51,10 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
             return new StaffCheckOutResultDto { Succeeded = false, Message = "Nhân viên chưa đăng nhập hoặc không hợp lệ." };
 
         var bookingRepo = _unitOfWork.Repository<Booking>();
-        var query = bookingRepo.Query().Include(b => b.PoolSlot).AsQueryable();
+        var query = bookingRepo.Query()
+            .Include(b => b.PoolSlot)
+            .Include(b => b.CheckIn)
+            .AsQueryable();
 
         if (request.BookingId.HasValue && request.BookingId.Value > 0)
         {
@@ -80,7 +88,18 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
         booking.Status = "Completed";
         booking.UpdatedAt = DateTime.UtcNow;
 
+        if (booking.CheckIn != null)
+        {
+            booking.CheckIn.CheckOutTime = DateTime.UtcNow;
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Publish event to Waitlist processor
+        await _publishEndpoint.Publish(new SlotCapacityFreedEvent
+        {
+            PoolSlotId = booking.PoolSlotId
+        }, cancellationToken);
 
         var customer = await _staffUserService.GetUserBriefAsync(booking.UserId, cancellationToken);
         var customerName = customer?.FullName ?? "Khách vãng lai";

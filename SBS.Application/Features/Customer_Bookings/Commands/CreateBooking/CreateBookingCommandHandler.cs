@@ -65,15 +65,17 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new InvalidOperationException("Cannot book a slot that is not open.");
             }
 
-            // 1.5 Check if the slot is in the past
-            if (slot.SlotDate < today || (slot.SlotDate == today && slot.StartTime <= timeNow))
+            // 1.5 Check if the slot is in the past (Allow 30 minutes late booking)
+            if (slot.SlotDate < today || (slot.SlotDate == today && timeNow >= slot.StartTime.Add(TimeSpan.FromMinutes(30))))
             {
-                throw new InvalidOperationException("Cannot book a slot that has already started or passed.");
+                throw new InvalidOperationException("Cannot book a slot that has already started or passed beyond 30 minutes.");
             }
 
-            // 2. Check Capacity
             var currentBooked = await _unitOfWork.Repository<BookingDetail>().Query()
-                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed" && bd.Booking.Status != "Refunded")
+                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && 
+                             bd.Booking.Status != "Cancelled" && 
+                             bd.Booking.Status != "Failed" && 
+                             bd.Booking.Status != "Refunded")
                 .SumAsync(bd => bd.Quantity, cancellationToken);
 
             if (slot.Capacity - currentBooked < totalQuantity)

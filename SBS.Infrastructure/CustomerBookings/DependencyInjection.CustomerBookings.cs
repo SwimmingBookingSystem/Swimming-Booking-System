@@ -12,7 +12,8 @@ public static class DependencyInjectionCustomerBookings
         // MassTransit configuration
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<SBS.Infrastructure.CustomerBookings.Messaging.SendBookingConfirmationConsumer>();
+            x.AddConsumer<SBS.Application.Features.Customer_Bookings.Consumers.SendBookingConfirmationConsumer>();
+            x.AddConsumer<SBS.Application.Features.Customer_Bookings.Consumers.SlotCapacityFreedEventConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {

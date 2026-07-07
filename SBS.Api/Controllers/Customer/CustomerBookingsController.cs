@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
+using SBS.Application.Features.Customer_Bookings.Commands.JoinWaitlist;
 using SBS.Application.Features.Customer_Bookings.Commands.ProcessPaymentWebhook;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Queries.GetAvailableSlots;
@@ -57,5 +58,26 @@ public class CustomerBookingsController : ControllerBase
 
         // Always return 200 OK if successful
         return Ok(new { message = "Webhook processed successfully" });
+    }
+
+    [HttpPost("waitlist/join")]
+    public async Task<ActionResult<JoinWaitlistResultDto>> JoinWaitlist([FromBody] JoinWaitlistCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("waitlist/cancel")]
+    public async Task<IActionResult> CancelWaitlist([FromBody] SBS.Application.Features.Customer_Bookings.Commands.CancelWaitlist.CancelWaitlistCommand command)
+    {
+        try
+        {
+            await _mediator.Send(command);
+            return Ok(new { message = "Thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

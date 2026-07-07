@@ -16,7 +16,7 @@ public class EmailService : IEmailService
         _configuration = configuration;
     }
 
-    public async Task SendEmailWithQrCodeAsync(string toEmail, string subject, string body, byte[] qrCodeImage, string qrCodeFileName)
+    public async Task SendEmailWithQrCodeAsync(string toEmail, string subject, string body, byte[]? qrCodeImage, string? qrCodeFileName)
     {
         var emailSettings = _configuration.GetSection("Smtp");
         var host = emailSettings["Host"];

@@ -10,8 +10,3 @@ public class CreateBookingCommand : IRequest<CreateBookingResponseDto>
     public List<BookingTicketDto> Tickets { get; set; } = new();
 }
 
-public class BookingTicketDto
-{
-    public int PoolTicketTypeId { get; set; }
-    public int Quantity { get; set; }
-}

@@ -15,9 +15,9 @@ public class PaymentResultModel : PageModel
         _mediator = mediator;
     }
 
-    public string Code { get; set; }
-    public string Status { get; set; }
-    public string OrderCode { get; set; }
+    public string? Code { get; set; }
+    public string? Status { get; set; }
+    public string? OrderCode { get; set; }
     public bool IsSuccess { get; set; }
     public bool IsCanceled { get; set; }
 
