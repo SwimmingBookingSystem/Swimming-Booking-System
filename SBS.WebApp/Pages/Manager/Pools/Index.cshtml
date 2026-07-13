@@ -95,18 +95,33 @@
         const pageSize = 5;
 
         $(document).ready(function () {
-            loadPools(1);
+            // Khôi phục bộ lọc
+            const savedSearch = sessionStorage.getItem('Pools_Filter_Search');
+            if (savedSearch) $('#searchInput').val(savedSearch);
+
+            const savedStatus = sessionStorage.getItem('Pools_Filter_Status');
+            if (savedStatus) $('#statusFilter').val(savedStatus);
+
+            const savedPage = sessionStorage.getItem('Pools_Filter_Page');
+            const initialPage = savedPage ? parseInt(savedPage) : 1;
+            loadPools(initialPage);
 
             let timer = null;
             $('#searchInput').on('input', function () {
+                sessionStorage.setItem('Pools_Filter_Search', $(this).val());
                 clearTimeout(timer);
                 timer = setTimeout(() => loadPools(1), 450);
             });
-            $('#statusFilter').on('change', function () { loadPools(1); });
+            $('#statusFilter').on('change', function () { 
+                sessionStorage.setItem('Pools_Filter_Status', $(this).val());
+                loadPools(1); 
+            });
         });
 
         async function loadPools(page) {
             currentPage = page;
+            sessionStorage.setItem('Pools_Filter_Page', page);
+            
             const search = $('#searchInput').val();
             const status = $('#statusFilter').val();
             let url = `/pools?page=${page}&pageSize=${pageSize}`;

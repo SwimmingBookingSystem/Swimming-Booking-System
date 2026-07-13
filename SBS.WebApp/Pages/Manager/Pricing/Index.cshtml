@@ -173,6 +173,10 @@
         $(document).ready(function () {
             priceModal = new bootstrap.Modal(document.getElementById('priceModal'));
             confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            
+            const savedCategory = sessionStorage.getItem('Pricing_Filter_Category');
+            if (savedCategory) $('#categoryFilter').val(savedCategory);
+            
             loadPools();
         });
 
@@ -182,7 +186,11 @@
                 const res = await api.get('/pools?pageSize=100');
                 pools = res.items || [];
                 renderPoolTabs();
-                if (pools.length > 0) {
+                
+                const savedPool = sessionStorage.getItem('Pricing_Filter_PoolId');
+                if (savedPool && pools.find(p => p.poolId == savedPool)) {
+                    selectPool(parseInt(savedPool));
+                } else if (pools.length > 0) {
                     selectPool(pools[0].poolId);
                 }
             } catch (e) { }
@@ -215,6 +223,7 @@
 
         async function selectPool(poolId) {
             selectedPoolId = poolId;
+            sessionStorage.setItem('Pricing_Filter_PoolId', poolId);
             // Update active state in dropdown
             $('.dropdown-item').removeClass('active');
             $(`.dropdown-item[data-pool-id="${poolId}"]`).addClass('active');
@@ -249,6 +258,7 @@
 
         function applyFilter() {
             const filterVal = $('#categoryFilter').val();
+            sessionStorage.setItem('Pricing_Filter_Category', filterVal);
             if (filterVal === 'All') {
                 renderPricingTable(poolTickets);
             } else {

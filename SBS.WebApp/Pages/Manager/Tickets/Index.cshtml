@@ -158,12 +158,36 @@
         $(document).ready(function () {
             confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
 
-            loadTickets();
+            // Khôi phục bộ lọc
+            const savedSearch = sessionStorage.getItem('Tickets_Filter_Search');
+            if (savedSearch) $('#searchInput').val(savedSearch);
+
+            const savedCategory = sessionStorage.getItem('Tickets_Filter_Category');
+            if (savedCategory) $('#filterCategory').val(savedCategory);
+
+            const savedStatus = sessionStorage.getItem('Tickets_Filter_Status');
+            if (savedStatus) $('#filterStatus').val(savedStatus);
+
+            const savedPage = sessionStorage.getItem('Tickets_Filter_Page');
+            if (savedPage) currentPage = parseInt(savedPage);
+
             loadTickets();
 
             // Filters
-            $('#searchInput').on('input', debounce(() => { currentPage = 1; loadTickets(); }, 400));
-            $('#filterCategory, #filterStatus').on('change', () => { currentPage = 1; loadTickets(); });
+            $('#searchInput').on('input', debounce(() => { 
+                sessionStorage.setItem('Tickets_Filter_Search', $('#searchInput').val());
+                currentPage = 1; loadTickets(); 
+            }, 400));
+            
+            $('#filterCategory').on('change', () => { 
+                sessionStorage.setItem('Tickets_Filter_Category', $('#filterCategory').val());
+                currentPage = 1; loadTickets(); 
+            });
+
+            $('#filterStatus').on('change', () => { 
+                sessionStorage.setItem('Tickets_Filter_Status', $('#filterStatus').val());
+                currentPage = 1; loadTickets(); 
+            });
         });
 
         function debounce(fn, ms) {
@@ -171,14 +195,17 @@
             return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
         }
 
-        // ── DATA LOADING ──────────────────────────────────────────────
         async function loadTickets() {
+            sessionStorage.setItem('Tickets_Filter_Page', currentPage);
             try {
                 const cat = $('#filterCategory').val();
                 const status = $('#filterStatus').val();
+                const keyword = $('#searchInput').val();
+                
                 let url = `/ticket-types?page=${currentPage}&pageSize=${pageSize}`;
                 if (cat) url += `&category=${cat}`;
                 if (status) url += `&status=${status}`;
+                if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
 
                 const res = await api.get(url);
                 allTickets = res.items || [];
