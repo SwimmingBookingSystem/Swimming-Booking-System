@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
-using SBS.WebApp.Models.Profile;
+using SBS.Application.Features.Customer_Bookings.Dtos;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 
 namespace SBS.WebApp.Pages.Customer.Profile;
 
-public class BookingsModel : PageModel
+public class WaitlistsModel : PageModel
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
 
-    public BookingsModel(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public WaitlistsModel(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
     }
 
-    public List<CustomerBookingHistoryDto> Bookings { get; set; } = new List<CustomerBookingHistoryDto>();
+    public List<CustomerWaitlistDto> Waitlists { get; set; } = new List<CustomerWaitlistDto>();
 
     private HttpClient CreateClient()
     {
@@ -45,14 +45,14 @@ public class BookingsModel : PageModel
         }
 
         var client = CreateClient();
-        var response = await client.GetAsync("/api/customer-bookings/history");
+        var response = await client.GetAsync("/api/customer-bookings/waitlist/my-waitlists");
         
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<List<CustomerBookingHistoryDto>>();
+            var result = await response.Content.ReadFromJsonAsync<List<CustomerWaitlistDto>>();
             if (result != null)
             {
-                Bookings = result.OrderByDescending(b => b.CreatedAt).ToList();
+                Waitlists = result;
             }
         }
         return Page();

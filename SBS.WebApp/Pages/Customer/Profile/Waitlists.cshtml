@@ -1,0 +1,155 @@
+@page
+@model SBS.WebApp.Pages.Customer.Profile.WaitlistsModel
+@{
+    ViewData["Title"] = "Danh sách chờ";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <partial name="_ProfileSidebar" />
+        </div>
+        
+        <!-- Content -->
+        <div class="col-md-9">
+            <div class="ocean-card p-2">
+                <div class="card-body p-4">
+                    <h4 class="card-title fw-bold text-teal mb-4 border-bottom pb-3">Danh sách chờ của tôi</h4>
+                    
+                    @if (Model.Waitlists == null || !Model.Waitlists.Any())
+                    {
+                        <div class="alert bg-light border-0 text-center py-5 rounded-4">
+                            <i class="bi bi-hourglass-split fs-1 text-muted d-block mb-3"></i>
+                            <span class="text-muted">Bạn chưa tham gia danh sách chờ nào.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var waitlist in Model.Waitlists)
+                            {
+                                <div class="ocean-card p-4 border border-light">
+                                    <div class="row align-items-center">
+                                        <!-- Pool Info -->
+                                        <div class="col-md-4 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Bể bơi</span>
+                                            <span class="fw-bold text-ocean fs-6">@waitlist.PoolName</span>
+                                            <small class="text-muted d-block mt-1">Số lượng vé: @waitlist.Quantity</small>
+                                        </div>
+                                        <!-- Time Info -->
+                                        <div class="col-md-3 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Thời gian</span>
+                                            <span class="d-block fw-medium text-dark">@waitlist.SlotDate.ToString("dd/MM/yyyy")</span>
+                                            <small class="text-muted">@waitlist.StartTime.ToString(@"hh\:mm") - @waitlist.EndTime.ToString(@"hh\:mm")</small>
+                                        </div>
+                                        <!-- Position -->
+                                        <div class="col-md-3 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Vị trí của bạn</span>
+                                            @if (waitlist.Status == "Waiting")
+                                            {
+                                                <span class="fw-bold text-teal fs-5">#@waitlist.CurrentPosition <small class="text-muted fs-6 fw-normal">/ @waitlist.TotalWaitlistCount</small></span>
+                                            }
+                                            else
+                                            {
+                                                <span class="fw-medium text-muted">-</span>
+                                            }
+                                        </div>
+                                        <!-- Status & Action -->
+                                        <div class="col-md-2 text-md-end">
+                                            <div class="d-flex flex-column align-items-md-end gap-2 mt-2 mt-md-0">
+                                                @if (waitlist.Status == "Waiting")
+                                                {
+                                                    <span class="badge-ocean-warning text-nowrap">Đang chờ</span>
+                                                    <button type="button" class="btn btn-sm ocean-btn-outline mt-2 cancel-waitlist-btn" 
+                                                            data-id="@waitlist.WaitlistEntryId">
+                                                        Hủy chờ
+                                                    </button>
+                                                }
+                                                else if (waitlist.Status == "Offered")
+                                                {
+                                                    <span class="badge-ocean-success text-nowrap">Đã có vé</span>
+                                                }
+                                                else if (waitlist.Status == "Cancelled")
+                                                {
+                                                    <span class="badge-ocean-danger text-nowrap">Đã hủy</span>
+                                                }
+                                                else if (waitlist.Status == "Expired")
+                                                {
+                                                    <span class="badge-ocean-secondary text-nowrap">Hết hạn</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cancelButtons = document.querySelectorAll('.cancel-waitlist-btn');
+            
+            cancelButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const waitlistId = this.getAttribute('data-id');
+                    
+                    Swal.fire({
+                        title: 'Xác nhận hủy',
+                        text: 'Bạn có chắc chắn muốn rời khỏi danh sách chờ này không?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#be123c',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Đồng ý hủy',
+                        cancelButtonText: 'Không'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`/api/customer-bookings/waitlist/cancel`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + getCookie('accessToken')
+                                },
+                                body: JSON.stringify({ waitlistEntryId: parseInt(waitlistId) })
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    Swal.fire(
+                                        'Đã hủy!',
+                                        'Bạn đã rời khỏi danh sách chờ.',
+                                        'success'
+                                    ).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    response.json().then(data => {
+                                        Swal.fire('Lỗi', data.message || 'Không thể hủy chờ.', 'error');
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire('Lỗi', 'Đã xảy ra lỗi kết nối.', 'error');
+                            });
+                        }
+                    });
+                });
+            });
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return '';
+            }
+        });
+    </script>
+}

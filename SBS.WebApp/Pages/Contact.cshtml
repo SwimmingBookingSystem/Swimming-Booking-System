@@ -7,33 +7,33 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4 text-primary fw-bold">Liên hệ với chúng tôi</h2>
+            <div class="ocean-card p-2 border border-light">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="text-center mb-4 text-teal fw-bold">Liên hệ với chúng tôi</h2>
                     <p class="text-center text-muted mb-5">
                         Bạn có yêu cầu hỗ trợ, muốn hợp tác thuê hồ bơi, hoặc đơn giản là muốn để lại góp ý? Hãy điền thông tin vào form dưới đây, chúng tôi sẽ phản hồi lại trong thời gian sớm nhất!
                     </p>
 
                     <form id="contactForm">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="fullName" class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="fullName" value="@Model.PreFillFullName" required placeholder="Nhập họ và tên của bạn">
+                                <input type="text" class="form-control ocean-input" id="fullName" value="@Model.PreFillFullName" required placeholder="Nhập họ và tên của bạn">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-4">
                                 <label for="phoneNumber" class="form-label fw-semibold">Số điện thoại</label>
-                                <input type="tel" class="form-control" id="phoneNumber" value="@Model.PreFillPhone" placeholder="Nhập số điện thoại (nếu có)">
+                                <input type="tel" class="form-control ocean-input" id="phoneNumber" value="@Model.PreFillPhone" placeholder="Nhập số điện thoại (nếu có)">
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="email" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" value="@Model.PreFillEmail" required placeholder="Nhập địa chỉ email của bạn">
+                            <input type="email" class="form-control ocean-input" id="email" value="@Model.PreFillEmail" required placeholder="Nhập địa chỉ email của bạn">
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="category" class="form-label fw-semibold">Phân loại yêu cầu <span class="text-danger">*</span></label>
-                            <select class="form-select" id="category" required>
+                            <select class="form-select ocean-input" id="category" required>
                                 <option value="" selected disabled>Chọn loại yêu cầu...</option>
                                 <option value="Hỗ trợ tài khoản">Hỗ trợ tài khoản (Quên mật khẩu, Mở khóa...)</option>
                                 <option value="Hỗ trợ đặt vé">Hỗ trợ đặt vé / Đổi lịch bơi</option>
@@ -42,13 +42,13 @@
                             </select>
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-5">
                             <label for="message" class="form-label fw-semibold">Nội dung chi tiết <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="message" rows="5" required placeholder="Nhập nội dung chi tiết yêu cầu của bạn..."></textarea>
+                            <textarea class="form-control ocean-input" id="message" rows="5" required placeholder="Nhập nội dung chi tiết yêu cầu của bạn..."></textarea>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        <div class="d-grid mt-2">
+                            <button type="submit" class="btn ocean-btn-primary btn-lg" id="submitBtn">
                                 <i class="bi bi-send me-2"></i> Gửi Yêu Cầu
                             </button>
                         </div>

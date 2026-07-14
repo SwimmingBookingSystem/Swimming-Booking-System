@@ -8,6 +8,7 @@ using SBS.Application.Features.Customer_Bookings.Commands.ProcessPaymentWebhook;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Queries.GetAvailableSlots;
 using SBS.Application.Features.Customer_Bookings.Queries.GetCustomerBookings;
+using SBS.Application.Features.Customer_Bookings.Queries.GetCustomerWaitlists;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -102,6 +103,13 @@ public class CustomerBookingsController : ControllerBase
     public async Task<ActionResult<List<CustomerBookingHistoryDto>>> GetBookingHistory()
     {
         var result = await _mediator.Send(new GetCustomerBookingsQuery());
+        return Ok(result);
+    }
+
+    [HttpGet("waitlist/my-waitlists")]
+    public async Task<ActionResult<List<CustomerWaitlistDto>>> GetMyWaitlists()
+    {
+        var result = await _mediator.Send(new GetCustomerWaitlistsQuery());
         return Ok(result);
     }
 }

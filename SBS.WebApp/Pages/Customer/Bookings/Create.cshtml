@@ -12,7 +12,7 @@
 
 <style>
     body {
-        background-image: linear-gradient(rgba(14, 165, 233, 0.05), rgba(15, 23, 42, 0.05)), url('/images/swimming_pool_bg.png');
+        background-image: linear-gradient(rgba(0, 194, 224, 0.05), rgba(0, 95, 106, 0.05)), url('/images/swimming_pool_bg.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -26,7 +26,7 @@
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.8);
         border-radius: 24px;
-        box-shadow: 0 10px 30px -10px rgba(2, 132, 199, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 30px -10px rgba(0, 194, 224, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     .slot-btn {
         border-radius: 12px;
@@ -41,15 +41,15 @@
         cursor: pointer;
     }
     .slot-btn:hover:not(:disabled) {
-        border-color: #0ea5e9;
-        color: #0ea5e9;
-        background-color: #f0f9ff;
+        border-color: #00C2E0;
+        color: #00C2E0;
+        background-color: #e0f7fa;
     }
     .slot-btn.selected {
-        border-color: #0ea5e9;
-        background-color: #0ea5e9;
+        border-color: #00C2E0;
+        background-color: #00C2E0;
         color: white;
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);
     }
     .slot-btn:disabled {
         background-color: #f1f5f9;
@@ -65,8 +65,8 @@
         transition: all 0.2s;
     }
     .ticket-card:hover {
-        border-color: #bae6fd;
-        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.08);
+        border-color: #00C2E0;
+        box-shadow: 0 4px 15px rgba(0, 194, 224, 0.08);
     }
     .qty-btn {
         width: 32px;
@@ -100,7 +100,7 @@
     <!-- Back Button -->
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
-            <a href="/CustomerViewPoolIst/CustomerViewPoolDetail?id=@Model.PoolInfo.PoolId" class="btn btn-white bg-white px-4 py-2.5 rounded-3 fw-semibold shadow-sm text-dark hover-btn">
+            <a href="/CustomerViewPoolIst/CustomerViewPoolDetail?id=@Model.PoolInfo.PoolId" class="btn ocean-btn-outline px-4 py-2.5 rounded-3 fw-semibold shadow-sm">
                 <i class="bi bi-arrow-left"></i> Quay lại chi tiết
             </a>
         </div>
@@ -112,14 +112,14 @@
                 
                 <!-- Header -->
                 <div class="text-center mb-5 border-bottom pb-4">
-                    <h1 class="fw-bold text-dark mb-2">@Model.PoolInfo.PoolName</h1>
-                    <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> @Model.PoolInfo.Address</p>
+                    <h1 class="fw-bold text-teal mb-2">@Model.PoolInfo.PoolName</h1>
+                    <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-ocean"></i> @Model.PoolInfo.Address</p>
                 </div>
 
                 <div class="row g-5">
                     <!-- Left Column: Date & Slots -->
                     <div class="col-md-7 border-end-md">
-                        <h4 class="fw-bold mb-4"><i class="bi bi-calendar-event text-primary me-2"></i>Chọn thời gian</h4>
+                        <h4 class="fw-bold text-teal mb-4"><i class="bi bi-calendar-event text-ocean me-2"></i>Chọn thời gian</h4>
                         
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary">Ngày đặt lịch</label>
@@ -129,7 +129,7 @@
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary d-flex justify-content-between align-items-center">
                                 <span>Khung giờ (Slots)</span>
-                                <span id="slots-loader" class="spinner-border spinner-border-sm text-primary d-none" role="status"></span>
+                                <span id="slots-loader" class="spinner-border spinner-border-sm text-ocean d-none" role="status"></span>
                             </label>
                             
                             <div id="slots-container" class="row g-2 mt-1">
@@ -147,10 +147,10 @@
 
                     <!-- Right Column: Tickets & Summary -->
                     <div class="col-md-5">
-                        <h4 class="fw-bold mb-4"><i class="bi bi-ticket-perforated text-primary me-2"></i>Chọn loại vé</h4>
+                        <h4 class="fw-bold text-teal mb-4"><i class="bi bi-ticket-perforated text-ocean me-2"></i>Chọn loại vé</h4>
                         
                         <div id="tickets-loader" class="text-center py-3">
-                            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                            <div class="spinner-border text-ocean spinner-border-sm" role="status"></div>
                         </div>
 
                         <div id="tickets-container" class="d-flex flex-column gap-3 mb-4">
@@ -158,26 +158,26 @@
                         </div>
 
                         <!-- Summary & Submit -->
-                        <div class="bg-light p-4 rounded-4 mt-4 border">
-                            <h5 class="fw-bold mb-3 border-bottom pb-2">Tổng quan đặt lịch</h5>
+                        <div class="ocean-card p-4 mt-4 border border-light">
+                            <h5 class="fw-bold text-teal mb-3 border-bottom pb-2">Tổng quan đặt lịch</h5>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-secondary">Ngày:</span>
                                 <span class="fw-semibold" id="summary-date">--/--/----</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-secondary">Giờ:</span>
-                                <span class="fw-semibold text-primary" id="summary-time">Chưa chọn</span>
+                                <span class="fw-semibold text-ocean" id="summary-time">Chưa chọn</span>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="text-secondary">Số lượng vé:</span>
                                 <span class="fw-semibold" id="summary-tickets">0 vé</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                                <span class="fw-bold fs-5">Tổng tiền:</span>
+                                <span class="fw-bold fs-5 text-teal">Tổng tiền:</span>
                                 <span class="fw-bold fs-4 text-danger" id="total-price">0đ</span>
                             </div>
 
-                            <button id="btn-submit-booking" class="btn btn-primary btn-lg w-100 mt-4 rounded-3 shadow fw-bold" disabled>
+                            <button id="btn-submit-booking" class="btn ocean-btn-primary btn-lg w-100 mt-4 rounded-3 shadow fw-bold" disabled>
                                 Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>
                             </button>
                         </div>
