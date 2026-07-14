@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SBS.Application.Features.Customer_Bookings.Commands.CancelBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.JoinWaitlist;
 using SBS.Application.Features.Customer_Bookings.Commands.ProcessPaymentWebhook;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Queries.GetAvailableSlots;
+using SBS.Application.Features.Customer_Bookings.Queries.GetCustomerBookings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -46,6 +48,21 @@ public class CustomerBookingsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("{bookingId}/cancel")]
+    public async Task<IActionResult> CancelBooking([FromRoute] int bookingId)
+    {
+        try
+        {
+            var command = new CancelBookingCommand(bookingId);
+            await _mediator.Send(command);
+            return Ok(new { message = "Hủy vé thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("payos-webhook")]
     [AllowAnonymous]
     public async Task<IActionResult> PayOSWebhook()
@@ -79,5 +96,12 @@ public class CustomerBookingsController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpGet("history")]
+    public async Task<ActionResult<List<CustomerBookingHistoryDto>>> GetBookingHistory()
+    {
+        var result = await _mediator.Send(new GetCustomerBookingsQuery());
+        return Ok(result);
     }
 }
