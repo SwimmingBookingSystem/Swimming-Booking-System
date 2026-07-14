@@ -1,17 +1,17 @@
 :root {
-    --primary: #0284c7;
-    --primary-dark: #0369a1;
-    --primary-light: #e0f2fe;
-    --accent: #0ea5e9;
-    --dark: #0f172a;
+    --primary: #00C2E0;
+    --primary-dark: #009BB3;
+    --primary-light: #E0F9FD;
+    --accent: #00C2E0;
+    --dark: #005F6A;
     --gray: #64748b;
-    --gray-light: #f1f5f9;
-    --gradient-hero: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
-    --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-    --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --gray-light: #F4F7F9;
+    --gradient-hero: linear-gradient(135deg, rgba(0, 194, 224, 0.15) 0%, rgba(0, 95, 106, 0.7) 100%);
+    --gradient-primary: linear-gradient(135deg, #00C2E0 0%, #009BB3 100%);
+    --gradient-dark: linear-gradient(135deg, #005F6A 0%, #003F47 100%);
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
     --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
-    --shadow-lg: 0 20px 60px rgba(2, 132, 199, 0.15);
+    --shadow-lg: 0 20px 60px rgba(0, 194, 224, 0.15);
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 24px;
@@ -68,7 +68,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: linear-gradient(rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.6)), url('/images/swimming_pool_bg.png');
+    background-image: linear-gradient(rgba(0, 194, 224, 0.12), rgba(0, 95, 106, 0.6)), url('/images/swimming_pool_bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -119,7 +119,7 @@ body {
     animation: fadeInUp 0.8s ease 0.1s both;
 }
 .hero-title .highlight {
-    background: linear-gradient(135deg, #38bdf8, #7dd3fc);
+    background: linear-gradient(135deg, #4DD4E9, #b2ebf2);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -151,7 +151,7 @@ body {
 }
 .hero-buttons .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(2, 132, 199, 0.4);
+    box-shadow: 0 12px 35px rgba(0, 194, 224, 0.4);
 }
 .hero-buttons .btn-outline-light {
     border: 2px solid rgba(255, 255, 255, 0.5);
@@ -242,7 +242,7 @@ body {
 .feature-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-md);
-    border-color: rgba(2, 132, 199, 0.1);
+    border-color: rgba(0, 194, 224, 0.1);
 }
 .feature-icon {
     width: 68px;
@@ -294,7 +294,7 @@ body {
     color: #fff;
     font-size: 1.3rem;
     font-weight: 700;
-    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.25);
+    box-shadow: 0 8px 20px rgba(0, 194, 224, 0.25);
     transition: all 0.3s ease;
 }
 .step-card:hover .step-number {
@@ -443,7 +443,7 @@ body {
 
 /* ===== CTA ===== */
 .cta-section {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #4DD4E9 100%);
     text-align: center;
 }
 .cta-box {
@@ -460,7 +460,7 @@ body {
     right: -20%;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 194, 224, 0.15) 0%, transparent 70%);
     border-radius: 50%;
 }
 .cta-box .cta-content {

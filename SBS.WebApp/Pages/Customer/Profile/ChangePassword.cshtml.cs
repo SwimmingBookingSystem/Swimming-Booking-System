@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace SBS.WebApp.Pages.Customer.Profile;
 
-[Authorize(Roles = "Customer")]
 public class ChangePasswordModel : PageModel
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -39,8 +38,13 @@ public class ChangePasswordModel : PageModel
     [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; set; } = null!;
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!Request.Cookies.ContainsKey("accessToken"))
+        {
+            return RedirectToPage("/Auth/Login");
+        }
+        return Page();
     }
 
     private HttpClient CreateClient()
@@ -58,6 +62,11 @@ public class ChangePasswordModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!Request.Cookies.ContainsKey("accessToken"))
+        {
+            return RedirectToPage("/Auth/Login");
+        }
+
         if (!ModelState.IsValid)
         {
             return Page();

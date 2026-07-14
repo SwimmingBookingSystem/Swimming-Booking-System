@@ -14,9 +14,9 @@
         
         <!-- Content -->
         <div class="col-md-9">
-            <div class="card shadow-sm border-0">
+            <div class="ocean-card p-2">
                 <div class="card-body p-4">
-                    <h4 class="card-title mb-4 border-bottom pb-2">Thông tin cá nhân</h4>
+                    <h4 class="card-title fw-bold text-teal mb-4 border-bottom pb-3">Thông tin cá nhân</h4>
                     
                     @if (!ModelState.IsValid)
                     {
@@ -34,20 +34,21 @@
 
                     <form method="post">
                         <div class="row mb-3">
-                            <div class="col-md-6 text-center mb-3 mb-md-0">
-                                <img id="avatarPreview" src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "/images/default-avatar.png" : Model.AvatarUrl)" alt="Avatar" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
-                                <!-- Placeholder for future avatar upload implementation -->
-                                <p class="text-muted mt-2 small">Tính năng đổi ảnh đại diện đang được hoàn thiện</p>
+                            <div class="col-md-4 text-center mb-4 mb-md-0 d-flex flex-column align-items-center justify-content-center">
+                                <div class="position-relative mb-3">
+                                    <img id="avatarPreview" src="https://ui-avatars.com/api/?name=@(System.Net.WebUtility.UrlEncode(Model.FullName ?? "User"))&background=00C2E0&color=fff&rounded=true&size=200" alt="Avatar" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--cool-gray);">
+                                </div>
+                                <p class="text-muted small">Ảnh đại diện được tạo tự động từ tên của bạn.</p>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Họ và tên</label>
-                                    <input asp-for="FullName" class="form-control" />
+                                    <input asp-for="FullName" class="form-control ocean-input" />
                                     <span asp-validation-for="FullName" class="text-danger"></span>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Email</label>
-                                    <input type="text" class="form-control bg-light" value="@Model.Email" readonly disabled />
+                                    <input type="text" class="form-control ocean-input bg-light" value="@Model.Email" readonly disabled />
                                 </div>
                             </div>
                         </div>
@@ -55,12 +56,12 @@
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Ngày sinh</label>
-                                <input asp-for="Dob" type="date" class="form-control" />
+                                <input asp-for="Dob" type="date" class="form-control ocean-input" />
                                 <span asp-validation-for="Dob" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Giới tính</label>
-                                <select asp-for="Gender" class="form-select">
+                                <select asp-for="Gender" class="form-select ocean-input">
                                     <option value="">Chọn giới tính</option>
                                     <option value="Nam">Nam</option>
                                     <option value="Nữ">Nữ</option>
@@ -72,12 +73,12 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">Địa chỉ</label>
-                            <input asp-for="Address" class="form-control" />
+                            <input asp-for="Address" class="form-control ocean-input" />
                             <span asp-validation-for="Address" class="text-danger"></span>
                         </div>
 
                         <div class="text-end">
-                            <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+                            <button type="submit" class="btn ocean-btn-primary px-5 py-2">Lưu thay đổi</button>
                         </div>
                     </form>
                 </div>

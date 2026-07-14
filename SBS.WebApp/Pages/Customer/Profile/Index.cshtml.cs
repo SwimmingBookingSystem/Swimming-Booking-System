@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace SBS.WebApp.Pages.Customer.Profile;
 
-[Authorize(Roles = "Customer")]
 public class IndexModel : PageModel
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -55,12 +54,17 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
+        if (!Request.Cookies.ContainsKey("accessToken"))
+        {
+            return RedirectToPage("/Auth/Login");
+        }
+
         var client = CreateClient();
         var response = await client.GetAsync("/api/profile");
         
         if (!response.IsSuccessStatusCode)
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Auth/Login");
         }
 
         var profile = await response.Content.ReadFromJsonAsync<UserProfileDto>();
@@ -81,6 +85,11 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!Request.Cookies.ContainsKey("accessToken"))
+        {
+            return RedirectToPage("/Auth/Login");
+        }
+
         if (!ModelState.IsValid)
         {
             return Page();

@@ -14,64 +14,75 @@
         
         <!-- Content -->
         <div class="col-md-9">
-            <div class="card shadow-sm border-0">
+            <div class="ocean-card p-2">
                 <div class="card-body p-4">
-                    <h4 class="card-title mb-4 border-bottom pb-2">Lịch sử đặt vé</h4>
+                    <h4 class="card-title fw-bold text-teal mb-4 border-bottom pb-3">Lịch sử đặt vé</h4>
                     
                     @if (Model.Bookings == null || !Model.Bookings.Any())
                     {
-                        <div class="alert alert-info text-center py-4">
-                            <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
-                            Bạn chưa có lịch sử đặt vé nào.
+                        <div class="alert bg-light border-0 text-center py-5 rounded-4">
+                            <i class="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+                            <span class="text-muted">Bạn chưa có lịch sử đặt vé nào.</span>
                         </div>
                     }
                     else
                     {
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Mã vé</th>
-                                        <th>Bể bơi</th>
-                                        <th>Thời gian</th>
-                                        <th>Tổng tiền</th>
-                                        <th>Trạng thái</th>
-                                        <th class="text-center">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var booking in Model.Bookings)
-                                    {
-                                        <tr>
-                                            <td><span class="fw-bold text-primary">@booking.BookingCode</span></td>
-                                            <td>@booking.PoolName</td>
-                                            <td>
-                                                <div>@booking.SlotDate.ToString("dd/MM/yyyy")</div>
-                                                <small class="text-muted">@booking.StartTime.ToString(@"hh\:mm") - @booking.EndTime.ToString(@"hh\:mm")</small>
-                                            </td>
-                                            <td>@booking.TotalAmount.ToString("N0") VNĐ</td>
-                                            <td>
+                        <div class="d-flex flex-column gap-3" id="booking-list-container">
+                            @foreach (var booking in Model.Bookings)
+                            {
+                                <div class="ocean-card p-4 border border-light booking-item">
+                                    <div class="row align-items-center">
+                                        <!-- Pool Info -->
+                                        <div class="col-md-3 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Mã vé</span>
+                                            <span class="fw-bold text-ocean fs-6">@booking.BookingCode</span>
+                                        </div>
+                                        <div class="col-md-3 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Bể bơi</span>
+                                            <span class="fw-medium text-dark">@booking.PoolName</span>
+                                        </div>
+                                        <!-- Time Info -->
+                                        <div class="col-md-2 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Thời gian</span>
+                                            <span class="d-block fw-medium text-dark">@booking.SlotDate.ToString("dd/MM/yyyy")</span>
+                                            <small class="text-muted">@booking.StartTime.ToString(@"hh\:mm") - @booking.EndTime.ToString(@"hh\:mm")</small>
+                                        </div>
+                                        <!-- Total -->
+                                        <div class="col-md-2 mb-3 mb-md-0">
+                                            <span class="text-muted small d-block mb-1">Tổng tiền</span>
+                                            <span class="fw-bold text-teal">@booking.TotalAmount.ToString("N0") VNĐ</span>
+                                        </div>
+                                        <!-- Status & Action -->
+                                        <div class="col-md-2 text-md-end">
+                                            <div class="d-flex flex-column align-items-md-end gap-2 mt-2 mt-md-0">
                                                 @if (booking.Status == "Paid" || booking.Status == "Confirmed")
                                                 {
-                                                    <span class="badge bg-success">Đã thanh toán</span>
+                                                    <span class="badge-ocean-success text-nowrap">Đã thanh toán</span>
                                                 }
                                                 else if (booking.Status == "PendingPayment")
                                                 {
-                                                    <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+                                                    <span class="badge-ocean-warning text-nowrap">Chờ thanh toán</span>
                                                 }
                                                 else if (booking.Status == "Cancelled")
                                                 {
-                                                    <span class="badge bg-danger">Đã hủy</span>
+                                                    <span class="badge-ocean-danger text-nowrap">Đã hủy</span>
+                                                }
+                                                else if (booking.Status == "Completed")
+                                                {
+                                                    <span class="badge-ocean-success text-nowrap">Đã hoàn thành</span>
+                                                }
+                                                else if (booking.Status == "CheckIn" || booking.Status == "CheckedIn")
+                                                {
+                                                    <span class="badge-ocean-success text-nowrap">Đã Check-in</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary">@booking.Status</span>
+                                                    <span class="badge-ocean-secondary text-nowrap">@booking.Status</span>
                                                 }
-                                            </td>
-                                            <td class="text-center">
+                                                
                                                 @if ((booking.Status == "Paid" || booking.Status == "Confirmed") && !string.IsNullOrEmpty(booking.QrCodeData))
                                                 {
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    <button type="button" class="btn btn-sm ocean-btn-outline mt-2" 
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#qrModal" 
                                                             data-bs-qr="@booking.QrCodeData"
@@ -79,16 +90,18 @@
                                                         <i class="bi bi-qr-code"></i> Xem QR
                                                     </button>
                                                 }
-                                                else
-                                                {
-                                                    <span class="text-muted small">-</span>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
+                        
+                        <!-- Pagination Controls -->
+                        <nav aria-label="Page navigation" class="mt-4" id="booking-pagination" style="display: none;">
+                            <ul class="pagination ocean-pagination justify-content-center" id="pagination-ul">
+                            </ul>
+                        </nav>
                     }
                 </div>
             </div>
@@ -99,27 +112,27 @@
 <!-- Modal xem QR Code -->
 <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrModalLabel">Mã QR Check-in</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content ocean-card border-0">
+            <div class="modal-header bg-ocean text-white border-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold" id="qrModalLabel">Mã QR Check-in</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center">
-                <p class="text-muted small mb-3">Vui lòng đưa mã này cho nhân viên tại cổng kiểm soát.</p>
-                <div id="qrcode-container" class="d-flex justify-content-center bg-white p-3 border rounded">
+            <div class="modal-body text-center p-4">
+                <p class="text-muted small mb-4">Vui lòng đưa mã này cho nhân viên tại cổng kiểm soát để check-in.</p>
+                <div id="qrcode-container" class="d-flex justify-content-center bg-white p-3 border rounded-3 shadow-sm mx-auto" style="width: 200px; height: 200px;">
                     <!-- Javascript qrcode.js sẽ vẽ ảnh QR vào đây -->
                 </div>
             </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn ocean-btn-outline px-4" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- Import thư viện qrcode.js từ CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-is1ls2rgwpFZyixqKFEExVNUxZ+fjcROZdGZhz425uBxt7pI4uLmtC+2V5q2Iok/XfUaO1b8GzF3B5qT+QpQVQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- File chứa logic hiển thị QR Code -->
-    <script src="~/js/UserProfile/bookingHistory.js"></script>
+    <!-- Import thư viện qrcode.js từ CDN, bỏ integrity để tránh lỗi CORS/Hash -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- File chứa logic hiển thị QR Code và phân trang -->
+    <script src="~/js/UserProfile/bookingHistory.js" asp-append-version="true"></script>
 }
