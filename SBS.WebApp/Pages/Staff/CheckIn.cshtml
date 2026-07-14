@@ -94,12 +94,12 @@
             <div class="row justify-content-center">
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm p-4">
-                        <h5 class="card-title mb-3"><i class="fa-solid fa-key text-success me-2"></i> Check-in bằng Mã Booking ID</h5>
-                        <p class="text-muted small mb-4">Nhập Booking ID của khách hàng nếu không quét được mã QR.</p>
+                        <h5 class="card-title mb-3"><i class="fa-solid fa-key text-success me-2"></i> Check-in bằng Mã Booking</h5>
+                        <p class="text-muted small mb-4">Nhập <strong>Booking ID</strong> (số) hoặc <strong>Booking Code</strong> (ví dụ: BK-260714134512-AB3C) của khách hàng nếu không quét được mã QR.</p>
                         <form id="form-manual-checkin">
                             <div class="mb-3">
-                                <label class="form-label fw-medium">Mã Booking ID</label>
-                                <input type="number" id="manual-booking-id" class="form-control form-control-lg" placeholder="Ví dụ: 1024" required />
+                                <label class="form-label fw-medium">Booking ID hoặc Booking Code</label>
+                                <input type="text" id="manual-booking-input" class="form-control form-control-lg" placeholder="Ví dụ: 1024 hoặc BK-260714134512-AB3C" required />
                             </div>
                             <button type="submit" class="btn btn-success w-100 py-3 rounded-3 fw-bold fs-6">
                                 <i class="fa-solid fa-circle-check me-2"></i> Xác nhận Check-in
@@ -166,11 +166,11 @@
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm p-4">
                         <h5 class="card-title mb-3"><i class="fa-solid fa-door-open text-warning me-2"></i> Check-out Thủ Công</h5>
-                        <p class="text-muted small mb-4">Nhập Mã Booking ID hoặc Mã Booking Code (trên vé) khi khách bơi hoàn thành và ra về.</p>
+                        <p class="text-muted small mb-4">Nhập <strong>Booking ID</strong> (số) hoặc <strong>Booking Code</strong> (ví dụ: BK-260714134512-AB3C) khi khách bơi hoàn thành và ra về.</p>
                         <form id="form-checkout">
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Booking ID hoặc Booking Code</label>
-                                <input type="text" id="checkout-input" class="form-control form-control-lg" placeholder="Ví dụ: 1024 hoặc SBS-20260629-XXXX" required />
+                                <input type="text" id="checkout-input" class="form-control form-control-lg" placeholder="Ví dụ: 1024 hoặc BK-260714134512-AB3C" required />
                             </div>
                             <button type="submit" class="btn btn-warning w-100 py-3 rounded-3 fw-bold fs-6 text-dark">
                                 <i class="fa-solid fa-right-from-bracket me-2"></i> Xác nhận Check-out
@@ -240,16 +240,24 @@
                 }
             });
 
-            // Handle Manual Checkin
+            // Handle Manual Checkin — nhận BookingId (số) hoặc BookingCode (chuỗi BK-...)
             $('#form-manual-checkin').on('submit', async function (e) {
                 e.preventDefault();
-                const bookingId = parseInt($('#manual-booking-id').val());
-                if (!bookingId) return;
+                const val = $('#manual-booking-input').val().trim();
+                if (!val) return;
+
+                const payload = {};
+                // Nếu nhập số nguyên → bookingId, ngược lại → bookingCode
+                if (/^\d+$/.test(val)) {
+                    payload.bookingId = parseInt(val);
+                } else {
+                    payload.bookingCode = val;
+                }
 
                 try {
-                    const res = await staffApi.post('/checkin/manual', { bookingId: bookingId });
+                    const res = await staffApi.post('/checkin/manual', payload);
                     toastr.success(res.message || 'Check-in thành công!');
-                    $('#manual-booking-id').val('');
+                    $('#manual-booking-input').val('');
                 } catch (err) {
                     // Toastr đã tự xử lý ở interceptor
                 }

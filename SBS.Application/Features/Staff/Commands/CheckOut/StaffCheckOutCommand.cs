@@ -85,6 +85,34 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
                 Message = $"Booking không thể check-out. Trạng thái hiện tại: {booking.Status} (chỉ cho phép check-out đối với booking ở trạng thái CheckIn)."
             };
 
+        // Kiểm tra thời gian: chỉ được checkout khi đang trong giờ slot (StartTime → EndTime)
+        var localNow = DateTime.UtcNow.AddHours(7);
+        var today = DateOnly.FromDateTime(localNow);
+
+        if (booking.BookingDate != today)
+            return new StaffCheckOutResultDto
+            {
+                Succeeded = false,
+                Message = $"Không thể check-out booking ngày {booking.BookingDate:dd/MM/yyyy}. Hôm nay là {today:dd/MM/yyyy}."
+            };
+
+        var slotStart = booking.BookingDate.ToDateTime(TimeOnly.FromTimeSpan(booking.PoolSlot.StartTime));
+        var slotEnd   = booking.BookingDate.ToDateTime(TimeOnly.FromTimeSpan(booking.PoolSlot.EndTime));
+
+        if (localNow < slotStart)
+            return new StaffCheckOutResultDto
+            {
+                Succeeded = false,
+                Message = $"Ca bơi chưa bắt đầu. Check-out chỉ được thực hiện từ {slotStart:HH:mm} đến {slotEnd:HH:mm}."
+            };
+
+        if (localNow > slotEnd)
+            return new StaffCheckOutResultDto
+            {
+                Succeeded = false,
+                Message = $"Ca bơi đã kết thúc lúc {slotEnd:HH:mm}. Không thể check-out ngoài giờ slot."
+            };
+
         booking.Status = "Completed";
         booking.UpdatedAt = DateTime.UtcNow;
 
@@ -93,6 +121,7 @@ public class StaffCheckOutCommandHandler : IRequestHandler<StaffCheckOutCommand,
             booking.CheckIn.CheckOutTime = DateTime.UtcNow;
         }
 
+        _unitOfWork.Repository<Booking>().Update(booking);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // Publish event to Waitlist processor
