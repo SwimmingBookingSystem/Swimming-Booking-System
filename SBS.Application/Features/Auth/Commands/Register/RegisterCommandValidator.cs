@@ -29,7 +29,8 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 
         RuleFor(x => x.FullName)
             .NotEmpty().WithMessage("Họ và tên không được để trống.")
-            .MaximumLength(100).WithMessage("Họ và tên không quá 100 ký tự.");
+            .MaximumLength(100).WithMessage("Họ và tên không quá 100 ký tự.")
+            .Matches(@"^[\p{L}\s]+$").WithMessage("Họ và tên chỉ được chứa chữ cái và khoảng trắng.");
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("Số điện thoại không được để trống.")

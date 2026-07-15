@@ -23,5 +23,6 @@ public interface IAuthService
     Task<ResultDto> VerifyOtpAsync(string email, string otp, CancellationToken cancellationToken = default);
     Task<ResultDto> ResendOtpAsync(string email, CancellationToken cancellationToken = default);
     Task<ResultDto> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default);
+    Task<ResultDto> VerifyResetOtpAsync(string email, string otp, CancellationToken cancellationToken = default);
     Task<ResultDto> ResetPasswordAsync(string email, string otp, string newPassword, CancellationToken cancellationToken = default);
 }
