@@ -1,7 +1,9 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Infrastructure.Data;
 using System;
 using System.Linq;
@@ -43,6 +45,7 @@ public class PendingBookingExpirationWorker : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
         var now = DateTime.UtcNow;
 
@@ -59,12 +62,27 @@ public class PendingBookingExpirationWorker : BackgroundService
             booking.Status = "Cancelled";
             booking.UpdatedAt = now;
 
-            // Removed capacity modification because slot.Capacity stores Total Capacity.
-            // Available capacity is calculated dynamically by subtracting valid bookings.
+            // Nếu booking này thuộc về một Waitlist, đánh dấu Waitlist là Expired
+            var waitlistEntry = await context.WaitlistEntries
+                .FirstOrDefaultAsync(w => w.UserId == booking.UserId && w.PoolSlotId == booking.PoolSlotId && w.Status == "Offered", stoppingToken);
+            if (waitlistEntry != null)
+            {
+                waitlistEntry.Status = "Expired";
+            }
 
             _logger.LogInformation("Cancelled booking {BookingId} due to payment timeout.", booking.BookingId);
         }
 
         await context.SaveChangesAsync(stoppingToken);
+
+        // Phát sự kiện Waitlist cho các slot đã giải phóng (Distinct để tránh spam)
+        var uniquePoolSlotIds = expiredBookings.Select(b => b.PoolSlotId).Distinct();
+        foreach (var slotId in uniquePoolSlotIds)
+        {
+            await publishEndpoint.Publish(new SlotCapacityFreedEvent
+            {
+                PoolSlotId = slotId
+            }, stoppingToken);
+        }
     }
 }

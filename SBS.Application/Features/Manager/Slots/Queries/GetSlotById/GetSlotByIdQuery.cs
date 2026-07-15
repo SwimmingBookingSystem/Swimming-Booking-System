@@ -26,7 +26,11 @@ public class GetSlotByIdQueryHandler : IRequestHandler<GetSlotByIdQuery, PoolSlo
             ?? throw new NotFoundException(nameof(PoolSlot), request.SlotId);
 
         var currentBooked = await _uow.Repository<BookingDetail>().Query()
-            .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed")
+            .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && 
+                         bd.Booking.Status != "Cancelled" && 
+                         bd.Booking.Status != "Failed" && 
+                         bd.Booking.Status != "Refunded" &&
+                         bd.Booking.Status != "Completed")
             .SumAsync(bd => bd.Quantity, ct);
 
         return new PoolSlotDto

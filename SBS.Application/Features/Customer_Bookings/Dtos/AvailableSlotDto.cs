@@ -13,4 +13,10 @@ public class AvailableSlotDto
     public DateOnly SlotDate { get; set; }
     public int Capacity { get; set; }
     public int AvailableCapacity { get; set; }
+    
+    // Waitlist tracking
+    public bool IsInWaitlist { get; set; }
+    public int? WaitlistPosition { get; set; }
+    public int TotalWaitlistCount { get; set; }
+    public int? WaitlistEntryId { get; set; }
 }

@@ -25,29 +25,29 @@
                     <div class="row g-3 align-items-end">
                         <!-- Search Box (Name & Address) -->
                         <div class="col-md-6">
-                            <label for="search-name" class="form-label fw-semibold text-dark"><i class="bi bi-search text-primary"></i> Tìm kiếm nhanh</label>
-                            <input type="text" id="search-name" class="form-control form-control-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);" placeholder="Nhập tên bể bơi hoặc địa chỉ (Ví dụ: Hà Nội)..." />
+                            <label for="search-name" class="form-label fw-semibold text-teal"><i class="bi bi-search text-ocean"></i> Tìm kiếm nhanh</label>
+                            <input type="text" id="search-name" class="form-control ocean-input form-control-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);" placeholder="Nhập tên bể bơi hoặc địa chỉ (Ví dụ: Hà Nội)..." />
                         </div>
                         
                         <!-- Opening Time -->
                         <div class="col-md-2">
-                            <label for="search-open" class="form-label fw-semibold text-dark"><i class="bi bi-clock text-primary"></i> Giờ mở cửa</label>
-                            <select id="search-open" class="form-select form-select-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);">
+                            <label for="search-open" class="form-label fw-semibold text-teal"><i class="bi bi-clock text-ocean"></i> Giờ mở cửa</label>
+                            <select id="search-open" class="form-select ocean-input form-select-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);">
                                 <option value="">Tất cả</option>
                             </select>
                         </div>
 
                         <!-- Closing Time -->
                         <div class="col-md-2">
-                            <label for="search-close" class="form-label fw-semibold text-dark"><i class="bi bi-clock-fill text-primary"></i> Giờ đóng cửa</label>
-                            <select id="search-close" class="form-select form-select-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);">
+                            <label for="search-close" class="form-label fw-semibold text-teal"><i class="bi bi-clock-fill text-ocean"></i> Giờ đóng cửa</label>
+                            <select id="search-close" class="form-select ocean-input form-select-lg border-0 rounded-pill px-4 shadow-sm" style="background-color: var(--gray-light);">
                                 <option value="">Tất cả</option>
                             </select>
                         </div>
 
                         <!-- Action Buttons -->
                         <div class="col-md-2">
-                            <button type="button" onclick="resetFilters()" class="btn btn-outline-secondary btn-lg rounded-pill shadow-sm w-100 fw-semibold" style="height: 48px; font-size: 1rem;" id="btn-reset-filters" title="Xóa tất cả bộ lọc"><i class="bi bi-trash"></i> Xóa lọc</button>
+                            <button type="button" onclick="resetFilters()" class="btn ocean-btn-outline btn-lg rounded-pill shadow-sm w-100 fw-semibold" style="height: 48px; font-size: 1rem;" id="btn-reset-filters" title="Xóa tất cả bộ lọc"><i class="bi bi-trash"></i> Xóa lọc</button>
                         </div>
                     </div>
                 </form>
@@ -78,7 +78,7 @@
 
 <style>
     body {
-        background-image: linear-gradient(rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.6)), url('/images/swimming_pool_bg.png');
+        background-image: linear-gradient(rgba(0, 194, 224, 0.12), rgba(0, 95, 106, 0.6)), url('/images/swimming_pool_bg.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -121,7 +121,7 @@
     }
     .pool-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3) !important;
+        box-shadow: 0 20px 40px rgba(0, 194, 224, 0.3) !important;
         border-color: rgba(255, 255, 255, 0.8);
         background: rgba(255, 255, 255, 0.95);
     }
@@ -145,7 +145,7 @@
         transition: color 0.2s;
     }
     .pool-card:hover .hover-primary-text {
-        color: var(--primary) !important;
+        color: #00C2E0 !important;
     }
     .form-control:focus, .form-select:focus {
         border-color: #0ea5e9;
@@ -159,7 +159,7 @@
         margin: 0 3px;
     }
     .pagination .page-item.active .page-link {
-        background: var(--gradient-primary);
+        background: linear-gradient(135deg, #00C2E0 0%, #009BB3 100%);
         border: none;
         color: white;
     }
@@ -227,16 +227,7 @@
         };
 
         function checkLoginState() {
-            const userName = getCookie('userName');
-            const role = getCookie('role');
-            if (userName && role) {
-                const loginLink = $('.navbar a[href*="/Auth/Login"]');
-                if (loginLink.length > 0) {
-                    const welcomeText = `Chào mừng, <span class="fw-bold text-primary">${decodeURIComponent(userName)}</span>`;
-                    const logoutBtn = `<button class="btn btn-outline-danger rounded-pill px-3 fw-semibold ms-2" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i> Đăng xuất</button>`;
-                    loginLink.parent().html(`<div class="d-flex align-items-center gap-2 text-dark fs-6">${welcomeText} ${logoutBtn}</div>`);
-                }
-            }
+            // Already handled in _Layout.cshtml server-side.
         }
 
         function getCookie(name) {
@@ -378,7 +369,7 @@
                                         
                                         <!-- Bottom booking button (left-aligned) -->
                                         <div>
-                                            <button onclick="event.stopPropagation(); handleBooking(${pool.poolId})" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm"><i class="bi bi-calendar2-check-fill"></i> Đặt bơi</button>
+                                            <button onclick="event.stopPropagation(); handleBooking(${pool.poolId})" class="btn ocean-btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm"><i class="bi bi-calendar2-check-fill"></i> Đặt bơi</button>
                                         </div>
                                     </div>
                                 </div>

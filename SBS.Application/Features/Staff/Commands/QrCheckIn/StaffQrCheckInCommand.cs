@@ -45,11 +45,12 @@ public class StaffQrCheckInCommandHandler : IRequestHandler<StaffQrCheckInComman
             return new StaffCheckInResultDto { Succeeded = false, Message = "Nhân viên chưa đăng nhập hoặc không hợp lệ." };
 
         var bookingRepo = _unitOfWork.Repository<Booking>();
+        var trimCode = request.BookingCode.Trim();
         var booking = await _unitOfWork.FirstOrDefaultAsync(
             bookingRepo.Query()
                 .Include(b => b.CheckIn)
                 .Include(b => b.PoolSlot)
-                .Where(b => b.QrCodeData == request.BookingCode || b.BookingCode == request.BookingCode),
+                .Where(b => b.QrCodeData == trimCode || b.BookingCode == trimCode),
             cancellationToken);
 
         if (booking is null)

@@ -50,9 +50,10 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
                 "Không thể thay đổi giờ hoặc ngày của slot đã có booking.");
 
         var pool = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<Pool>().Query().Where(p => p.PoolId == slot.PoolId), ct)!;
+            _uow.Repository<Pool>().Query().Where(p => p.PoolId == slot.PoolId), ct)
+            ?? throw new NotFoundException(nameof(Pool), slot.PoolId);
 
-        if (request.Capacity < 1 || request.Capacity > pool!.StandardCapacity)
+        if (request.Capacity < 1 || request.Capacity > pool.StandardCapacity)
             throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
 
         // 3. Validate nằm trong giờ mở cửa pool (chỉ khi thay đổi giờ)
@@ -82,7 +83,11 @@ public class UpdateSlotCommandHandler : IRequestHandler<UpdateSlotCommand, PoolS
 
         // Tính tổng số lượng vé đã được đặt cho slot này
         int currentBooked = await _uow.Repository<BookingDetail>().Query()
-            .Where(bd => bd.Booking.PoolSlotId == request.SlotId && bd.Booking.Status != "Cancelled" && bd.Booking.Status != "Failed")
+            .Where(bd => bd.Booking.PoolSlotId == request.SlotId && 
+                         bd.Booking.Status != "Cancelled" && 
+                         bd.Booking.Status != "Failed" &&
+                         bd.Booking.Status != "Refunded" &&
+                         bd.Booking.Status != "Completed")
             .SumAsync(bd => bd.Quantity, ct);
 
         // Phương án 1: Chặn cứng (Hard Limit)

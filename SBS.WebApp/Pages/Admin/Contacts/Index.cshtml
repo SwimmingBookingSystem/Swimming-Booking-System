@@ -1,0 +1,185 @@
+@page
+@model SBS.WebApp.Pages.Admin.Contacts.IndexModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Liên hệ khách hàng";
+    ViewData["Breadcrumb"] = "Quản trị / Liên hệ khách hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1" style="font-size: 22px;">Yêu cầu liên hệ</h4>
+        <p class="text-muted small mb-0">Quản lý và phản hồi các yêu cầu hỗ trợ từ khách hàng</p>
+    </div>
+    <div>
+        <select id="statusFilter" class="form-select shadow-sm" style="width: 180px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Pending">Chờ xử lý</option>
+            <option value="Resolved">Đã xử lý</option>
+        </select>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Khách hàng</th>
+                    <th class="text-muted small fw-bold text-uppercase">Email / SĐT</th>
+                    <th class="text-muted small fw-bold text-uppercase">Phân loại</th>
+                    <th class="text-muted small fw-bold text-uppercase">Nội dung</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Ngày gửi</th>
+                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="contactTableBody">
+                <tr><td colspan="7" class="text-center p-4 text-muted">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Respond Modal -->
+<div class="modal fade" id="respondModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold" id="respondModalTitle">Phản hồi yêu cầu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="respondContactId" value="" />
+                <div class="bg-light rounded-3 p-3 mb-3">
+                    <div class="row g-2 small">
+                        <div class="col-md-6"><strong>Khách hàng:</strong> <span id="respondCustomerName"></span></div>
+                        <div class="col-md-6"><strong>Email:</strong> <span id="respondCustomerEmail"></span></div>
+                        <div class="col-md-6"><strong>SĐT:</strong> <span id="respondCustomerPhone"></span></div>
+                        <div class="col-md-6"><strong>Phân loại:</strong> <span id="respondCategory"></span></div>
+                    </div>
+                    <hr class="my-2" />
+                    <div class="small"><strong>Nội dung yêu cầu:</strong></div>
+                    <p class="small text-muted mb-0" id="respondCustomerMessage"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="responseMessage" class="form-label fw-semibold">Nội dung phản hồi <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="responseMessage" rows="5" placeholder="Nhập nội dung phản hồi tới khách hàng..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnSendResponse">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Gửi phản hồi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let respondModal = new bootstrap.Modal(document.getElementById('respondModal'));
+        let allContacts = [];
+
+        $(document).ready(function() {
+            loadContacts();
+            $('#statusFilter').on('change', function() { loadContacts(); });
+        });
+
+        async function loadContacts() {
+            const status = $('#statusFilter').val();
+            try {
+                allContacts = await api.get('/contacts');
+                let filtered = allContacts;
+                if (status) {
+                    filtered = allContacts.filter(c => c.status === status);
+                }
+                renderTable(filtered);
+            } catch (e) {
+                $('#contactTableBody').html('<tr><td colspan="7" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
+        }
+
+        function renderTable(contacts) {
+            let html = '';
+            if (contacts.length === 0) {
+                html = '<tr><td colspan="7" class="text-center text-muted p-5"><i class="fa-solid fa-inbox fa-3x mb-3"></i><br>Không có yêu cầu liên hệ nào.</td></tr>';
+            } else {
+                contacts.forEach(c => {
+                    const isPending = c.status === 'Pending';
+                    const statusBadge = isPending
+                        ? '<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 fw-bold">Chờ xử lý</span>'
+                        : '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">Đã xử lý</span>';
+
+                    const time = new Date(c.createdAt).toLocaleString('vi-VN');
+                    const msgShort = c.message.length > 80 ? c.message.substring(0, 80) + '...' : c.message;
+                    const phone = c.phoneNumber || '---';
+
+                    const actionBtn = isPending
+                        ? `<button class="btn btn-sm btn-primary" onclick="openRespondModal(${c.contactRequestId})"><i class="fa-solid fa-reply me-1"></i> Phản hồi</button>`
+                        : '<span class="text-muted small">Đã xử lý</span>';
+
+                    html += `
+                        <tr>
+                            <td class="ps-4 fw-medium">${c.fullName}</td>
+                            <td>
+                                <div class="small">${c.email}</div>
+                                <div class="small text-muted">${phone}</div>
+                            </td>
+                            <td><span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1">${c.category}</span></td>
+                            <td><span class="text-muted small" title="${c.message.replace(/"/g, '&quot;')}">${msgShort}</span></td>
+                            <td class="text-center">${statusBadge}</td>
+                            <td class="text-center text-muted small">${time}</td>
+                            <td class="text-end pe-4">${actionBtn}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#contactTableBody').html(html);
+        }
+
+        function openRespondModal(id) {
+            $('#respondContactId').val(id);
+            $('#responseMessage').val('');
+
+            const contact = allContacts.find(c => c.contactRequestId === id);
+            if (contact) {
+                $('#respondCustomerName').text(contact.fullName);
+                $('#respondCustomerEmail').text(contact.email);
+                $('#respondCustomerPhone').text(contact.phoneNumber || '---');
+                $('#respondCategory').text(contact.category);
+                $('#respondCustomerMessage').text(contact.message);
+            }
+
+            respondModal.show();
+        }
+
+        $('#btnSendResponse').click(async function() {
+            const id = $('#respondContactId').val();
+            const responseMessage = $('#responseMessage').val().trim();
+
+            if (!responseMessage) {
+                toastr.warning('Vui lòng nhập nội dung phản hồi.');
+                return;
+            }
+
+            const btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...');
+
+            try {
+                const result = await api.post(`/contacts/${id}/respond`, {
+                    contactRequestId: parseInt(id),
+                    responseMessage: responseMessage
+                });
+                toastr.success(result.message || 'Phản hồi thành công.');
+                respondModal.hide();
+                loadContacts();
+            } catch (e) {
+                // Error handled by admin-api.js toastr
+            } finally {
+                btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane me-1"></i> Gửi phản hồi');
+            }
+        });
+    </script>
+}

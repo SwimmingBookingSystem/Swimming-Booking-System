@@ -244,6 +244,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("CheckOutTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("CheckedByUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -291,6 +294,11 @@ namespace SBS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactRequestId"));
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -301,16 +309,25 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime?>("HandledAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("HandledByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Reason")
+                    b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -814,6 +831,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")

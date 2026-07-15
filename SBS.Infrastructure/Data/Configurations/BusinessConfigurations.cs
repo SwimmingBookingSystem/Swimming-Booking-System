@@ -251,7 +251,10 @@ public class ContactRequestConfiguration : IEntityTypeConfiguration<ContactReque
         builder.HasKey(e => e.ContactRequestId);
         builder.Property(e => e.ContactRequestId).ValueGeneratedOnAdd();
         builder.Property(e => e.Email).IsRequired().HasMaxLength(256);
-        builder.Property(e => e.Reason).IsRequired().HasMaxLength(2000);
+        builder.Property(e => e.FullName).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.PhoneNumber).HasMaxLength(20);
+        builder.Property(e => e.Category).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.Message).IsRequired().HasMaxLength(2000);
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Pending");
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 

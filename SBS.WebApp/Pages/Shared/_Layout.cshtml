@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ocean-theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SBS.WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
@@ -27,8 +28,8 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-page="/Index">
-                    <i class="fa-solid fa-water text-primary fs-3"></i>
-                    <span class="fw-bold fs-5" style="color: #0f172a;">Swimming<span class="text-primary">Booking</span></span>
+                    <i class="fa-solid fa-water text-ocean fs-3"></i>
+                    <span class="fw-bold fs-5 text-teal">Swimming<span class="text-ocean">Booking</span></span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +50,7 @@
                             <a class="nav-link px-3 fw-medium" href="#pricing">Bảng giá</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Privacy" ? "active" : "")" asp-area="" asp-page="/Privacy">Liên hệ</a>
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")" asp-area="" asp-page="/Contact">Liên hệ</a>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-2">
@@ -60,16 +61,18 @@
                         @if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(role))
                         {
                             var decodedUserName = System.Net.WebUtility.UrlDecode(userName);
-                            <div class="d-flex align-items-center gap-2 text-dark fs-6">
-                                <span>Chào mừng, <span class="fw-bold text-primary">@decodedUserName</span></span>
-                                <button class="btn btn-outline-danger rounded-pill px-3 fw-semibold ms-2" onclick="logout()">
+                            <div class="d-flex align-items-center gap-3">
+                                <a asp-area="" asp-page="/Customer/Profile/Index" title="Trang cá nhân của @decodedUserName">
+                                    <img src="https://ui-avatars.com/api/?name=@decodedUserName&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
+                                </a>
+                                <button class="btn ocean-btn-outline" onclick="logout()">
                                     <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
                                 </button>
                             </div>
                         }
                         else
                         {
-                            <a class="btn btn-outline-primary rounded-pill px-4 fw-semibold" asp-area="" asp-page="/Auth/Login">
+                            <a class="btn ocean-btn-primary" asp-area="" asp-page="/Auth/Login">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
                             </a>
                         }
@@ -94,62 +97,62 @@
         </div>
     }
 
-    <footer class="footer-section">
+    <footer class="footer-section bg-beige py-5 mt-5">
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-4">
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <i class="fa-solid fa-water text-primary fs-3"></i>
-                        <span class="fw-bold fs-5" style="color: #fff;">Swimming<span class="text-primary">Booking</span></span>
+                        <i class="fa-solid fa-water text-ocean fs-3"></i>
+                        <span class="fw-bold fs-5" style="color: var(--text-main);">Swimming<span class="text-ocean">Booking</span></span>
                     </div>
-                    <p class="text-white-50 mb-3" style="line-height: 1.7;">
+                    <p class="text-muted mb-3" style="line-height: 1.7;">
                         Hệ thống đặt lịch hồ bơi thông minh, giúp bạn dễ dàng tìm kiếm và đặt lịch bơi tại các hồ bơi hàng đầu Việt Nam.
                     </p>
                     <div class="d-flex gap-3">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-4">
-                    <h6 class="footer-heading">Điều hướng</h6>
-                    <ul class="footer-links">
-                        <li><a asp-area="" asp-page="/Index">Trang chủ</a></li>
-                        <li><a href="#features">Tiện ích</a></li>
-                        <li><a href="#pricing">Bảng giá</a></li>
-                        <li><a asp-area="" asp-page="/Privacy">Chính sách</a></li>
+                    <h6 class="fw-bold text-dark mb-3">Điều hướng</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li><a asp-area="" asp-page="/Index" class="text-decoration-none text-muted">Trang chủ</a></li>
+                        <li><a href="#features" class="text-decoration-none text-muted">Tiện ích</a></li>
+                        <li><a href="#pricing" class="text-decoration-none text-muted">Bảng giá</a></li>
+                        <li><a asp-area="" asp-page="/Privacy" class="text-decoration-none text-muted">Chính sách</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <h6 class="footer-heading">Hỗ trợ</h6>
-                    <ul class="footer-links">
-                        <li><a href="#">Trung tâm trợ giúp</a></li>
-                        <li><a href="#">Câu hỏi thường gặp</a></li>
-                        <li><a href="#">Điều khoản sử dụng</a></li>
-                        <li><a href="#">Khiếu nại & góp ý</a></li>
+                    <h6 class="fw-bold text-dark mb-3">Hỗ trợ</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li><a href="#" class="text-decoration-none text-muted">Trung tâm trợ giúp</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Câu hỏi thường gặp</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Điều khoản sử dụng</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Khiếu nại & góp ý</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <h6 class="footer-heading">Liên hệ</h6>
-                    <ul class="footer-links">
-                        <li><i class="bi bi-geo-alt me-2"></i>Hòa Lạc</li>
-                        <li><i class="bi bi-telephone me-2"></i> 0865327604</li>
-                        <li><i class="bi bi-envelope me-2"></i> maivanhoang112k4@gmail.com</li>
-                        <li><i class="bi bi-clock me-2"></i> 6:00 - 22:00 tất cả các ngày</li>
+                    <h6 class="fw-bold text-dark mb-3">Liên hệ</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2 text-muted">
+                        <li><i class="bi bi-geo-alt text-ocean me-2"></i>Hòa Lạc</li>
+                        <li><i class="bi bi-telephone text-ocean me-2"></i> 0865327604</li>
+                        <li><i class="bi bi-envelope text-ocean me-2"></i> maivanhoang112k4@gmail.com</li>
+                        <li><i class="bi bi-clock text-ocean me-2"></i> 6:00 - 22:00 tất cả các ngày</li>
                     </ul>
                 </div>
             </div>
-            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
             <div class="row align-items-center">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0 text-white-50 small">&copy; @DateTime.Now.Year - Swimming Booking System. All rights reserved.</p>
+                    <p class="mb-0 text-muted small">&copy; @DateTime.Now.Year - Swimming Booking System. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0 text-white-50 small">
-                        <i class="bi bi-shield-check me-1"></i> Bảo mật thông tin
-                        <span class="mx-2">|</span>
-                        <i class="bi bi-credit-card me-1"></i> Thanh toán an toàn
+                    <p class="mb-0 text-muted small">
+                        <i class="bi bi-shield-check text-ocean me-1"></i> Bảo mật thông tin
+                        <span class="mx-2 text-muted">|</span>
+                        <i class="bi bi-credit-card text-ocean me-1"></i> Thanh toán an toàn
                     </p>
                 </div>
             </div>
@@ -159,6 +162,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';

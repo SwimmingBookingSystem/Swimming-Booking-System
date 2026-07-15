@@ -1,0 +1,19 @@
+<div class="ocean-card mb-4 p-3">
+    <div class="text-center py-2 mb-3 border-bottom">
+        <h5 class="mb-0 fw-bold text-teal">Tài khoản của tôi</h5>
+    </div>
+    <div class="list-group list-group-flush ocean-sidebar">
+        <a href="/Customer/Profile" class="list-group-item list-group-item-action @((ViewContext.RouteData.Values["Page"]?.ToString() ?? "").EndsWith("/Index") ? "active font-weight-bold" : "")">
+            <i class="bi bi-person-fill me-2"></i> Thông tin cá nhân
+        </a>
+        <a href="/Customer/Profile/Bookings" class="list-group-item list-group-item-action @(Context.Request.Path.StartsWithSegments("/Customer/Profile/Bookings") ? "active" : "")">
+            <i class="bi bi-clock-history me-2"></i> Lịch sử đặt vé
+        </a>
+        <a href="/Customer/Profile/Waitlists" class="list-group-item list-group-item-action @(Context.Request.Path.StartsWithSegments("/Customer/Profile/Waitlists") ? "active" : "")">
+            <i class="bi bi-hourglass-split me-2"></i> Danh sách chờ
+        </a>
+        <a href="/Customer/Profile/ChangePassword" class="list-group-item list-group-item-action @(Context.Request.Path.StartsWithSegments("/Customer/Profile/ChangePassword") ? "active" : "")">
+            <i class="bi bi-shield-lock-fill me-2"></i> Đổi mật khẩu
+        </a>
+    </div>
+</div>
