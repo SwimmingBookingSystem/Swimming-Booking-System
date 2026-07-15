@@ -9,6 +9,7 @@ using SBS.Application.Features.Auth.Commands.Register;
 using SBS.Application.Features.Auth.Commands.VerifyOtp;
 using SBS.Application.Features.Auth.Commands.ResendOtp;
 using SBS.Application.Features.Auth.Commands.ForgotPassword;
+using SBS.Application.Features.Auth.Commands.VerifyResetOtp;
 using SBS.Application.Features.Auth.Commands.ResetPassword;
 using SBS.Application.Features.Auth.Commands.Logout;
 using System.Linq;
@@ -27,6 +28,7 @@ public class AuthController : ControllerBase
     private readonly IValidator<VerifyOtpCommand> _verifyOtpValidator;
     private readonly IValidator<ResendOtpCommand> _resendOtpValidator;
     private readonly IValidator<ForgotPasswordCommand> _forgotPasswordValidator;
+    private readonly IValidator<VerifyResetOtpCommand> _verifyResetOtpValidator;
     private readonly IValidator<ResetPasswordCommand> _resetPasswordValidator;
 
     public AuthController(
@@ -37,6 +39,7 @@ public class AuthController : ControllerBase
         IValidator<VerifyOtpCommand> verifyOtpValidator,
         IValidator<ResendOtpCommand> resendOtpValidator,
         IValidator<ForgotPasswordCommand> forgotPasswordValidator,
+        IValidator<VerifyResetOtpCommand> verifyResetOtpValidator,
         IValidator<ResetPasswordCommand> resetPasswordValidator)
     {
         _mediator = mediator;
@@ -46,6 +49,7 @@ public class AuthController : ControllerBase
         _verifyOtpValidator = verifyOtpValidator;
         _resendOtpValidator = resendOtpValidator;
         _forgotPasswordValidator = forgotPasswordValidator;
+        _verifyResetOtpValidator = verifyResetOtpValidator;
         _resetPasswordValidator = resetPasswordValidator;
     }
 
@@ -278,6 +282,25 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { message = "Mã OTP khôi phục mật khẩu đã được gửi vào Email của bạn." });
+    }
+
+    [HttpPost("verify-reset-otp")]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyResetOtpCommand command)
+    {
+        var validationResult = await _verifyResetOtpValidator.ValidateAsync(command);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { errors });
+        }
+
+        var result = await _mediator.Send(command);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { errors = result.Errors });
+        }
+
+        return Ok(new { message = "Xác thực mã OTP thành công." });
     }
 
     [HttpPost("reset-password")]

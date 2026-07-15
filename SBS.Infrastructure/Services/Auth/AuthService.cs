@@ -425,6 +425,23 @@ public class AuthService : IAuthService
         return ResultDto.Success();
     }
 
+    public async Task<ResultDto> VerifyResetOtpAsync(string email, string otp, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return ResultDto.Failure(new[] { "Không tìm thấy thông tin tài khoản." });
+        }
+
+        var isValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "ResetPassword", otp);
+        if (!isValid)
+        {
+            return ResultDto.Failure(new[] { "Mã OTP không đúng hoặc đã hết hạn." });
+        }
+
+        return ResultDto.Success();
+    }
+
     public async Task<ResultDto> ResetPasswordAsync(string email, string otp, string newPassword, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByEmailAsync(email);
