@@ -72,6 +72,38 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
                 
                 currentTime = endTime.Add(TimeSpan.FromMinutes(request.BreakMinutes));
             }
+
+            // Hướng 1: Tự động ép dãn (coerce) ca cuối cùng 
+            // Nếu vẫn còn dư thời gian (ít nhất 30 phút) trước khi đóng cửa, tự động lấp đầy bằng 1 ca cuối.
+            if (currentTime < pool.ClosingTime)
+            {
+                var remainingMinutes = (pool.ClosingTime - currentTime).TotalMinutes;
+                
+                if (remainingMinutes >= 30) // Ca cuối cùng tối thiểu 30 phút để đảm bảo trải nghiệm khách hàng
+                {
+                    var endTime = pool.ClosingTime;
+                    
+                    bool overlap = existingSlots.Any(s => 
+                           s.SlotDate == date 
+                        && s.StartTime < endTime 
+                        && s.EndTime > currentTime);
+
+                    if (!overlap)
+                    {
+                        slotsToInsert.Add(new PoolSlot
+                        {
+                            PoolId = request.PoolId,
+                            SlotName = $"{currentTime:hh\\:mm} - {endTime:hh\\:mm}",
+                            StartTime = currentTime,
+                            EndTime = endTime,
+                            SlotDate = date,
+                            Capacity = pool.StandardCapacity > 0 ? pool.StandardCapacity : 50,
+                            Status = "Open",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
         }
 
         if (slotsToInsert.Count == 0)
