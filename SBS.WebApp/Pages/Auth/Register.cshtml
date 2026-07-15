@@ -20,16 +20,20 @@
     
     <style>
         :root {
-            --primary-color: #0284c7;
-            --primary-hover: #0369a1;
-            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
-            --card-bg: rgba(255, 255, 255, 0.88);
-            --text-color: #0f172a;
-            --shadow-premium: 0 20px 40px -15px rgba(2, 132, 199, 0.25), 0 1px 3px rgba(0, 0, 0, 0.05);
+            --primary-color: #00C2E0; /* Ocean Aqua */
+            --primary-hover: #009BB3;
+            --bg-gradient: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #005F6A; /* Dark Teal */
+            --shadow-premium: 0 20px 40px -15px rgba(0, 194, 224, 0.25), 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif !important;
         }
 
         body {
-            background-image: linear-gradient(rgba(14, 165, 233, 0.1), rgba(15, 23, 42, 0.4)), url('/images/swimming_pool_bg.png');
+            background-image: linear-gradient(rgba(0, 194, 224, 0.1), rgba(0, 95, 106, 0.4)), url('/images/swimming_pool_bg.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -37,7 +41,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Inter', sans-serif;
             color: var(--text-color);
             margin: 0;
             padding: 40px 15px;
@@ -86,7 +89,7 @@
         }
 
         .brand-title {
-            color: #0369a1;
+            color: #005F6A; /* Dark Teal */
             font-weight: 800;
             font-size: 2.2rem;
             text-align: center;
@@ -142,7 +145,7 @@
         .form-control:focus {
             background-color: #fff;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+            box-shadow: 0 0 0 4px rgba(0, 194, 224, 0.12);
         }
 
         .password-container {
@@ -169,7 +172,7 @@
         }
 
         .btn-register {
-            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            background: linear-gradient(135deg, #00C2E0 0%, #009BB3 100%);
             border: none;
             border-radius: 14px;
             padding: 14px;
@@ -181,15 +184,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 194, 224, 0.25);
             cursor: pointer;
             margin-top: 15px;
         }
 
         .btn-register:hover {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            background: linear-gradient(135deg, #009BB3 0%, #005F6A 100%);
             transform: scale(1.01);
-            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+            box-shadow: 0 6px 20px rgba(0, 194, 224, 0.35);
         }
 
         .btn-register:active {
@@ -197,7 +200,7 @@
         }
 
         .btn-register:disabled {
-            background: #93c5fd;
+            background: #b2ebf2;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -545,10 +548,10 @@
                 <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z" />
             </defs>
             <g class="parallax">
-                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(2, 132, 199, 0.2)" />
-                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(2, 132, 199, 0.12)" />
-                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(224, 247, 255, 0.45)" />
-                <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(224, 247, 255, 0.85)" />
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(0, 194, 224, 0.2)" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(0, 194, 224, 0.12)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(224, 247, 250, 0.45)" />
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(224, 247, 250, 0.85)" />
             </g>
         </svg>
     </div>
