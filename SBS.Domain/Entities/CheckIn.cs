@@ -9,6 +9,7 @@ public class CheckIn
     public Guid CheckedByUserId { get; set; } // FK → AppUser (Staff)
     public string CheckInMethod { get; set; } = null!; // QR, Manual
     public DateTime CheckInTime { get; set; } = DateTime.UtcNow;
+    public DateTime? CheckOutTime { get; set; }
 
     // Navigation properties (domain entities only, no AppUser)
     public virtual Booking Booking { get; set; } = null!;

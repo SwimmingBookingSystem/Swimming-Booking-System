@@ -1,0 +1,342 @@
+@page
+@model SBS.WebApp.Pages.Staff.Bookings.IndexModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Quản lý Booking";
+    ViewData["Breadcrumb"] = "Lễ tân / Quản lý Booking";
+    var today = DateTime.Today.ToString("dd/MM/yyyy");
+    var todayIso = DateTime.Today.ToString("yyyy-MM-dd");
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-3 mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-auto">
+                        <label class="form-label fw-semibold small text-muted d-block">Ngày làm việc</label>
+                        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-calendar-day me-2"></i>@today
+                        </span>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-muted">Trạng thái</label>
+                        <select id="filter-status" class="form-select">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Paid">Paid (Đã thanh toán)</option>
+                            <option value="CheckIn">CheckIn (Đang bơi)</option>
+                            <option value="Completed">Completed (Đã xong)</option>
+                            <option value="Cancelled">Cancelled (Đã hủy)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold small text-muted">Tìm kiếm (Mã / SĐT / Email)</label>
+                        <div class="input-group">
+                            <input type="text" id="search-keyword" class="form-control" placeholder="Nhập mã BK-..., SĐT hoặc Email..." />
+                            <button id="btn-search" class="btn btn-primary" type="button"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm</button>
+                        </div>
+                    </div>
+                    <div class="col text-end pt-4">
+                        <button id="btn-reset" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate me-1"></i> Làm mới</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã Booking</th>
+                                    <th>Khách hàng</th>
+                                    <th>Khung giờ bơi</th>
+                                    <th>Hồ bơi</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-tbody">
+                                <tr><td colspan="7" class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>Đang tải dữ liệu hôm nay...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <div class="text-muted small">Hiển thị <span id="page-info">0 - 0 / 0</span> booking</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagination-list"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-header-title fw-bold text-primary mb-0"><i class="fa-solid fa-receipt me-2"></i> Chi tiết Booking <span id="modal-booking-code" class="text-dark"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="modal-detail-body">
+                <div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        const pageSize = 15;
+
+        $(document).ready(function () {
+            // Mặc định chọn ngày hôm nay
+            const today = new Date();
+            const todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            $('#filter-date').val(todayString);
+
+            loadBookings();
+
+            $('#filter-status').on('change', function () {
+                currentPage = 1;
+                loadBookings();
+            });
+
+            $('#btn-search').on('click', function () {
+                performSearch();
+            });
+
+            $('#search-keyword').on('keypress', function (e) {
+                if (e.which === 13) performSearch();
+            });
+
+            $('#btn-reset').on('click', function () {
+                $('#filter-status').val('');
+                $('#search-keyword').val('');
+                currentPage = 1;
+                loadBookings();
+            });
+        });
+
+        async function loadBookings() {
+            try {
+                const status = $('#filter-status').val();
+
+                let query = `?page=${currentPage}&pageSize=${pageSize}`;
+                if (status) query += `&status=${status}`;
+                // Không gửi bookingDate — backend tự giới hạn ngày hôm nay
+
+                const res = await staffApi.get('/bookings' + query);
+                renderBookingsTable(res.items || [], res.totalCount || 0);
+            } catch (err) {
+                $('#bookings-tbody').html('<tr><td colspan="7" class="text-center text-danger py-4">Lỗi tải dữ liệu booking.</td></tr>');
+            }
+        }
+
+        async function performSearch() {
+            const kw = $('#search-keyword').val().trim();
+            if (!kw) {
+                loadBookings();
+                return;
+            }
+
+            try {
+                let query = '';
+                if (kw.startsWith('BK-') || kw.length > 10) {
+                    query = `?bookingCode=${encodeURIComponent(kw)}`;
+                } else if (!isNaN(kw)) {
+                    query = `?phone=${encodeURIComponent(kw)}`;
+                } else {
+                    query = `?email=${encodeURIComponent(kw)}`;
+                }
+
+                const res = await staffApi.get('/bookings/search' + query);
+                const items = Array.isArray(res) ? res : (res.items || [res]);
+                renderBookingsTable(items, items.length);
+            } catch (err) {
+                $('#bookings-tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">Không tìm thấy booking phù hợp.</td></tr>');
+            }
+        }
+
+        function renderBookingsTable(items, totalCount) {
+            let html = '';
+            if (!items || items.length === 0) {
+                html = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="fa-solid fa-calendar-xmark me-2"></i>Không có booking nào hôm nay.</td></tr>';
+            } else {
+                items.forEach(b => {
+                    let badgeClass = 'bg-secondary';
+                    let badgeText = b.status;
+                    if (b.status === 'Confirmed') { badgeClass = 'bg-success'; badgeText = 'Đã đặt'; }
+                    else if (b.status === 'CheckIn') { badgeClass = 'bg-info text-dark'; badgeText = 'Đang bơi'; }
+                    else if (b.status === 'Completed') { badgeClass = 'bg-primary'; badgeText = 'Hoàn thành'; }
+                    else if (b.status === 'Cancelled') { badgeClass = 'bg-danger'; badgeText = 'Đã hủy'; }
+
+                    const amount = (b.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+                    const slotTime = b.slotTime || '-';
+                    const poolName = b.poolName || '-';
+                    const customerPhone = b.customerPhone || b.phoneNumber || '';
+                    const customerEmail = b.customerEmail || b.email || '';
+                    const contactInfo = customerPhone || customerEmail || '-';
+
+                    let actions = `<button class="btn btn-sm btn-outline-primary me-1" onclick="viewDetail(${b.bookingId})" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>`;
+                    if (b.status === 'Confirmed') {
+                        actions += `<button class="btn btn-sm btn-success" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check me-1"></i>Check-in</button>`;
+                    } else if (b.status === 'CheckIn') {
+                        actions += `<button class="btn btn-sm btn-warning text-dark" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</button>`;
+                    }
+
+                    html += `
+                        <tr>
+                            <td class="fw-bold text-dark">${b.bookingCode || ('#' + b.bookingId)}</td>
+                            <td>
+                                <div class="fw-medium">${b.customerName || 'Khách hàng'}</div>
+                                <div class="text-muted small">${contactInfo}</div>
+                            </td>
+                            <td class="fw-medium">${slotTime}</td>
+                            <td class="text-muted small">${poolName}</td>
+                            <td class="fw-semibold">${amount}</td>
+                            <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill">${badgeText}</span></td>
+                            <td class="text-end">${actions}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#bookings-tbody').html(html);
+
+            // Render Pagination Info
+            const start = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, totalCount);
+            $('#page-info').text(`${start} - ${end} / ${totalCount}`);
+
+            let pageHtml = '';
+            const totalPages = Math.ceil(totalCount / pageSize);
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    pageHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+                }
+            }
+            $('#pagination-list').html(pageHtml);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadBookings();
+        }
+
+        async function viewDetail(bookingId) {
+            $('#modal-booking-code').text('');
+            $('#modal-detail-body').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>');
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+
+            try {
+                const res = await staffApi.get('/bookings/' + bookingId);
+                $('#modal-booking-code').text('(' + res.bookingCode + ')');
+
+                // Tickets (res.tickets từ BookingDetailDto)
+                let ticketsHtml = '';
+                if (res.tickets && res.tickets.length > 0) {
+                    res.tickets.forEach(d => {
+                        ticketsHtml += `<tr>
+                            <td>${d.ticketName}</td>
+                            <td class="text-center">${d.quantity}</td>
+                            <td class="text-end">${(d.unitPrice || 0).toLocaleString('vi-VN')} đ</td>
+                            <td class="text-end fw-semibold">${(d.subTotal || 0).toLocaleString('vi-VN')} đ</td>
+                        </tr>`;
+                    });
+                } else {
+                    ticketsHtml = '<tr><td colspan="4" class="text-center text-muted">Không có vé</td></tr>';
+                }
+
+                // Payment info
+                let paymentHtml = '';
+                if (res.payment) {
+                    const payDate = res.payment.paymentDate ? new Date(res.payment.paymentDate).toLocaleString('vi-VN') : 'Chưa thanh toán';
+                    paymentHtml = `<div class="d-flex justify-content-between small mt-2">
+                        <span class="text-muted">Phương thức:</span>
+                        <span class="fw-medium">${res.payment.paymentMethod || '-'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Trạng thái TT:</span>
+                        <span class="fw-medium">${res.payment.status || '-'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Ngày TT:</span>
+                        <span>${payDate}</span>
+                    </div>`;
+                }
+
+                // CheckIn info
+                let checkInBadge = '';
+                if (res.checkIn) {
+                    const ciTime = new Date(res.checkIn.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    checkInBadge = `<span class="badge bg-success ms-2"><i class="fa-solid fa-check me-1"></i>Check-in lúc ${ciTime} (${res.checkIn.checkInMethod})</span>`;
+                }
+
+                const content = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small fw-semibold text-uppercase">Khách hàng</p>
+                            <h6 class="fw-bold mb-1">${res.customerName || 'Khách vãng lai'} ${checkInBadge}</h6>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-phone me-1"></i>${res.customerPhone || 'Chưa có SĐT'}</p>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-envelope me-1"></i>${res.customerEmail || 'Chưa có email'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small fw-semibold text-uppercase">Thông tin lượt bơi</p>
+                            <h6 class="fw-bold text-primary mb-1">${res.poolName || 'Hồ bơi'}</h6>
+                            <p class="mb-0 small"><i class="fa-solid fa-clock me-1"></i>${res.slotTime || '-'}</p>
+                            <p class="mb-0 small text-muted"><i class="fa-solid fa-calendar me-1"></i>Hôm nay (${new Date(res.bookingDate + 'T00:00:00').toLocaleDateString('vi-VN')})</p>
+                        </div>
+
+                        <div class="col-12">
+                            <hr class="my-1">
+                            <h6 class="fw-bold mb-2">Chi tiết vé đã đặt</h6>
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead class="table-light"><tr><th>Loại vé</th><th class="text-center">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead>
+                                <tbody>${ticketsHtml}</tbody>
+                            </table>
+                            <div class="text-end fw-bold fs-5 text-success mt-2">Tổng: ${(res.totalAmount || 0).toLocaleString('vi-VN')} đ</div>
+                        </div>
+
+                        ${res.payment ? `<div class="col-12"><hr class="my-1"><h6 class="fw-bold mb-2">Thanh toán</h6>${paymentHtml}</div>` : ''}
+                    </div>
+                `;
+                $('#modal-detail-body').html(content);
+            } catch (err) {
+                $('#modal-detail-body').html('<div class="alert alert-danger mb-0">Lỗi lấy thông tin chi tiết booking.</div>');
+            }
+        }
+
+
+        async function quickCheckIn(bookingId) {
+            try {
+                const res = await staffApi.post('/checkin/manual', { bookingId: bookingId });
+                toastr.success(res.message || 'Check-in thành công!');
+                loadBookings();
+            } catch (err) {}
+        }
+
+        async function quickCheckOut(bookingId) {
+            try {
+                const res = await staffApi.post('/checkin/checkout', { bookingId: bookingId });
+                toastr.success(res.message || 'Check-out thành công!');
+                loadBookings();
+            } catch (err) {}
+        }
+    </script>
+}

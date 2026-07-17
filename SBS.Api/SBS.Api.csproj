@@ -4,7 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a4dda61f-e577-40b2-a3c9-b499dcf211b0</UserSecretsId>
   </PropertyGroup>
+
+
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
@@ -18,10 +21,6 @@
     <ProjectReference Include="..\SBS.Application\SBS.Application.csproj" />
     <ProjectReference Include="..\SBS.Domain\SBS.Domain.csproj" />
     <ProjectReference Include="..\SBS.Infrastructure\SBS.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Middlewares\" />
   </ItemGroup>
 
 </Project>

@@ -19,6 +19,71 @@ public static class DataSeeder
         // Prevent duplicate seeding
         if (await roleManager.Roles.AnyAsync())
         {
+            // Seed Waitlist Data if missing
+            if (!await context.PoolSlots.AnyAsync(s => s.SlotName == "Slot Test Waitlist (FULL)"))
+            {
+                var wPool = await context.Pools.FirstOrDefaultAsync();
+                var wStandardTicket = await context.TicketTypes.FirstOrDefaultAsync(t => t.TicketCode == "STANDARD");
+                var wPoolTicketTypes = await context.PoolTicketTypes.Where(pt => pt.PoolId == wPool!.PoolId).ToListAsync();
+                var wCustomer = await userManager.FindByNameAsync("customer1");
+
+                var wWaitlistSlot = new PoolSlot 
+                { 
+                    PoolId = wPool!.PoolId, 
+                    SlotName = "Slot Test Waitlist (FULL)", 
+                    StartTime = new TimeSpan(15, 0, 0), 
+                    EndTime = new TimeSpan(17, 0, 0), 
+                    SlotDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1), 
+                    Capacity = 2, 
+                    Status = "Open" 
+                };
+                context.PoolSlots.Add(wWaitlistSlot);
+                await context.SaveChangesAsync();
+
+                var wBooking = new Booking
+                {
+                    UserId = wCustomer!.Id,
+                    PoolSlotId = wWaitlistSlot.PoolSlotId,
+                    BookingDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1),
+                    TotalAmount = 100000m,
+                    Status = "Paid",
+                    BookingCode = "BKG-TEST-001"
+                };
+                context.Bookings.Add(wBooking);
+                await context.SaveChangesAsync();
+
+                var wBookingDetail = new BookingDetail
+                {
+                    BookingId = wBooking.BookingId,
+                    PoolTicketTypeId = wPoolTicketTypes[0].PoolTicketTypeId,
+                    Quantity = 2,
+                    UnitPrice = 50000m,
+                    SubTotal = 100000m
+                };
+                context.BookingDetails.Add(wBookingDetail);
+                await context.SaveChangesAsync();
+            }
+
+            if (await userManager.FindByNameAsync("customer2") == null)
+            {
+                var wCustomer2 = new AppUser
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = "customer2",
+                    Email = "cust2@example.com",
+                    FullName = "Nguyễn Văn B (Test Waitlist)",
+                    PhoneNumber = "0900001002",
+                    Address = "Hà Nội",
+                    Status = "Active",
+                    Dob = new DateOnly(2001, 1, 1),
+                    Gender = "Male",
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await userManager.CreateAsync(wCustomer2, "Password@123");
+                await userManager.AddToRoleAsync(wCustomer2, "Customer");
+            }
+
             return;
         }
 
@@ -104,75 +169,68 @@ public static class DataSeeder
         await userManager.CreateAsync(customer, defaultPassword);
         await userManager.AddToRoleAsync(customer, "Customer");
 
-        // 3. Seed TicketTypes (Fixed tickets)
-        var adultTicket = new TicketType
+        var customer2 = new AppUser
         {
-            TicketCode = "SINGLE-ADULT",
-            TicketName = "Vé Người lớn",
+            Id = Guid.NewGuid(),
+            UserName = "customer2",
+            Email = "cust2@example.com",
+            FullName = "Nguyễn Văn B (Test Waitlist)",
+            PhoneNumber = "0900001002",
+            Address = "Hà Nội",
+            Status = "Active",
+            Dob = new DateOnly(2001, 1, 1),
+            Gender = "Male",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        await userManager.CreateAsync(customer2, defaultPassword);
+        await userManager.AddToRoleAsync(customer2, "Customer");
+
+        // 3. Seed TicketTypes (Fixed tickets)
+        var standardTicket = new TicketType
+        {
+            TicketCode = "STANDARD",
+            TicketName = "Vé Cá nhân",
             Category = "Single",
             BasePrice = 100000m,
             DiscountPercent = 0,
-            Description = "Vé bơi dành cho người lớn"
+            Description = "Vé bơi tiêu chuẩn dành cho 1 người"
         };
-        var childTicket = new TicketType
+        var combo3Ticket = new TicketType
         {
-            TicketCode = "SINGLE-CHILD",
-            TicketName = "Vé Trẻ em",
-            Category = "Single",
-            BasePrice = 70000m,
-            DiscountPercent = 30,
-            Description = "Vé bơi dành cho trẻ em dưới 12 tuổi"
-        };
-        var seniorTicket = new TicketType
-        {
-            TicketCode = "SINGLE-SENIOR",
-            TicketName = "Vé Người già",
-            Category = "Single",
-            BasePrice = 80000m,
-            DiscountPercent = 20,
-            Description = "Vé bơi dành cho người trên 60 tuổi"
-        };
-        var familyCombo = new TicketType
-        {
-            TicketCode = "COMBO-FAMILY",
-            TicketName = "Vé Combo Family",
+            TicketCode = "COMBO_3",
+            TicketName = "Combo 3 Người",
             Category = "Combo",
-            BasePrice = 289000m,
-            DiscountPercent = 15,
-            Description = "Combo 2 người lớn + 2 trẻ em, giảm 15%"
-        };
-        var trippleCombo = new TicketType
-        {
-            TicketCode = "COMBO-TRIPBLE",
-            TicketName = "Vé Combo Tripble",
-            Category = "Combo",
-            BasePrice = 270000m,
+            BasePrice = 300000m,
             DiscountPercent = 10,
-            Description = "Combo 3 người lớn, giảm 10%"
+            Description = "Combo tiết kiệm dành cho 3 người, giảm 10%"
+        };
+        var combo5Ticket = new TicketType
+        {
+            TicketCode = "COMBO_5",
+            TicketName = "Combo 5 Người",
+            Category = "Combo",
+            BasePrice = 500000m,
+            DiscountPercent = 15,
+            Description = "Combo tiết kiệm dành cho nhóm 5 người, giảm 15%"
         };
 
-        context.TicketTypes.AddRange(adultTicket, childTicket, seniorTicket, familyCombo, trippleCombo);
+        context.TicketTypes.AddRange(standardTicket, combo3Ticket, combo5Ticket);
         await context.SaveChangesAsync();
 
         // 4. Seed ComboDetails
         context.ComboDetails.AddRange(
             new ComboDetail
             {
-                ComboTicketTypeId = familyCombo.TicketTypeId,
-                SingleTicketTypeId = adultTicket.TicketTypeId,
-                Quantity = 2
-            },
-            new ComboDetail
-            {
-                ComboTicketTypeId = familyCombo.TicketTypeId,
-                SingleTicketTypeId = childTicket.TicketTypeId,
-                Quantity = 2
-            },
-            new ComboDetail
-            {
-                ComboTicketTypeId = trippleCombo.TicketTypeId,
-                SingleTicketTypeId = adultTicket.TicketTypeId,
+                ComboTicketTypeId = combo3Ticket.TicketTypeId,
+                SingleTicketTypeId = standardTicket.TicketTypeId,
                 Quantity = 3
+            },
+            new ComboDetail
+            {
+                ComboTicketTypeId = combo5Ticket.TicketTypeId,
+                SingleTicketTypeId = standardTicket.TicketTypeId,
+                Quantity = 5
             }
         );
         await context.SaveChangesAsync();
@@ -207,13 +265,48 @@ public static class DataSeeder
         // 7. Seed PoolTicketTypes (prices for each ticket at this pool)
         var poolTicketTypes = new List<PoolTicketType>
         {
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = adultTicket.TicketTypeId, Price = 100000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = childTicket.TicketTypeId, Price = 70000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = seniorTicket.TicketTypeId, Price = 80000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = familyCombo.TicketTypeId, Price = 289000m, Status = "Active" },
-            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = trippleCombo.TicketTypeId, Price = 270000m, Status = "Active" }
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = standardTicket.TicketTypeId, Price = 50000m, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo3Ticket.TicketTypeId, Price = 140000m, Status = "Active" },
+            new PoolTicketType { PoolId = pool.PoolId, TicketTypeId = combo5Ticket.TicketTypeId, Price = 220000m, Status = "Active" }
         };
         context.PoolTicketTypes.AddRange(poolTicketTypes);
+        await context.SaveChangesAsync();
+
+        // 8. Seed Waitlist Test Data
+        var waitlistSlot = new PoolSlot 
+        { 
+            PoolId = pool.PoolId, 
+            SlotName = "Slot Test Waitlist (FULL)", 
+            StartTime = new TimeSpan(15, 0, 0), 
+            EndTime = new TimeSpan(17, 0, 0), 
+            SlotDate = today.AddDays(1), 
+            Capacity = 2, 
+            Status = "Open" 
+        };
+        context.PoolSlots.Add(waitlistSlot);
+        await context.SaveChangesAsync();
+
+        var booking = new Booking
+        {
+            UserId = customer.Id,
+            PoolSlotId = waitlistSlot.PoolSlotId,
+            BookingDate = today,
+            TotalAmount = 100000m,
+            Status = "Paid",
+            BookingCode = "BKG-TEST-001"
+        };
+        context.Bookings.Add(booking);
+        await context.SaveChangesAsync();
+
+        var bookingDetail = new BookingDetail
+        {
+            BookingId = booking.BookingId,
+            PoolTicketTypeId = poolTicketTypes[0].PoolTicketTypeId,
+            Quantity = 2,
+            UnitPrice = 50000m,
+            SubTotal = 100000m
+        };
+        context.BookingDetails.Add(bookingDetail);
         await context.SaveChangesAsync();
     }
 }

@@ -1,10 +1,299 @@
-﻿@page
+@page
 @model IndexModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Trang chủ";
+    ViewData["FullWidth"] = true;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- ===== HERO SECTION ===== -->
+<section class="hero-section" id="home">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
+                Hệ thống đặt lịch hồ bơi hàng đầu Việt Nam
+            </div>
+
+            <h1 class="hero-title">
+                Đặt lịch bơi <span class="highlight">thông minh</span><br>
+                trải nghiệm tuyệt vời
+            </h1>
+
+            <p class="hero-subtitle">
+                Tìm kiếm và đặt lịch bơi tại các hồ bơi chất lượng cao một cách dễ dàng.
+                Bơi lội mỗi ngày - Sống khỏe mỗi giờ!
+            </p>
+
+            <div class="hero-buttons">
+                <a asp-area="" asp-page="/Auth/Login" class="btn ocean-btn-primary" id="hero-book-btn">
+                    <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
+                </a>
+                <a href="#how-it-works" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-down-circle me-2"></i>Khám phá
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <span class="hero-stat-number" id="hero-stat-pools">--</span>
+                    <span class="hero-stat-label">Bể bơi đối tác</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-number" id="hero-stat-customers">--</span>
+                    <span class="hero-stat-label">Khách hàng</span>
+                </div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-number" id="hero-stat-satisfaction">--</span>
+                    <span class="hero-stat-label">Hài lòng</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-wave">
+        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" style="display: block; width: 100%; height: 80px;">
+            <path d="M0,50 C240,100 480,0 720,50 C960,100 1200,0 1440,50 L1440,100 L0,100 Z" fill="#ffffff"></path>
+        </svg>
+    </div>
+</section>
+
+
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section how-section" id="how-it-works">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="bi bi-signpost-2-fill"></i>
+                Các bước đơn giản
+            </div>
+            <h2 class="section-title">Cách đặt lịch bơi</h2>
+            <p class="section-desc">
+                Chỉ với 3 bước đơn giản, bạn đã có thể đặt lịch bơi tại hồ bơi yêu thích của mình.
+            </p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Chọn bể bơi</h3>
+                    <p class="step-desc">Duyệt qua danh sách các hồ bơi chất lượng cao gần bạn nhất và chọn địa điểm yêu thích.</p>
+                    <div class="step-connector"><i class="bi bi-arrow-right-circle-fill"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Chọn khung giờ</h3>
+                    <p class="step-desc">Xem lịch trống và chọn khung giờ phù hợp nhất với lịch trình bận rộn của bạn.</p>
+                    <div class="step-connector"><i class="bi bi-arrow-right-circle-fill"></i></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Xác nhận & bơi thôi!</h3>
+                    <p class="step-desc">Thanh toán nhanh chóng, an toàn và đến hồ bơi đúng giờ để tận hưởng những phút giây thư giãn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ===== STATS SECTION ===== -->
+<section class="section stats-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-water"></i></div>
+                    <span class="stat-number" id="stat-pools">--</span>
+                    <span class="stat-label">Bể bơi đối tác</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <span class="stat-number" id="stat-customers">--</span>
+                    <span class="stat-label">Khách hàng</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <span class="stat-number" id="stat-bookings">--</span>
+                    <span class="stat-label">Lượt đặt lịch</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+                    <span class="stat-number" id="stat-rating">--</span>
+                    <span class="stat-label">Đánh giá trung bình</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-box">
+            <div class="cta-content">
+                <h2>Sẵn sàng bơi lội mỗi ngày?</h2>
+                <p>Đăng ký tài khoản ngay hôm nay để nhận ưu đãi giảm 20% cho lần đặt lịch đầu tiên!</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-area="" asp-page="/Auth/Login" class="btn ocean-btn-primary px-4 py-2" id="cta-book-btn">
+                        <i class="bi bi-person-plus me-2"></i>Đăng ký ngay
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-info-circle me-2"></i>Tìm hiểu thêm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        window.logout = function() {
+            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
+            $.ajax({
+                url: apiBaseUrl + '/api/Auth/logout',
+                type: 'POST',
+                xhrFields: {
+                    withCredentials: true
+                },
+                complete: function() {
+                    // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    window.location.href = '/Index';
+                }
+            });
+        };
+
+        function checkLoginState() {
+            const userName = getCookie('userName');
+            const role = getCookie('role');
+            if (userName && role) {
+                // If customer is logged in, change the Booking/CTA button links to the Pools List
+                if (role.toLowerCase() === 'customer') {
+                    $('#hero-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay');
+                    $('#cta-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-swimming me-2"></i>Xem danh sách bể bơi');
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            // Check login state and swap navbar controls dynamically
+            checkLoginState();
+
+            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
+            const role = getCookie('role');
+
+            $.ajax({
+                url: apiBaseUrl + '/api/public/homepage',
+                method: 'GET',
+                success: function (response) {
+                    var totalPools = response.stats.totalPools;
+                    var totalCustomers = response.stats.totalCustomers;
+                    var totalBookings = response.stats.totalBookings;
+                    var avgRating = response.stats.averageRating;
+                    var satisfaction = Math.round(avgRating / 5 * 100);
+
+                    // Update hero stats
+                    $('#hero-stat-pools').text(totalPools + '+');
+                    $('#hero-stat-customers').text(totalCustomers.toLocaleString('vi-VN') + '+');
+                    $('#hero-stat-satisfaction').text(satisfaction + '%');
+
+                    // Update stats section
+                    $('#stat-pools').text(totalPools + '+');
+                    $('#stat-customers').text(totalCustomers.toLocaleString('vi-VN') + '+');
+                    $('#stat-bookings').text(totalBookings.toLocaleString('vi-VN') + '+');
+                    $('#stat-rating').text(avgRating.toFixed(1));
+
+                    // Render pools
+                    if (response.pools && response.pools.length > 0) {
+                        $('#pool-loading').remove();
+                        var html = '';
+                        $.each(response.pools, function (i, pool) {
+                            var gradientColors = [
+                                'linear-gradient(135deg, #00C2E0, #005F6A)',
+                                'linear-gradient(135deg, #009BB3, #004D56)',
+                                'linear-gradient(135deg, #4DD4E9, #007A8A)'
+                            ];
+                            var gradient = gradientColors[i % gradientColors.length];
+                            var priceHtml = pool.minPrice != null
+                                ? '<span class="pool-card-price">' + Number(pool.minPrice).toLocaleString('vi-VN') + 'đ / lượt</span>'
+                                : '<span class="pool-card-price">Liên hệ</span>';
+
+                            var orderUrl = (role && role.toLowerCase() === 'customer') ? '/CustomerViewPoolIst/CustomerViewPoolIst' : '/Auth/Login';
+
+                            html += '<div class="col-lg-4 col-md-6">';
+                            html += '<div class="pool-card">';
+                            html += '<div class="pool-card-img" style="background: ' + gradient + ';">';
+                            if (pool.coverImageUrl) {
+                                html += '<img src="' + pool.coverImageUrl + '" alt="' + pool.poolName + '" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">';
+                            } else {
+                                html += '<i class="fa-solid fa-swimming-pool"></i>';
+                            }
+                            html += '</div>';
+                            html += '<div class="pool-card-body">';
+                            html += '<h4 class="pool-card-title">' + $('<span>').text(pool.poolName).html() + '</h4>';
+                            html += '<p class="pool-card-location"><i class="bi bi-geo-alt"></i> ' + $('<span>').text(pool.address).html() + '</p>';
+                            if (pool.description) {
+                                html += '<p class="pool-card-desc small text-muted">' + $('<span>').text(pool.description).html() + '</p>';
+                            }
+                            html += '</div>';
+                            html += '<div class="pool-card-footer">';
+                            html += priceHtml;
+                            html += '<a href="' + orderUrl + '" class="pool-card-btn">Đặt ngay <i class="bi bi-arrow-right ms-1"></i></a>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                        });
+                        $('#pool-list').html(html);
+                    } else {
+                        $('#pool-loading').html('<p class="text-muted">Chưa có bể bơi nào.</p>');
+                    }
+                },
+                error: function () {
+                    $('#stat-pools').text('--');
+                    $('#stat-customers').text('--');
+                    $('#stat-bookings').text('--');
+                    $('#stat-rating').text('--');
+                    $('#pool-loading').html('<p class="text-muted">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>');
+                }
+            });
+        });
+    </script>
+}

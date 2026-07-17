@@ -28,11 +28,13 @@ public class ReadDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<WaitlistEntry> WaitlistEntries { get; set; } = null!;
     public DbSet<ContactRequest> ContactRequests { get; set; } = null!;
     public DbSet<Feedback> Feedbacks { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<PoolStaffAssignment> PoolStaffAssignments { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        builder.ApplyConfigurationsFromAssembly(typeof(ReadDbContext).Assembly);
     }
 
     // Block any data modification on the read side to ensure read-only safety

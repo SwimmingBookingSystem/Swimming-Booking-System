@@ -1,0 +1,107 @@
+@startuml
+title SBS - Sequence check-in và check-out
+
+autonumber
+actor "Staff" as Staff
+boundary "Staff CheckIn Razor Page\nQR Scanner / Manual Form" as UI
+control "JWT Authorization" as Auth
+control "StaffCheckInController" as Controller
+control "FluentValidator" as Validator
+control "MediatR" as Mediator
+control "Qr/Manual CheckIn Handler" as CheckInHandler
+control "CheckOut Handler" as CheckOutHandler
+control "StaffUserService" as StaffService
+database "ReadDbContext" as ReadDB
+database "SQL Server\nBookings / CheckIns" as DB
+queue "RabbitMQ" as MQ
+control "SlotCapacityFreed Consumer" as WaitlistConsumer
+
+group Check-in bằng QR hoặc thủ công
+    Staff -> UI: Quét QR hoặc nhập BookingId/BookingCode
+    UI -> Auth: POST /api/staff/checkin/qr\nhoặc /manual + accessToken cookie
+    alt JWT thiếu/sai role
+        Auth --> UI: 401/403
+    else JWT hợp lệ
+        Auth -> Controller: Authorized request
+        Controller -> Validator: Validate command
+        alt Command không hợp lệ
+            Validator --> Controller: errors
+            Controller --> UI: 400 Bad Request
+        else Command hợp lệ
+            Controller -> Mediator: Send(command)
+            Mediator -> CheckInHandler: Handle(command)
+            CheckInHandler -> CheckInHandler: Parse staffId từ JWT
+            CheckInHandler -> DB: Tìm Booking + PoolSlot + CheckIn\nQR: QrCodeData hoặc BookingCode\nManual: BookingId/BookingCode/QrCodeData
+            DB --> CheckInHandler: Booking hoặc null
+
+            alt Không tìm thấy booking
+                CheckInHandler --> UI: 400 - không tìm thấy
+            else Tìm thấy booking
+                CheckInHandler -> StaffService: IsStaffAssignedToPool(staffId, poolId)
+                StaffService -> ReadDB: EXISTS PoolStaffAssignments
+                ReadDB --> StaffService: true/false
+                StaffService --> CheckInHandler: true/false
+                alt Staff không được gán cho bể
+                    CheckInHandler --> UI: 400 - không có quyền tại bể
+                else Được phân công
+                    CheckInHandler -> CheckInHandler: Kiểm tra Status = Paid\nĐúng BookingDate (UTC+7)\nThời gian từ Start-15 phút đến End\nChưa có CheckIn
+                    alt Một điều kiện không đạt
+                        CheckInHandler --> UI: 400 + lý do cụ thể
+                    else Hợp lệ
+                        CheckInHandler -> DB: INSERT CheckIn(method QR/Manual, staffId)\nUPDATE Booking.Status = CheckIn
+                        DB --> CheckInHandler: Saved
+                        CheckInHandler -> ReadDB: Lấy tên customer
+                        ReadDB --> CheckInHandler: Customer brief
+                        CheckInHandler --> Mediator: Success + customerName + slotTime
+                        Mediator --> Controller: Result
+                        Controller --> UI: 200 OK
+                        UI --> Staff: Hiển thị CHECK-IN THÀNH CÔNG
+                    end
+                end
+            end
+        end
+    end
+end
+
+group Check-out
+    Staff -> UI: Quét QR/nhập mã để check-out
+    UI -> Auth: POST /api/staff/checkin/checkout
+    Auth -> Controller: Authorized request
+    Controller -> Validator: Validate StaffCheckOutCommand
+    Validator --> Controller: Valid
+    Controller -> Mediator: Send(command)
+    Mediator -> CheckOutHandler: Handle(command)
+    CheckOutHandler -> DB: Tìm Booking + PoolSlot + CheckIn
+    DB --> CheckOutHandler: Booking hoặc null
+    CheckOutHandler -> StaffService: IsStaffAssignedToPool(staffId, poolId)
+    StaffService -> ReadDB: EXISTS assignment
+    ReadDB --> StaffService: true/false
+    StaffService --> CheckOutHandler: true/false
+
+    alt Không tìm thấy / không được phân công
+        CheckOutHandler --> UI: 400 + lý do
+    else Có quyền
+        CheckOutHandler -> CheckOutHandler: Yêu cầu Status = CheckIn\nĐúng ngày và thời gian trong Start..End
+        alt Trạng thái/ngày/giờ không hợp lệ
+            CheckOutHandler --> UI: 400 + lý do
+        else Hợp lệ
+            CheckOutHandler -> DB: UPDATE Booking.Status = Completed\nUPDATE CheckIn.CheckOutTime = UTC now
+            DB --> CheckOutHandler: Saved
+            CheckOutHandler -> MQ: Publish SlotCapacityFreedEvent(poolSlotId)
+            CheckOutHandler -> ReadDB: Lấy tên customer
+            ReadDB --> CheckOutHandler: Customer brief
+            CheckOutHandler --> Controller: Success + customerName + slotTime
+            Controller --> UI: 200 OK
+            UI --> Staff: Hiển thị CHECK-OUT THÀNH CÔNG
+            MQ -> WaitlistConsumer: Consume event
+            WaitlistConsumer -> DB: Khóa slot, tính capacity,\noffer booking cho waitlist phù hợp
+        end
+    end
+end
+
+note over Auth,CheckInHandler
+Controller cho phép Staff, Manager, Admin; tuy nhiên handler luôn kiểm tra
+PoolStaffAssignments, nên role không có assignment vẫn bị từ chối.
+end note
+@enduml
+

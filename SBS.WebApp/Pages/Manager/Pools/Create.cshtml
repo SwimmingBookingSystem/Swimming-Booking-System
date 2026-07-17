@@ -1,0 +1,190 @@
+@page
+@model SBS.WebApp.Pages.Manager.Pools.CreateModel
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Tạo Bể bơi mới";
+    ViewData["Breadcrumb"] = "Quản lý / Bể bơi / Tạo mới";
+}
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-bottom p-4">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-plus-circle text-primary me-2"></i>Tạo Bể bơi mới</h5>
+    </div>
+    <div class="card-body p-4">
+        <form id="poolForm">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Tên bể bơi <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="poolName" required maxlength="200" placeholder="Nhập tên bể bơi...">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Địa chỉ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="address" required maxlength="500" placeholder="Nhập địa chỉ chi tiết...">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ mở cửa <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="openingTime" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Giờ đóng cửa <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" id="closingTime" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Diện tích mặt nước (m²) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.1" min="10" class="form-control" id="area" required placeholder="Ví dụ: 250">
+                    <div class="form-text text-primary mt-1" id="capacityHint">Sức chứa an toàn tối đa: 0 người</div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-medium">Mô tả</label>
+                <textarea class="form-control" id="description" rows="4" maxlength="2000" placeholder="Thông tin chi tiết về bể bơi..."></textarea>
+            </div>
+            
+            <h6 class="fw-bold mb-3 border-bottom pb-2">Hình ảnh (Tối đa 10)</h6>
+            <div id="imageUrlsContainer">
+                <!-- Image inputs -->
+            </div>
+            <div class="d-flex gap-2 mt-2 mb-4">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnUploadImage" onclick="$('#fileUpload').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Images
+                </button>
+                <input type="file" id="fileUpload" class="d-none" accept="image/*" multiple onchange="handleFileUpload(event)">
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                <a href="/Manager/Pools" class="btn btn-light border px-4">Hủy</a>
+                <button type="button" class="btn btn-primary px-4" onclick="savePool()"><i class="fa-solid fa-save me-2"></i>Lưu Bể bơi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#area').on('input', function() {
+                const area = parseFloat($(this).val());
+                if (area > 0) {
+                    const capacity = Math.floor(area / 2.5);
+                    $('#capacityHint').text(`Sức chứa an toàn tối đa: ${capacity} người (theo chuẩn 2.5m²/người)`);
+                } else {
+                    $('#capacityHint').text('Sức chứa an toàn tối đa: 0 người');
+                }
+            });
+        });
+
+        function addImageRow(url = '', isCover = false) {
+            if ($('.img-row').length >= 10) return;
+            const uid = Date.now() + Math.random().toString().slice(2,5);
+            const html = `
+                <div class="row g-2 mb-3 img-row align-items-center bg-light p-2 rounded border" id="img_${uid}">
+                    <div class="col-8 d-flex align-items-center gap-3">
+                        <div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid #dee2e6; flex-shrink: 0; background: #fff;">
+                            <img src="${url}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/60x60?text=Ảnh'">
+                        </div>
+                        <input type="hidden" class="img-url" value="${url}">
+                        <div class="text-success small fw-medium" style="word-break: break-all;">
+                            <i class="fa-solid fa-check-circle me-1"></i>Đã tải lên hệ thống
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-check">
+                            <input class="form-check-input cover-radio" type="radio" name="isCover" id="cover_${uid}" ${isCover ? 'checked' : ''}>
+                            <label class="form-check-label fw-medium text-dark" for="cover_${uid}">Ảnh Bìa</label>
+                        </div>
+                    </div>
+                    <div class="col-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm border-0" onclick="$('#img_${uid}').remove(); checkImageCount();" title="Xóa ảnh">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            $('#imageUrlsContainer').append(html);
+            checkImageCount();
+        }
+
+        function checkImageCount() {
+            if ($('.img-row').length >= 10) {
+                $('#btnUploadImage').hide();
+            } else {
+                $('#btnUploadImage').show();
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            $('#btnUploadImage').html('<i class="fa-solid fa-spinner fa-spin"></i> Đang tải lên...');
+            $('#btnUploadImage').prop('disabled', true);
+            
+            try {
+                for(let i = 0; i < files.length; i++) {
+                    if ($('.img-row').length >= 10) {
+                        toastr.warning('Chỉ được tải lên tối đa 10 ảnh.');
+                        break;
+                    }
+                    const res = await api.uploadFile('/pools/upload-image', files[i]);
+                    if (res && res.url) {
+                        addImageRow(res.url);
+                    }
+                }
+            } catch (e) {
+                console.error("Upload failed", e);
+                toastr.error('Có lỗi xảy ra khi tải ảnh lên.');
+            } finally {
+                event.target.value = ''; // reset file input
+                $('#btnUploadImage').html('<i class="fa-solid fa-cloud-arrow-up"></i> Upload Images');
+                $('#btnUploadImage').prop('disabled', false);
+                checkImageCount();
+            }
+        }
+
+        async function savePool() {
+            if(!$('#poolForm')[0].checkValidity()) {
+                $('#poolForm')[0].reportValidity();
+                return;
+            }
+            
+            const opening = $('#openingTime').val();
+            const closing = $('#closingTime').val();
+            if (opening >= closing) {
+                toastr.error("Giờ đóng cửa phải sau giờ mở cửa.");
+                return;
+            }
+
+            const payload = {
+                poolName: $('#poolName').val(),
+                address: $('#address').val(),
+                openingTime: opening + ":00",
+                closingTime: closing + ":00",
+                area: parseFloat($('#area').val()),
+                description: $('#description').val()
+            };
+
+            const images = [];
+            $('.img-row').each(function() {
+                const url = $(this).find('.img-url').val().trim();
+                const isCover = $(this).find('.cover-radio').is(':checked');
+                if (url) images.push({ imageUrl: url, isCover: isCover });
+            });
+            if (images.length > 0 && !images.some(i => i.isCover)) {
+                images[0].isCover = true;
+            }
+
+            try {
+                const res = await api.post('/pools', payload);
+                if (images.length > 0 && res) {
+                     await api.put(`/pools/${res.poolId}/images`, images);
+                }
+                toastr.success('Tạo bể bơi thành công');
+                setTimeout(() => { window.location.href = '/Manager/Pools'; }, 1000);
+            } catch (e) {}
+        }
+    </script>
+}

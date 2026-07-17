@@ -1,0 +1,54 @@
+@page
+@model SBS.WebApp.Pages.Customer.Bookings.PaymentResultModel
+@{
+    ViewData["Title"] = "Kết quả thanh toán";
+}
+
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            @if (Model.IsSuccess)
+            {
+                <div class="ocean-card p-2 border border-light">
+                    <div class="card-body py-5">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                        <h2 class="mt-4 fw-bold text-success">Thanh Toán Thành Công!</h2>
+                        <p class="text-muted mt-3">Mã đơn hàng: <strong>#@Model.OrderCode</strong></p>
+                        <p>Cảm ơn bạn đã sử dụng dịch vụ của hệ thống. Đặt lịch của bạn đã được thanh toán và xác nhận.</p>
+                        <div class="mt-4">
+                            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-primary px-4 py-2 me-2">Tiếp tục đặt lịch</a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.IsCanceled)
+            {
+                <div class="ocean-card p-2 border border-light">
+                    <div class="card-body py-5">
+                        <i class="bi bi-x-circle-fill text-warning" style="font-size: 5rem;"></i>
+                        <h2 class="mt-4 fw-bold text-warning">Đã Hủy Thanh Toán</h2>
+                        <p class="text-muted mt-3">Mã đơn hàng: <strong>#@Model.OrderCode</strong></p>
+                        <p>Giao dịch thanh toán đã bị hủy. Lịch đặt của bạn sẽ tự động bị hủy nếu không thanh toán trong thời gian quy định.</p>
+                        <div class="mt-4">
+                            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-outline px-4 py-2">Quay lại danh sách</a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="ocean-card p-2 border border-light">
+                    <div class="card-body py-5">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 5rem;"></i>
+                        <h2 class="mt-4 fw-bold text-danger">Thanh Toán Thất Bại</h2>
+                        <p class="text-muted mt-3">Mã đơn hàng: <strong>#@Model.OrderCode</strong></p>
+                        <p>Đã có lỗi xảy ra trong quá trình thanh toán (Mã lỗi: @Model.Code). Vui lòng kiểm tra lại số dư hoặc thử lại sau.</p>
+                        <div class="mt-4">
+                            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-outline px-4 py-2">Quay lại danh sách</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

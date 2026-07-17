@@ -1,0 +1,330 @@
+@page
+@model SBS.WebApp.Pages.Manager.Tickets.CreateModel
+@{
+    Layout = "_ManagerLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/manager-tickets.css" asp-append-version="true" />
+}
+
+<div class="tickets-header mb-4">
+    <h4><i class="fa-solid fa-plus-circle me-2 text-primary"></i>Tạo loại vé mới</h4>
+    <a href="/Manager/Tickets/Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="ticketForm">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Mã vé <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ticketCode" maxlength="50" placeholder="VD: ADULT, CHILD, CMB01...">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tên vé <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ticketName" maxlength="200" placeholder="VD: Vé người lớn">
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-4" id="categorySection">
+                <label class="form-label fw-semibold">Loại vé <span class="text-danger">*</span></label>
+                <div class="d-flex gap-4 p-3 bg-light rounded border">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="category" id="catSingle" value="Single" checked>
+                        <label class="form-check-label fw-bold" for="catSingle">
+                            <i class="fa-solid fa-ticket text-primary me-1"></i> Vé đơn (Single)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="category" id="catCombo" value="Combo">
+                        <label class="form-check-label fw-bold" for="catCombo">
+                            <i class="fa-solid fa-cubes text-purple me-1"></i> Vé combo
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single fields -->
+            <div id="singleFields" class="mb-4 p-3 border rounded border-primary" style="background-color: #f8fbff;">
+                <h6 class="text-primary mb-3"><i class="fa-solid fa-ticket me-2"></i>Cấu hình vé đơn</h6>
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Giá gốc (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control price-calc" id="basePrice" min="1000" step="1000" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Giảm giá (%)</label>
+                        <input type="number" class="form-control price-calc" id="discountPercent" min="0" max="100" value="0" step="5">
+                        <small class="text-muted">Nhập 0 hoặc bội số của 5.</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-success">Giá thực tế thu khách (VNĐ)</label>
+                        <div class="fs-4 fw-bold text-success" id="actualPriceDisplay">0 ₫</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combo fields -->
+            <div id="comboFields" class="mb-4 p-3 border rounded border-purple" style="display: none; background-color: #fdfafc;">
+                <h6 class="text-purple mb-3"><i class="fa-solid fa-cubes me-2"></i>Cấu hình vé Combo</h6>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Danh sách vé đơn trong combo</label>
+                    <div id="comboDetailsContainer" class="mb-2"></div>
+                    <button type="button" class="btn btn-outline-purple btn-sm" onclick="addComboRow()">
+                        <i class="fa-solid fa-plus me-1"></i> Thêm vé đơn
+                    </button>
+                </div>
+
+                <div class="row align-items-center mt-4 pt-3 border-top">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Tổng giá gốc các vé đơn</label>
+                        <div class="fs-5 fw-bold text-secondary" id="comboBasePriceDisplay">0 ₫</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Ưu đãi giảm giá combo (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control combo-price-calc" id="comboDiscount" min="5" max="100" value="5" step="5">
+                        <small class="text-muted">Bội số của 5 (5, 10, 15...).</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-success">Giá thực tế Combo (VNĐ)</label>
+                        <div class="fs-4 fw-bold text-success" id="comboActualPriceDisplay">0 ₫</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Mô tả</label>
+                <textarea class="form-control" id="ticketDescription" rows="3" maxlength="2000" placeholder="Mô tả quyền lợi, quy định của loại vé..."></textarea>
+            </div>
+
+            <!-- Apply to Pools đã được gỡ bỏ (Chuyển sang màn hình Bảng Giá) -->
+            
+            <hr class="my-4">
+            
+            <div class="d-flex justify-content-end gap-2">
+                <a href="/Manager/Tickets/Index" class="btn btn-light border px-4">Hủy</a>
+                <button type="button" class="btn btn-primary px-5 fw-bold" onclick="saveTicket()" id="btnSave">
+                    <i class="fa-solid fa-save me-2"></i> Tạo loại vé
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let singleTickets = [];
+        let pools = [];
+
+        $(document).ready(async function () {
+            await loadSingleTickets();
+            
+            // First empty combo row
+            addComboRow();
+
+            // Category Toggle
+            $('input[name="category"]').on('change', function () {
+                const isCombo = $(this).val() === 'Combo';
+                if (isCombo) {
+                    $('#singleFields').hide();
+                    $('#comboFields').show();
+                    calculateComboPrice();
+                } else {
+                    $('#singleFields').show();
+                    $('#comboFields').hide();
+                    calculateSinglePrice();
+                }
+            });
+
+            // Single Price Auto Calculate
+            $('.price-calc').on('input', calculateSinglePrice);
+
+            // Combo Price Auto Calculate
+            $('.combo-price-calc').on('input', calculateComboPrice);
+            
+            // Initial calc
+            calculateSinglePrice();
+        });
+
+        async function loadSingleTickets() {
+            try {
+                const res = await api.get('/ticket-types?pageSize=100&category=Single&status=Active');
+                singleTickets = res.items || [];
+            } catch (e) { }
+        }
+
+        async function loadPools() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                pools = res.items || [];
+            } catch (e) { }
+        }
+
+        function calculateSinglePrice() {
+            const base = parseFloat($('#basePrice').val()) || 0;
+            const discount = parseFloat($('#discountPercent').val()) || 0;
+            if (discount < 0 || discount > 100) {
+                $('#actualPriceDisplay').text('Lỗi % giảm');
+                return;
+            }
+            const actual = base * (1 - discount / 100);
+            $('#actualPriceDisplay').text(formatMoney(actual));
+        }
+
+        function calculateComboPrice() {
+            let totalBase = 0;
+            $('.combo-row').each(function () {
+                const id = parseInt($(this).find('.combo-single-select').val());
+                const qty = parseInt($(this).find('.qty-input').val()) || 0;
+                const ticket = singleTickets.find(t => t.ticketTypeId === id);
+                if (ticket) {
+                    totalBase += (ticket.basePrice * qty);
+                }
+            });
+            $('#comboBasePriceDisplay').text(formatMoney(totalBase));
+
+            const discount = parseFloat($('#comboDiscount').val()) || 0;
+            if (discount < 0 || discount > 100) {
+                $('#comboActualPriceDisplay').text('Lỗi % giảm');
+                return;
+            }
+            const actual = totalBase * (1 - discount / 100);
+            $('#comboActualPriceDisplay').text(formatMoney(actual));
+        }
+
+        function addComboRow() {
+            const uid = Date.now() + '' + Math.random().toString().slice(2, 5);
+            if(singleTickets.length === 0) {
+                $('#comboDetailsContainer').html('<div class="alert alert-warning py-2">Bạn cần tạo ít nhất 1 vé đơn trước khi tạo vé Combo.</div>');
+                return;
+            }
+            
+            const options = singleTickets.map(s =>
+                `<option value="${s.ticketTypeId}">${s.ticketCode} – ${s.ticketName} (${formatMoney(s.basePrice)})</option>`
+            ).join('');
+            
+            const html = `
+                <div class="combo-row row g-3 mb-3 align-items-end p-3 bg-white border rounded shadow-sm" id="combo_${uid}">
+                    <div class="col-md-7">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Chọn vé đơn</label>
+                        <select class="form-select combo-single-select" onchange="calculateComboPrice()">${options}</select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Số lượng</label>
+                        <div class="input-group flex-nowrap">
+                            <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', -1)"><i class="fa-solid fa-minus"></i></button>
+                            <input type="number" class="form-control text-center qty-input px-1" id="qty_${uid}" min="1" max="20" value="1" oninput="calculateComboPrice()" readonly style="background-color: #fff;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="changeQty('${uid}', 1)"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-light text-danger border w-100" onclick="removeComboRow('${uid}')" title="Xóa vé này">
+                            <i class="fa-solid fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>`;
+            $('#comboDetailsContainer').append(html);
+            calculateComboPrice();
+        }
+
+        function changeQty(uid, delta) {
+            const input = $(`#qty_${uid}`);
+            let val = parseInt(input.val()) || 1;
+            val += delta;
+            if (val < 1) val = 1;
+            if (val > 20) val = 20;
+            input.val(val);
+            calculateComboPrice();
+        }
+
+        function removeComboRow(uid) {
+            $(`#combo_${uid}`).remove();
+            calculateComboPrice();
+        }
+
+        // Đã gỡ bỏ renderPoolCheckboxes vì chuyển luồng gán Bể bơi sang trang Pricing
+
+        async function saveTicket() {
+            const cat = $('input[name="category"]:checked').val();
+            const ticketCode = $('#ticketCode').val().trim();
+            const ticketName = $('#ticketName').val().trim();
+
+            if (!ticketCode) {
+                toastr.warning('Vui lòng nhập mã vé.');
+                return;
+            }
+            if (!ticketName) {
+                toastr.warning('Vui lòng nhập tên vé.');
+                return;
+            }
+
+            // Validations
+            const discountPercent = cat === 'Single' ? parseFloat($('#discountPercent').val()) || 0 : parseFloat($('#comboDiscount').val()) || 0;
+            
+            if (cat === 'Single' && discountPercent !== 0 && (discountPercent < 5 || discountPercent % 5 !== 0)) {
+                toastr.error('Giảm giá vé đơn phải là 0% hoặc từ 5% trở lên (bội số của 5).');
+                return;
+            }
+            if (cat === 'Combo' && (discountPercent < 5 || discountPercent % 5 !== 0)) {
+                toastr.error('Ưu đãi combo phải từ 5% trở lên và là bội số của 5 (5%, 10%...).');
+                return;
+            }
+
+            const payload = {
+                ticketCode: ticketCode,
+                ticketName: ticketName,
+                category: cat,
+                basePrice: cat === 'Single' ? parseFloat($('#basePrice').val()) || 0 : 0,
+                discountPercent: discountPercent,
+                description: $('#ticketDescription').val().trim() || null,
+                comboDetails: null
+            };
+
+            if (cat === 'Combo') {
+                payload.comboDetails = [];
+                let hasValidCombo = false;
+                $('.combo-row').each(function () {
+                    const tid = parseInt($(this).find('.combo-single-select').val());
+                    const qty = parseInt($(this).find('.qty-input').val()) || 0;
+                    if(tid && qty > 0) {
+                        payload.comboDetails.push({ singleTicketTypeId: tid, quantity: qty });
+                        hasValidCombo = true;
+                    }
+                });
+                if (!hasValidCombo) {
+                    toastr.error('Vé Combo phải bao gồm ít nhất 1 vé đơn hợp lệ.');
+                    return;
+                }
+            }
+
+            try {
+                $('#btnSave').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang lưu...');
+                await api.post('/ticket-types', payload);
+                toastr.success('Tạo loại vé thành công!');
+                setTimeout(() => {
+                    window.location.href = '/Manager/Tickets/Index';
+                }, 1500);
+            } catch (e) { 
+                $('#btnSave').prop('disabled', false).html('<i class="fa-solid fa-save me-2"></i>Tạo loại vé');
+            }
+        }
+
+        function formatMoney(v) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(v)) + ' ₫';
+        }
+    </script>
+    <style>
+        .cursor-pointer { cursor: pointer; }
+        .pool-check-item:hover { background-color: #f0f7ff !important; border-color: #0d6efd !important; }
+        .text-purple { color: #6f42c1; }
+        .border-purple { border-color: #6f42c1 !important; }
+        .btn-outline-purple { color: #6f42c1; border-color: #6f42c1; }
+        .btn-outline-purple:hover { color: #fff; background-color: #6f42c1; }
+    </style>
+}

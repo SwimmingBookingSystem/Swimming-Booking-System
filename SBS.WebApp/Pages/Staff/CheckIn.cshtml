@@ -1,0 +1,456 @@
+@page
+@model SBS.WebApp.Pages.Staff.CheckInModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Check-in / Check-out";
+    ViewData["Breadcrumb"] = "Lễ tân / Check-in & Check-out";
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
+                    <ul class="nav nav-pills nav-fill gap-2" id="checkinTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-semibold py-3" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr-pane" type="button" role="tab">
+                                <i class="fa-solid fa-camera me-2"></i> Quét mã QR bằng Camera
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold py-3" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab">
+                                <i class="fa-solid fa-keyboard me-2"></i> Check-in thủ công
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold py-3" id="checkout-qr-tab" data-bs-toggle="tab" data-bs-target="#checkout-qr-pane" type="button" role="tab">
+                                <i class="fa-solid fa-camera me-2 text-warning"></i> Check-out QR Camera
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold py-3" id="checkout-manual-tab" data-bs-toggle="tab" data-bs-target="#checkout-manual-pane" type="button" role="tab">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> Check-out Thủ Công
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="checkinTabsContent">
+        <!-- TAB 1: CAMERA QR SCANNER (CHECK-IN) -->
+        <div class="tab-pane fade show active" id="qr-pane" role="tabpanel">
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm scanner-card">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="card-title mb-3"><i class="fa-solid fa-qrcode text-primary me-2"></i> Quét mã QR vé bơi</h5>
+                            <p class="text-muted small mb-4">Đưa mã QR trên vé bơi của khách hàng vào khung hình camera để thực hiện Check-in tự động.</p>
+                            
+                            <div id="reader" class="mb-3 mx-auto shadow-sm"></div>
+
+                            <div class="d-flex justify-content-center gap-2 mb-3">
+                                <button id="btn-start-camera" class="btn btn-primary px-4 py-2 rounded-pill fw-medium">
+                                    <i class="fa-solid fa-video me-2"></i> Bật Camera
+                                </button>
+                                <button id="btn-stop-camera" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium d-none">
+                                    <i class="fa-solid fa-video-slash me-2"></i> Tắt Camera
+                                </button>
+                            </div>
+
+                            <!-- Result Banner (Check-in) -->
+                            <div id="qr-result-box" class="mt-4 d-none">
+                                <div id="qr-result-card" class="card p-4 text-start">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div id="qr-result-icon" class="me-3 fs-2"></div>
+                                        <div>
+                                            <h6 id="qr-result-title" class="fw-bold mb-1"></h6>
+                                            <p id="qr-result-message" class="mb-0 small"></p>
+                                        </div>
+                                    </div>
+                                    <div id="qr-result-details" class="border-top pt-3 d-none">
+                                        <div class="row g-2 text-dark small">
+                                            <div class="col-6"><strong>Khách hàng:</strong> <span id="res-customer-name">-</span></div>
+                                            <div class="col-6"><strong>Khung giờ:</strong> <span id="res-slot-time">-</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end mt-3">
+                                        <button id="btn-scan-next" class="btn btn-sm btn-primary px-3 rounded-pill">
+                                            <i class="fa-solid fa-rotate-right me-1"></i> Quét tiếp
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MANUAL CHECK-IN -->
+        <div class="tab-pane fade" id="manual-pane" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h5 class="card-title mb-3"><i class="fa-solid fa-key text-success me-2"></i> Check-in bằng Mã Booking</h5>
+                        <p class="text-muted small mb-4">Nhập <strong>Booking ID</strong> (số) hoặc <strong>Booking Code</strong> (ví dụ: BK-260714134512-AB3C) của khách hàng nếu không quét được mã QR.</p>
+                        <form id="form-manual-checkin">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Booking ID hoặc Booking Code</label>
+                                <input type="text" id="manual-booking-input" class="form-control form-control-lg" placeholder="Ví dụ: 1024 hoặc BK-260714134512-AB3C" required />
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 py-3 rounded-3 fw-bold fs-6">
+                                <i class="fa-solid fa-circle-check me-2"></i> Xác nhận Check-in
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CHECK-OUT QR CAMERA -->
+        <div class="tab-pane fade" id="checkout-qr-pane" role="tabpanel">
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm scanner-card">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="card-title mb-3"><i class="fa-solid fa-qrcode text-warning me-2"></i> Quét mã QR để Check-out</h5>
+                            <p class="text-muted small mb-4">Đưa mã QR trên vé bơi của khách hàng vào khung hình camera để thực hiện Check-out tự động khi khách ra về.</p>
+
+                            <div id="checkout-reader" class="mb-3 mx-auto shadow-sm"></div>
+
+                            <div class="d-flex justify-content-center gap-2 mb-3">
+                                <button id="btn-start-checkout-camera" class="btn btn-warning px-4 py-2 rounded-pill fw-medium text-dark">
+                                    <i class="fa-solid fa-video me-2"></i> Bật Camera
+                                </button>
+                                <button id="btn-stop-checkout-camera" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium d-none">
+                                    <i class="fa-solid fa-video-slash me-2"></i> Tắt Camera
+                                </button>
+                            </div>
+
+                            <!-- Result Banner (Check-out QR) -->
+                            <div id="co-qr-result-box" class="mt-4 d-none">
+                                <div id="co-qr-result-card" class="card p-4 text-start">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div id="co-qr-result-icon" class="me-3 fs-2"></div>
+                                        <div>
+                                            <h6 id="co-qr-result-title" class="fw-bold mb-1"></h6>
+                                            <p id="co-qr-result-message" class="mb-0 small"></p>
+                                        </div>
+                                    </div>
+                                    <div id="co-qr-result-details" class="border-top pt-3 d-none">
+                                        <div class="row g-2 text-dark small">
+                                            <div class="col-6"><strong>Khách hàng:</strong> <span id="co-res-customer-name">-</span></div>
+                                            <div class="col-6"><strong>Khung giờ:</strong> <span id="co-res-slot-time">-</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end mt-3">
+                                        <button id="btn-co-scan-next" class="btn btn-sm btn-warning px-3 rounded-pill text-dark">
+                                            <i class="fa-solid fa-rotate-right me-1"></i> Quét tiếp
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CHECK-OUT THỦ CÔNG -->
+        <div class="tab-pane fade" id="checkout-manual-pane" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h5 class="card-title mb-3"><i class="fa-solid fa-door-open text-warning me-2"></i> Check-out Thủ Công</h5>
+                        <p class="text-muted small mb-4">Nhập <strong>Booking ID</strong> (số) hoặc <strong>Booking Code</strong> (ví dụ: BK-260714134512-AB3C) khi khách bơi hoàn thành và ra về.</p>
+                        <form id="form-checkout">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Booking ID hoặc Booking Code</label>
+                                <input type="text" id="checkout-input" class="form-control form-control-lg" placeholder="Ví dụ: 1024 hoặc BK-260714134512-AB3C" required />
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100 py-3 rounded-3 fw-bold fs-6 text-dark">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> Xác nhận Check-out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ========================
+        // CHECK-IN Scanner State
+        // ========================
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        // ========================
+        // CHECK-OUT Scanner State
+        // ========================
+        let html5CheckoutScanner = null;
+        let isCheckoutScanning = false;
+
+        $(document).ready(function () {
+            // --- CHECK-IN Camera Buttons ---
+            $('#btn-start-camera').on('click', function () {
+                startCheckinScanner();
+            });
+
+            $('#btn-stop-camera').on('click', function () {
+                stopCheckinScanner();
+            });
+
+            $('#btn-scan-next').on('click', function () {
+                $('#qr-result-box').addClass('d-none');
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume();
+                }
+            });
+
+            // --- CHECK-OUT QR Camera Buttons ---
+            $('#btn-start-checkout-camera').on('click', function () {
+                startCheckoutScanner();
+            });
+
+            $('#btn-stop-checkout-camera').on('click', function () {
+                stopCheckoutScanner();
+            });
+
+            $('#btn-co-scan-next').on('click', function () {
+                $('#co-qr-result-box').addClass('d-none');
+                if (html5CheckoutScanner) {
+                    html5CheckoutScanner.resume();
+                }
+            });
+
+            // Tự động dừng camera khi chuyển tab
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if (e.target.id !== 'qr-tab') {
+                    stopCheckinScanner();
+                }
+                if (e.target.id !== 'checkout-qr-tab') {
+                    stopCheckoutScanner();
+                }
+            });
+
+            // Handle Manual Checkin — nhận BookingId (số) hoặc BookingCode (chuỗi BK-...)
+            $('#form-manual-checkin').on('submit', async function (e) {
+                e.preventDefault();
+                const val = $('#manual-booking-input').val().trim();
+                if (!val) return;
+
+                const payload = {};
+                // Nếu nhập số nguyên → bookingId, ngược lại → bookingCode
+                if (/^\d+$/.test(val)) {
+                    payload.bookingId = parseInt(val);
+                } else {
+                    payload.bookingCode = val;
+                }
+
+                try {
+                    const res = await staffApi.post('/checkin/manual', payload);
+                    toastr.success(res.message || 'Check-in thành công!');
+                    $('#manual-booking-input').val('');
+                } catch (err) {
+                    // Toastr đã tự xử lý ở interceptor
+                }
+            });
+
+            // Handle Manual Check-Out
+            $('#form-checkout').on('submit', async function (e) {
+                e.preventDefault();
+                const val = $('#checkout-input').val().trim();
+                if (!val) return;
+
+                const payload = {};
+                if (!isNaN(val) && !isNaN(parseInt(val))) {
+                    payload.bookingId = parseInt(val);
+                } else {
+                    payload.bookingCode = val;
+                }
+
+                try {
+                    const res = await staffApi.post('/checkin/checkout', payload);
+                    toastr.success(res.message || 'Check-out thành công!');
+                    $('#checkout-input').val('');
+                } catch (err) {
+                    // Toastr đã tự xử lý ở interceptor
+                }
+            });
+        });
+
+        // ========================
+        // CHECK-IN Scanner Functions
+        // ========================
+        function startCheckinScanner() {
+            if (isScanning) return;
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onCheckinScanSuccess,
+                onScanFailure
+            ).then(() => {
+                isScanning = true;
+                $('#btn-start-camera').addClass('d-none');
+                $('#btn-stop-camera').removeClass('d-none');
+                $('#qr-result-box').addClass('d-none');
+            }).catch(err => {
+                console.error("Camera access error: ", err);
+                toastr.error("Không thể truy cập Camera. Vui lòng kiểm tra quyền truy cập của trình duyệt.");
+            });
+        }
+
+        function stopCheckinScanner() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                    $('#btn-start-camera').removeClass('d-none');
+                    $('#btn-stop-camera').addClass('d-none');
+                }).catch(err => console.error(err));
+            }
+        }
+
+        async function onCheckinScanSuccess(decodedText, decodedResult) {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.pause(true);
+            }
+
+            try {
+                const res = await staffApi.post('/checkin/qr', { bookingCode: decodedText });
+                showCheckinQrResult(true, res.message || 'Check-in thành công!', res.customerName, res.slotTime);
+                toastr.success('Check-in thành công!');
+            } catch (err) {
+                let msg = 'Mã QR không hợp lệ hoặc lỗi check-in.';
+                if (err.responseText) {
+                    try {
+                        const obj = JSON.parse(err.responseText);
+                        msg = obj.message || obj.title || msg;
+                    } catch(e){}
+                }
+                showCheckinQrResult(false, msg);
+            }
+        }
+
+        function showCheckinQrResult(isSuccess, message, customerName, slotTime) {
+            $('#qr-result-box').removeClass('d-none');
+            const $card = $('#qr-result-card');
+            const $icon = $('#qr-result-icon');
+            const $title = $('#qr-result-title');
+            const $msg = $('#qr-result-message');
+            const $details = $('#qr-result-details');
+
+            if (isSuccess) {
+                $card.attr('class', 'card p-4 text-start result-card-success');
+                $icon.html('<i class="fa-solid fa-circle-check text-success"></i>');
+                $title.text('CHECK-IN THÀNH CÔNG');
+                $msg.text(message);
+                $('#res-customer-name').text(customerName || '-');
+                $('#res-slot-time').text(slotTime || '-');
+                $details.removeClass('d-none');
+            } else {
+                $card.attr('class', 'card p-4 text-start result-card-error');
+                $icon.html('<i class="fa-solid fa-circle-xmark text-danger"></i>');
+                $title.text('CHECK-IN THẤT BẠI');
+                $msg.text(message);
+                $details.addClass('d-none');
+            }
+        }
+
+        // ========================
+        // CHECK-OUT Scanner Functions
+        // ========================
+        function startCheckoutScanner() {
+            if (isCheckoutScanning) return;
+
+            html5CheckoutScanner = new Html5Qrcode("checkout-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5CheckoutScanner.start(
+                { facingMode: "environment" },
+                config,
+                onCheckoutScanSuccess,
+                onScanFailure
+            ).then(() => {
+                isCheckoutScanning = true;
+                $('#btn-start-checkout-camera').addClass('d-none');
+                $('#btn-stop-checkout-camera').removeClass('d-none');
+                $('#co-qr-result-box').addClass('d-none');
+            }).catch(err => {
+                console.error("Camera access error (checkout): ", err);
+                toastr.error("Không thể truy cập Camera. Vui lòng kiểm tra quyền truy cập của trình duyệt.");
+            });
+        }
+
+        function stopCheckoutScanner() {
+            if (html5CheckoutScanner && isCheckoutScanning) {
+                html5CheckoutScanner.stop().then(() => {
+                    isCheckoutScanning = false;
+                    $('#btn-start-checkout-camera').removeClass('d-none');
+                    $('#btn-stop-checkout-camera').addClass('d-none');
+                }).catch(err => console.error(err));
+            }
+        }
+
+        async function onCheckoutScanSuccess(decodedText, decodedResult) {
+            if (html5CheckoutScanner) {
+                html5CheckoutScanner.pause(true);
+            }
+
+            try {
+                const res = await staffApi.post('/checkin/checkout', { bookingCode: decodedText });
+                showCheckoutQrResult(true, res.message || 'Check-out thành công!', res.customerName, res.slotTime);
+                toastr.success('Check-out thành công!');
+            } catch (err) {
+                let msg = 'Mã QR không hợp lệ hoặc lỗi check-out.';
+                if (err.responseText) {
+                    try {
+                        const obj = JSON.parse(err.responseText);
+                        msg = obj.message || obj.title || msg;
+                    } catch(e){}
+                }
+                showCheckoutQrResult(false, msg);
+            }
+        }
+
+        function showCheckoutQrResult(isSuccess, message, customerName, slotTime) {
+            $('#co-qr-result-box').removeClass('d-none');
+            const $card = $('#co-qr-result-card');
+            const $icon = $('#co-qr-result-icon');
+            const $title = $('#co-qr-result-title');
+            const $msg = $('#co-qr-result-message');
+            const $details = $('#co-qr-result-details');
+
+            if (isSuccess) {
+                $card.attr('class', 'card p-4 text-start result-card-success');
+                $icon.html('<i class="fa-solid fa-circle-check text-success"></i>');
+                $title.text('CHECK-OUT THÀNH CÔNG');
+                $msg.text(message);
+                $('#co-res-customer-name').text(customerName || '-');
+                $('#co-res-slot-time').text(slotTime || '-');
+                $details.removeClass('d-none');
+            } else {
+                $card.attr('class', 'card p-4 text-start result-card-error');
+                $icon.html('<i class="fa-solid fa-circle-xmark text-danger"></i>');
+                $title.text('CHECK-OUT THẤT BẠI');
+                $msg.text(message);
+                $details.addClass('d-none');
+            }
+        }
+
+        // Shared failure handler
+        function onScanFailure(error) {
+            // Silence repetitive scanning frame failures
+        }
+    </script>
+}

@@ -1,0 +1,209 @@
+@page
+@model SBS.WebApp.Pages.Customer.Bookings.CreateModel
+@{
+    ViewData["Title"] = "Đặt lịch bơi - PoolHub";
+}
+
+<!-- Extra Google Fonts & Bootstrap Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-image: linear-gradient(rgba(0, 194, 224, 0.05), rgba(0, 95, 106, 0.05)), url('/images/swimming_pool_bg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        box-shadow: 0 10px 30px -10px rgba(0, 194, 224, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .slot-btn {
+        border-radius: 12px;
+        padding: 10px 15px;
+        border: 2px solid #e2e8f0;
+        background-color: white;
+        color: #475569;
+        font-weight: 500;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: center;
+        cursor: pointer;
+    }
+    .slot-btn:hover:not(:disabled) {
+        border-color: #00C2E0;
+        color: #00C2E0;
+        background-color: #e0f7fa;
+    }
+    .slot-btn.selected {
+        border-color: #00C2E0;
+        background-color: #00C2E0;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);
+    }
+    .slot-btn:disabled {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+        border-color: #e2e8f0;
+    }
+    .ticket-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        background: white;
+        transition: all 0.2s;
+    }
+    .ticket-card:hover {
+        border-color: #00C2E0;
+        box-shadow: 0 4px 15px rgba(0, 194, 224, 0.08);
+    }
+    .qty-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .qty-btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+    }
+    .qty-input {
+        width: 40px;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+    }
+    .qty-input:focus {
+        outline: none;
+    }
+</style>
+
+<div class="container my-5">
+    <!-- Back Button -->
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <a href="/CustomerViewPoolIst/CustomerViewPoolDetail?id=@Model.PoolInfo.PoolId" class="btn ocean-btn-outline px-4 py-2.5 rounded-3 fw-semibold shadow-sm">
+                <i class="bi bi-arrow-left"></i> Quay lại chi tiết
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card glass-card p-4 p-md-5">
+                
+                <!-- Header -->
+                <div class="text-center mb-5 border-bottom pb-4">
+                    <h1 class="fw-bold text-teal mb-2">@Model.PoolInfo.PoolName</h1>
+                    <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-ocean"></i> @Model.PoolInfo.Address</p>
+                </div>
+
+                <div class="row g-5">
+                    <!-- Left Column: Date & Slots -->
+                    <div class="col-md-7 border-end-md">
+                        <h4 class="fw-bold text-teal mb-4"><i class="bi bi-calendar-event text-ocean me-2"></i>Chọn thời gian</h4>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Ngày đặt lịch</label>
+                            <input type="date" id="booking-date" class="form-control form-control-lg rounded-3 border-light shadow-sm" style="background-color: #f8fafc;" min="@DateTime.Now.ToString("yyyy-MM-dd")" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary d-flex justify-content-between align-items-center">
+                                <span>Khung giờ (Slots)</span>
+                                <span id="slots-loader" class="spinner-border spinner-border-sm text-ocean d-none" role="status"></span>
+                            </label>
+                            
+                            <div id="slots-container" class="row g-2 mt-1">
+                                <!-- Slots will be loaded here via AJAX -->
+                                <div class="col-12 text-center py-4 text-muted" id="slots-empty-msg">
+                                    Vui lòng chọn ngày để xem khung giờ trống.
+                                </div>
+                            </div>
+                            <!-- Error message -->
+                            <div id="slots-error" class="alert alert-danger d-none mt-3 border-0 py-2" role="alert">
+                                Lỗi tải danh sách giờ.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Tickets & Summary -->
+                    <div class="col-md-5">
+                        <h4 class="fw-bold text-teal mb-4"><i class="bi bi-ticket-perforated text-ocean me-2"></i>Chọn loại vé</h4>
+                        
+                        <div id="tickets-loader" class="text-center py-3">
+                            <div class="spinner-border text-ocean spinner-border-sm" role="status"></div>
+                        </div>
+
+                        <div id="tickets-container" class="d-flex flex-column gap-3 mb-4">
+                            <!-- Single Tickets -->
+                            <div id="single-tickets-section" class="d-none">
+                                <h5 class="fw-bold text-ocean mb-3 border-bottom pb-2">Vé Đơn</h5>
+                                <div id="single-tickets-container" class="d-flex flex-column gap-3"></div>
+                            </div>
+                            
+                            <!-- Combo Tickets -->
+                            <div id="combo-tickets-section" class="d-none mt-2">
+                                <h5 class="fw-bold text-ocean mb-3 border-bottom pb-2">Vé Combo</h5>
+                                <div id="combo-tickets-container" class="d-flex flex-column gap-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Summary & Submit -->
+                        <div class="ocean-card p-4 mt-4 border border-light">
+                            <h5 class="fw-bold text-teal mb-3 border-bottom pb-2">Tổng quan đặt lịch</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Ngày:</span>
+                                <span class="fw-semibold" id="summary-date">--/--/----</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Giờ:</span>
+                                <span class="fw-semibold text-ocean" id="summary-time">Chưa chọn</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary">Số lượng vé:</span>
+                                <span class="fw-semibold" id="summary-tickets">0 vé</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <span class="fw-bold fs-5 text-teal">Tổng tiền:</span>
+                                <span class="fw-bold fs-4 text-danger" id="total-price">0đ</span>
+                            </div>
+
+                            <button id="btn-submit-booking" class="btn ocean-btn-primary btn-lg w-100 mt-4 rounded-3 shadow fw-bold" disabled>
+                                Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass server variables to JS
+        const API_BASE_URL = '@Model.ApiBaseUrl';
+        const POOL_ID = @Model.PoolId;
+    </script>
+    <script src="~/js/booking/customer-booking.js" asp-append-version="true"></script>
+}

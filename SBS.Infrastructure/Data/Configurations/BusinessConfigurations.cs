@@ -16,7 +16,6 @@ public class PoolConfiguration : IEntityTypeConfiguration<Pool>
         builder.Property(e => e.PoolName).IsRequired().HasMaxLength(200);
         builder.Property(e => e.Address).IsRequired().HasMaxLength(500);
         builder.Property(e => e.Description).HasMaxLength(2000);
-        builder.Property(e => e.ImageUrl).HasMaxLength(500);
         builder.Property(e => e.OpeningTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.ClosingTime).IsRequired().HasColumnType("time");
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Active");
@@ -252,7 +251,10 @@ public class ContactRequestConfiguration : IEntityTypeConfiguration<ContactReque
         builder.HasKey(e => e.ContactRequestId);
         builder.Property(e => e.ContactRequestId).ValueGeneratedOnAdd();
         builder.Property(e => e.Email).IsRequired().HasMaxLength(256);
-        builder.Property(e => e.Reason).IsRequired().HasMaxLength(2000);
+        builder.Property(e => e.FullName).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.PhoneNumber).HasMaxLength(20);
+        builder.Property(e => e.Category).IsRequired().HasMaxLength(50);
+        builder.Property(e => e.Message).IsRequired().HasMaxLength(2000);
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Pending");
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
@@ -298,5 +300,108 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
             .WithOne(b => b.Feedback)
             .HasForeignKey<Feedback>(e => e.BookingId)
             .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+// ===== RefreshToken =====
+public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+{
+    public void Configure(EntityTypeBuilder<RefreshToken> builder)
+    {
+        builder.ToTable("RefreshTokens");
+        builder.HasKey(e => e.RefreshTokenId);
+        builder.Property(e => e.RefreshTokenId).ValueGeneratedOnAdd();
+        builder.Property(e => e.Token).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.JwtId).IsRequired().HasMaxLength(100);
+        builder.Property(e => e.ExpiryDate).IsRequired();
+        builder.Property(e => e.IsUsed).IsRequired();
+        builder.Property(e => e.IsRevoked).IsRequired();
+        builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Unique index on Token for fast search
+        builder.HasIndex(e => e.Token).IsUnique();
+
+        // FK to AppUser
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+// ===== PoolImage =====
+public class PoolImageConfiguration : IEntityTypeConfiguration<PoolImage>
+{
+    public void Configure(EntityTypeBuilder<PoolImage> builder)
+    {
+        builder.ToTable("PoolImages");
+        builder.HasKey(e => e.PoolImageId);
+        builder.Property(e => e.PoolImageId).ValueGeneratedOnAdd();
+        builder.Property(e => e.ImageUrl).IsRequired().HasMaxLength(1000);
+        builder.Property(e => e.IsCover).IsRequired().HasDefaultValue(false);
+        builder.Property(e => e.SortOrder).IsRequired().HasDefaultValue(0);
+        builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Mỗi pool không được có 2 ảnh cùng URL
+        builder.HasIndex(e => new { e.PoolId, e.ImageUrl }).IsUnique();
+
+        builder.HasOne(e => e.Pool)
+            .WithMany(p => p.PoolImages)
+            .HasForeignKey(e => e.PoolId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+// ===== PoolStaffAssignment =====
+public class PoolStaffAssignmentConfiguration : IEntityTypeConfiguration<PoolStaffAssignment>
+{
+    public void Configure(EntityTypeBuilder<PoolStaffAssignment> builder)
+    {
+        builder.ToTable("PoolStaffAssignments");
+        builder.HasKey(e => e.AssignmentId);
+        builder.Property(e => e.AssignmentId).ValueGeneratedOnAdd();
+        builder.Property(e => e.StaffId).IsRequired();
+        builder.Property(e => e.AssignedAt).HasDefaultValueSql("GETUTCDATE()");
+
+        // Unique: mỗi bể chỉ có tối đa 1 staff duy nhất
+        builder.HasIndex(e => e.PoolId).IsUnique();
+
+        // FK tới Pools
+        builder.HasOne(e => e.Pool)
+            .WithMany()
+            .HasForeignKey(e => e.PoolId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // FK tới AspNetUsers (Staff) — configured from Infrastructure side, no navigation on AppUser
+        builder.HasOne<AppUser>()
+            .WithMany()
+            .HasForeignKey(e => e.StaffId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+// ===== TicketPriceHistory =====
+public class TicketPriceHistoryConfiguration : IEntityTypeConfiguration<TicketPriceHistory>
+{
+    public void Configure(EntityTypeBuilder<TicketPriceHistory> builder)
+    {
+        builder.ToTable("TicketPriceHistories");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.OldBasePrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewBasePrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.OldDiscountPercent).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewDiscountPercent).HasColumnType("decimal(18,2)");
+    }
+}
+
+// ===== PoolTicketPriceHistory =====
+public class PoolTicketPriceHistoryConfiguration : IEntityTypeConfiguration<PoolTicketPriceHistory>
+{
+    public void Configure(EntityTypeBuilder<PoolTicketPriceHistory> builder)
+    {
+        builder.ToTable("PoolTicketPriceHistories");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.OldCustomPrice).HasColumnType("decimal(18,2)");
+        builder.Property(e => e.NewCustomPrice).HasColumnType("decimal(18,2)");
     }
 }

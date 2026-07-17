@@ -1,0 +1,242 @@
+@page
+@model CustomerViewPoolDetailModel
+@{
+    ViewData["Title"] = "Chi tiết bể bơi - PoolHub";
+}
+
+<div class="container my-5">
+    <!-- Back Button -->
+    <div class="row mb-4">
+        <div class="col-lg-9 mx-auto">
+            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-outline px-4 py-2.5 rounded-3 fw-semibold shadow-sm"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+        </div>
+    </div>
+
+    <!-- Main Detail Box -->
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card glass-card p-4 p-md-5 border-0">
+                <!-- Loader -->
+                <div id="detail-loader" class="text-center my-5">
+                    <div class="spinner-border text-ocean" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-3 text-teal fs-6 fw-medium">Đang tải thông tin chi tiết bể bơi...</p>
+                </div>
+
+                <!-- Detail Content (Initially hidden) -->
+                <div id="detail-content" class="d-none">
+                    <!-- Carousel Slider for Images -->
+                    <div id="poolImagesCarousel" class="carousel slide mb-5 rounded-4 overflow-hidden shadow-lg" data-bs-ride="carousel">
+                        <div class="carousel-indicators" id="carousel-indicators-list">
+                            <!-- Indicators will be generated here -->
+                        </div>
+                        <div class="carousel-inner" id="carousel-inner-list" style="height: 440px;">
+                            <!-- Slides will be generated here -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#poolImagesCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Trước</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#poolImagesCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Sau</span>
+                        </button>
+                    </div>
+
+                    <!-- Pool Title & Location Info Header -->
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h1 id="pool-name" class="fw-bold text-teal display-6 mb-2">--</h1>
+                        <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-ocean"></i> <span id="pool-street-top">--</span></p>
+                    </div>
+
+                    <!-- Pool Information Table & Details -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-4 bg-white-50 rounded-4 h-100 shadow-sm border border-light">
+                                <h5 class="fw-bold text-teal border-bottom pb-2 mb-3"><i class="bi bi-clock-fill text-ocean"></i> Thời gian hoạt động</h5>
+                                <ul class="list-unstyled mb-0 d-flex flex-column gap-3 fs-6 text-secondary">
+                                    <li><i class="bi bi-alarm-fill text-ocean me-2"></i> <strong>Giờ mở cửa:</strong> <span id="pool-open" class="text-dark fw-medium">--</span></li>
+                                    <li><i class="bi bi-alarm-fill text-danger me-2"></i> <strong>Giờ đóng cửa:</strong> <span id="pool-close" class="text-dark fw-medium">--</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 bg-white-50 rounded-4 h-100 shadow-sm border border-light">
+                                <h5 class="fw-bold text-teal border-bottom pb-2 mb-3"><i class="bi bi-file-earmark-text-fill text-ocean"></i> Mô tả bể bơi</h5>
+                                <p id="pool-desc" class="text-secondary fs-6 mb-0" style="text-align: justify; line-height: 1.6;">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Book Pool Button -->
+                    <div class="text-center mt-5">
+                        <button onclick="handleBooking()" class="btn ocean-btn-primary btn-lg px-5 py-3 fs-5 rounded-3 shadow fw-bold w-100 w-md-auto"><i class="bi bi-calendar2-check-fill me-2"></i>Đặt lịch ngay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-image: linear-gradient(rgba(0, 194, 224, 0.12), rgba(0, 95, 106, 0.6)), url('/images/swimming_pool_bg.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        box-shadow: var(--shadow-soft);
+    }
+    .bg-white-50 {
+        background-color: rgba(248, 250, 252, 0.8);
+    }
+    .carousel-inner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const API_BASE_URL = '@Model.ApiBaseUrl';
+        const poolId = '@Model.Id';
+
+        $(document).ready(function() {
+            checkLoginState();
+            loadPoolDetail();
+        });
+
+        window.logout = function() {
+            $.ajax({
+                url: API_BASE_URL + '/api/Auth/logout',
+                type: 'POST',
+                xhrFields: {
+                    withCredentials: true
+                },
+                complete: function() {
+                    // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    window.location.href = '/Index';
+                }
+            });
+        };
+
+        function checkLoginState() {
+            const userName = getCookie('userName');
+            const role = getCookie('role');
+            if (userName && role) {
+                const loginLink = $('.navbar a[href*="/Auth/Login"]');
+                if (loginLink.length > 0) {
+                    const welcomeText = `Chào mừng, <span class="fw-bold text-primary">${decodeURIComponent(userName)}</span>`;
+                    const logoutBtn = `<button class="btn btn-outline-danger rounded-pill px-3 fw-semibold ms-2" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i> Đăng xuất</button>`;
+                    loginLink.parent().html(`<div class="d-flex align-items-center gap-2 text-dark fs-6">${welcomeText} ${logoutBtn}</div>`);
+                }
+            }
+        }
+
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        function loadPoolDetail() {
+            $.ajax({
+                url: API_BASE_URL + '/api/customer/pools/' + poolId,
+                type: 'GET',
+                success: function(pool) {
+                    $('#detail-loader').addClass('d-none');
+                    $('#detail-content').removeClass('d-none');
+
+                    // Display details
+                    $('#pool-name').text(pool.poolName);
+                    $('#pool-street-top').text(pool.address);
+                    
+                    $('#pool-open').text(pool.openingTime);
+                    $('#pool-close').text(pool.closingTime);
+                    $('#pool-desc').text(pool.description || 'Chưa có mô tả chi tiết cho bể bơi này.');
+
+                    // Render Carousel Images
+                    let images = pool.images;
+                    if (!images || images.length === 0) {
+                        images = ['https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop'];
+                    }
+
+                    let indicatorsHtml = '';
+                    let slidesHtml = '';
+
+                    images.forEach((imgUrl, index) => {
+                        indicatorsHtml += `
+                            <button type="button" data-bs-target="#poolImagesCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''}" aria-current="${index === 0 ? 'true' : 'false'}" aria-label="Slide ${index + 1}"></button>
+                        `;
+
+                        slidesHtml += `
+                            <div class="carousel-item ${index === 0 ? 'active' : ''}" style="height: 440px;">
+                                <img src="${imgUrl}" class="d-block w-100" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop';" alt="Pool image ${index + 1}">
+                            </div>
+                        `;
+                    });
+
+                    $('#carousel-indicators-list').html(indicatorsHtml);
+                    $('#carousel-inner-list').html(slidesHtml);
+
+                    // Force re-initialization of Bootstrap Carousel to fix next/prev slide navigation
+                    const carouselEl = document.querySelector('#poolImagesCarousel');
+                    if (carouselEl) {
+                        const oldInstance = bootstrap.Carousel.getInstance(carouselEl);
+                        if (oldInstance) {
+                            oldInstance.dispose();
+                        }
+                        new bootstrap.Carousel(carouselEl, {
+                            interval: 4000,
+                            ride: 'carousel',
+                            wrap: true
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Lỗi khi tải chi tiết bể bơi: ", xhr);
+                    $('#detail-loader').html(`
+                        <div class="alert alert-danger text-center my-4 border-0" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Không thể tải thông tin bể bơi hoặc bể bơi không tồn tại.
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function handleBooking() {
+            const role = getCookie('role');
+            if (!role || role.toLowerCase() !== 'customer') {
+                window.location.href = '/Auth/Login';
+                return;
+            }
+            window.location.href = `/Customer/Bookings/Create?poolId=${poolId}`;
+        }
+    </script>
+}

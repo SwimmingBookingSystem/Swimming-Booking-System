@@ -1,0 +1,481 @@
+@page
+@model SBS.WebApp.Pages.Manager.Pricing.IndexModel
+@{
+    Layout = "_ManagerLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/manager-pricing.css" asp-append-version="true" />
+}
+
+<!-- Page Header -->
+<div class="pricing-header">
+    <h4><i class="fa-solid fa-tags me-2 text-primary"></i>Bảng giá theo Bể bơi</h4>
+</div>
+
+<!-- Pool Selector -->
+<div class="row align-items-end mb-4">
+    <div class="col-md-8 col-lg-6">
+        <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Cơ sở / Bể bơi đang chọn</label>
+        <button class="btn w-100 text-start d-flex align-items-center justify-content-between shadow-sm bg-white hover-shadow transition-all" type="button" onclick="openPoolSelectModal()" style="padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1;">
+            <div class="d-flex align-items-center gap-3">
+                <img id="selectorAvatar" src="https://placehold.co/48x48?text=?" class="rounded-3 shadow-sm" style="width: 48px; height: 48px; object-fit: cover; border: 2px solid #fff;" alt="">
+                <div>
+                    <h6 class="mb-1 fw-bold text-dark" id="selectorPoolName">Đang tải...</h6>
+                    <div class="text-muted" id="selectorPoolInfo" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Vui lòng đợi</div>
+                </div>
+            </div>
+            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary transition-all hover-bg-primary hover-text-white" style="width: 36px; height: 36px;">
+                <i class="fa-solid fa-pen"></i>
+            </div>
+        </button>
+    </div>
+    <div class="col-md-4 col-lg-6 d-flex justify-content-md-end align-items-end gap-2 mt-3 mt-md-0">
+        <div>
+            <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Lọc loại vé</label>
+            <select class="form-select shadow-sm" id="categoryFilter" onchange="applyFilter()" style="border-radius: 10px; border: 1px solid #cbd5e1; height: 44px; min-width: 150px;">
+                <option value="All">Tất cả</option>
+                <option value="Single">Chỉ Vé đơn</option>
+                <option value="Combo">Chỉ Combo</option>
+            </select>
+        </div>
+        <button class="btn btn-outline-primary shadow-sm fw-semibold" onclick="refreshPricing()" style="border-radius: 10px; height: 44px; padding: 0 20px;">
+            <i class="fa-solid fa-rotate-right me-2"></i>Làm mới
+        </button>
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(-2px);
+    }
+    .hover-bg-primary:hover {
+        background-color: #0d6efd !important;
+    }
+    .hover-text-white:hover {
+        color: #fff !important;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+    }
+</style>
+
+<!-- Pool Selection Modal -->
+<div class="modal fade" id="poolSelectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-building me-2 text-primary"></i> Chọn Cơ Sở / Bể Bơi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div class="position-relative mb-4 sticky-top bg-white py-2" style="z-index: 10;">
+                    <i class="fa-solid fa-search position-absolute text-muted" style="top: 50%; left: 16px; transform: translateY(-50%);"></i>
+                    <input type="text" class="form-control form-control-lg bg-light border-0 shadow-none" id="modalPoolSearch" placeholder="Tìm kiếm tên bể bơi, địa chỉ..." autocomplete="off" onkeyup="filterModalPools()" style="padding-left: 48px; border-radius: 12px;">
+                </div>
+                <div class="row g-3" id="modalPoolGrid">
+                    <!-- js render cards -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Table -->
+<div class="pricing-table-wrapper" id="pricingTableWrapper">
+    <table class="pricing-table">
+        <thead>
+            <tr>
+                <th>Loại vé</th>
+                <th>Mã</th>
+                <th>Loại</th>
+                <th>Giá gốc (Base)</th>
+                <th>Giá tại bể bơi</th>
+                <th>Chênh lệch</th>
+                <th>Trạng thái</th>
+                <th style="width: 160px; text-align: center;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="pricingTableBody">
+            <tr>
+                <td colspan="8">
+                    <div class="pricing-empty">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <p>Chọn một bể bơi ở trên để xem bảng giá.</p>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="pricing-summary" id="pricingSummary" style="display: none;">
+        <span id="summaryText"></span>
+    </div>
+</div>
+
+<!-- Edit Price Modal -->
+<div class="modal fade" id="priceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content price-edit-modal">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-pen me-2"></i>Cập nhật giá vé</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editPoolId">
+                <input type="hidden" id="editTicketTypeId">
+
+                <div class="current-info">
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Loại vé</label>
+                            <div class="value" id="priceModalTicketName">—</div>
+                        </div>
+                        <div class="col-6">
+                            <label>Giá gốc (Base)</label>
+                            <div class="value" id="priceModalBasePrice">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Giá mới tại bể bơi (VNĐ) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control form-control-lg" id="newPrice" min="0" step="1000" placeholder="Nhập giá mới">
+                    <div class="form-text">Để giá 0 hoặc bằng giá gốc nếu không muốn áp giá riêng.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary px-4" onclick="savePrice()">
+                    <i class="fa-solid fa-save me-1"></i> Lưu giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-3" id="confirmTitle">Xác nhận</h5>
+                <p class="text-muted mb-4" id="confirmMessage"></p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light border w-50" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger w-50" id="btnConfirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let pools = [];
+        let poolTickets = [];
+        let selectedPoolId = null;
+        let priceModal, confirmModal, poolSelectModal, confirmCb;
+
+        $(document).ready(function () {
+            priceModal = new bootstrap.Modal(document.getElementById('priceModal'));
+            confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            poolSelectModal = new bootstrap.Modal(document.getElementById('poolSelectModal'));
+            
+            const savedCategory = sessionStorage.getItem('Pricing_Filter_Category');
+            if (savedCategory) $('#categoryFilter').val(savedCategory);
+            
+            loadPools();
+        });
+
+        // ── LOAD POOLS ───────────────────────────────────────────────
+        async function loadPools() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                pools = res.items || [];
+                renderPoolModalGrid();
+                
+                const savedPool = sessionStorage.getItem('Pricing_Filter_PoolId');
+                if (savedPool && pools.find(p => p.poolId == savedPool)) {
+                    selectPool(parseInt(savedPool));
+                } else if (pools.length > 0) {
+                    selectPool(pools[0].poolId);
+                }
+            } catch (e) { }
+        }
+
+        function renderPoolModalGrid() {
+            if (pools.length === 0) {
+                $('#modalPoolGrid').html('<div class="col-12 text-center py-5 text-muted">Chưa có bể bơi nào. Vui lòng tạo bể bơi trước.</div>');
+                $('#selectorPoolName').text('Chưa có dữ liệu');
+                $('#selectorPoolInfo').html('Vui lòng tạo bể bơi mới');
+                return;
+            }
+            
+            let html = '';
+            pools.forEach(p => {
+                const searchStr = (p.poolName + ' ' + p.address).toLowerCase();
+                const coverImg = p.images && p.images.length > 0
+                    ? (p.images.find(i => i.isCover)?.imageUrl || p.images[0].imageUrl)
+                    : 'https://placehold.co/400x200?text=' + encodeURIComponent(p.poolName);
+                    
+                const isActive = p.poolId == selectedPoolId;
+                
+                html += `
+                <div class="col-md-6 pool-card-item" data-search-term="${searchStr}">
+                    <div class="card h-100 border ${isActive ? 'border-primary shadow-sm bg-primary bg-opacity-10' : 'border-light bg-white'} hover-shadow cursor-pointer transition-all pool-card-element" onclick="selectPoolFromModal(${p.poolId})" data-pool-id="${p.poolId}" style="border-radius: 12px; overflow: hidden; cursor: pointer;">
+                        <div class="row g-0 h-100">
+                            <div class="col-4" style="background: url('${coverImg}') center/cover; min-height: 100px;"></div>
+                            <div class="col-8">
+                                <div class="card-body p-3 position-relative">
+                                    <h6 class="card-title fw-bold text-dark mb-1 text-truncate" title="${p.poolName}">${p.poolName}</h6>
+                                    <p class="card-text text-muted small mb-0 line-clamp-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>${p.address}</p>
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2 text-primary check-mark-icon" style="display: ${isActive ? 'block' : 'none'};"><i class="fa-solid fa-circle-check fs-5"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            $('#modalPoolGrid').html(html);
+        }
+
+        function filterModalPools() {
+            const term = $('#modalPoolSearch').val().toLowerCase();
+            $('.pool-card-item').each(function () {
+                const searchStr = $(this).attr('data-search-term');
+                if (searchStr.indexOf(term) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        function openPoolSelectModal() {
+            renderPoolModalGrid();
+            $('#modalPoolSearch').val('');
+            filterModalPools();
+            poolSelectModal.show();
+        }
+
+        function selectPoolFromModal(poolId) {
+            selectPool(poolId);
+            poolSelectModal.hide();
+        }
+
+        async function selectPool(poolId) {
+            selectedPoolId = poolId;
+            sessionStorage.setItem('Pricing_Filter_PoolId', poolId);
+            
+            // Update active state in modal grid
+            $('.pool-card-element').removeClass('border-primary shadow-sm bg-primary bg-opacity-10').addClass('border-light bg-white');
+            $('.check-mark-icon').hide();
+            
+            const activeCard = $(`.pool-card-element[data-pool-id="${poolId}"]`);
+            if (activeCard.length > 0) {
+                activeCard.removeClass('border-light bg-white').addClass('border-primary shadow-sm bg-primary bg-opacity-10');
+                activeCard.find('.check-mark-icon').show();
+            }
+
+            // Update selector button banner
+            const pool = pools.find(p => p.poolId === poolId);
+            if (pool) {
+                const coverImg = pool.images && pool.images.length > 0
+                    ? (pool.images.find(i => i.isCover)?.imageUrl || pool.images[0].imageUrl)
+                    : 'https://placehold.co/56x56?text=' + encodeURIComponent(pool.poolName.charAt(0));
+                $('#selectorAvatar').attr('src', coverImg);
+                $('#selectorPoolName').text(pool.poolName);
+                $('#selectorPoolInfo').html(`<i class="fa-solid fa-location-dot me-1"></i>${pool.address} &nbsp;|&nbsp; <i class="fa-regular fa-clock me-1"></i>${pool.openingTime} - ${pool.closingTime}`);
+            }
+
+            await loadPoolTickets(poolId);
+        }
+
+        // ── LOAD POOL TICKETS ────────────────────────────────────────
+        async function loadPoolTickets(poolId) {
+            try {
+                poolTickets = await api.get(`/pools/${poolId}/ticket-types`);
+                applyFilter();
+            } catch (e) {
+                renderPricingTable([]);
+            }
+        }
+
+        function refreshPricing() {
+            if (selectedPoolId) loadPoolTickets(selectedPoolId);
+        }
+
+        function applyFilter() {
+            const filterVal = $('#categoryFilter').val();
+            sessionStorage.setItem('Pricing_Filter_Category', filterVal);
+            if (filterVal === 'All') {
+                renderPricingTable(poolTickets);
+            } else {
+                const filtered = poolTickets.filter(t => t.category === filterVal);
+                renderPricingTable(filtered);
+            }
+        }
+
+        // ── RENDER TABLE ─────────────────────────────────────────────
+        function renderPricingTable(list) {
+            if (!list || list.length === 0) {
+                $('#pricingTableBody').html(`
+                    <tr><td colspan="8">
+                        <div class="pricing-empty">
+                            <i class="fa-solid fa-tags"></i>
+                            <p>Bể bơi này chưa có loại vé nào được gán.<br>
+                            <span class="small">Hãy vào trang <a href="/Manager/Tickets" class="text-primary fw-semibold">Quản lý Loại vé</a> để tạo vé và áp dụng cho bể bơi này.</span></p>
+                        </div>
+                    </td></tr>`);
+                $('#pricingSummary').hide();
+                return;
+            }
+
+            let html = '';
+            list.forEach(t => {
+                const isActive = t.status === 'Active';
+                const isCombo = t.category === 'Combo';
+                const isOverride = t.price !== null && t.price !== undefined;
+                const trueSystemPrice = t.basePrice * (1 - (t.discountPercent || 0) / 100);
+                const currentPrice = isOverride ? t.price : trueSystemPrice;
+                const diff = currentPrice - trueSystemPrice;
+                
+                let diffHtml = '';
+                if (diff > 0) {
+                    diffHtml = `<span class="price-diff up"><i class="fa-solid fa-arrow-up"></i> +${formatMoney(diff)}</span>`;
+                } else if (diff < 0) {
+                    diffHtml = `<span class="price-diff down"><i class="fa-solid fa-arrow-down"></i> ${formatMoney(diff)}</span>`;
+                } else {
+                    diffHtml = `<span class="price-diff same">Bằng giá gốc</span>`;
+                }
+                
+                let currentPriceHtml = isOverride 
+                    ? `<span class="price-current">${formatMoney(currentPrice)}</span>` 
+                    : `<span class="price-current text-muted"><i class="fa-solid fa-link me-1"></i>${formatMoney(currentPrice)}</span> <br><small class="text-muted">(Giá gốc)</small>`;
+
+                html += `
+                <tr>
+                    <td>
+                        <div class="ticket-info-cell">
+                            <div class="ticket-icon ${isCombo ? 'combo' : 'single'}">
+                                <i class="fa-solid ${isCombo ? 'fa-cubes' : 'fa-ticket'}"></i>
+                            </div>
+                            <div>
+                                <div class="ticket-name">${t.ticketName}</div>
+                                <div class="ticket-code">${t.ticketCode}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="font-family: monospace; color: #0284c7; font-weight: 600;">${t.ticketCode}</span></td>
+                    <td>
+                        <span class="category-badge ${isCombo ? 'combo' : 'single'}">
+                            <i class="fa-solid ${isCombo ? 'fa-cubes' : 'fa-ticket'}"></i> ${t.category}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="price-base" style="${t.discountPercent > 0 ? 'text-decoration: line-through; color: #999; font-size: 0.85rem;' : ''}">${formatMoney(t.basePrice)}</span>
+                        ${t.discountPercent > 0 ? `<br><span class="price-base text-success fw-bold">${formatMoney(trueSystemPrice)}</span> <span class="badge bg-danger ms-1">-${t.discountPercent}%</span>` : ''}
+                    </td>
+                    <td>${currentPriceHtml}</td>
+                    <td>${diffHtml}</td>
+                    <td>
+                        <span class="pricing-status ${isActive ? 'active' : (t.status === 'NotApplied' ? 'not-applied' : 'closed')}" 
+                              style="${t.status === 'NotApplied' ? 'background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1;' : ''}">
+                            ${isActive ? 'Hoạt động' : (t.status === 'NotApplied' ? 'Chưa áp dụng' : 'Đã đóng')}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="pricing-action-btn" title="Sửa giá" onclick="openPriceModal(${t.ticketTypeId})" ${t.status === 'NotApplied' ? 'disabled style="opacity: 0.5;"' : ''}>
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            ${isActive
+                                ? `<button class="pricing-action-btn" title="Ngừng bán vé tại bể này" onclick="togglePoolTicket(${t.ticketTypeId}, 'close')" style="color:#ef4444;"><i class="fa-solid fa-ban"></i></button>`
+                                : `<button class="pricing-action-btn" title="${t.status === 'NotApplied' ? 'Áp dụng bán' : 'Mở lại'}" onclick="togglePoolTicket(${t.ticketTypeId}, 'open')" style="${t.status === 'NotApplied' ? 'color:#10b981;' : ''}">
+                                    <i class="fa-solid ${t.status === 'NotApplied' ? 'fa-check' : 'fa-rotate-left'}"></i>
+                                   </button>`
+                            }
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            $('#pricingTableBody').html(html);
+
+            // Summary
+            const activeCount = list.filter(t => t.status === 'Active').length;
+            $('#summaryText').text(`Tổng: ${list.length} loại vé | ${activeCount} đang hoạt động`);
+            $('#pricingSummary').show();
+        }
+
+        // ── EDIT PRICE ───────────────────────────────────────────────
+        function openPriceModal(ticketTypeId) {
+            const t = poolTickets.find(x => x.ticketTypeId === ticketTypeId);
+            if (!t) return;
+            $('#editPoolId').val(selectedPoolId);
+            $('#editTicketTypeId').val(ticketTypeId);
+            $('#priceModalTicketName').text(`${t.ticketCode} — ${t.ticketName}`);
+            
+            const trueSystemPrice = t.basePrice * (1 - (t.discountPercent || 0) / 100);
+            $('#priceModalBasePrice').text(formatMoney(trueSystemPrice));
+            
+            const isOverride = t.price !== null && t.price !== undefined;
+            $('#newPrice').val(isOverride ? t.price : '');
+            priceModal.show();
+        }
+
+        async function savePrice() {
+            const poolId = parseInt($('#editPoolId').val());
+            const ticketTypeId = parseInt($('#editTicketTypeId').val());
+            let priceVal = $('#newPrice').val().trim();
+            
+            let price = priceVal === '' ? null : parseFloat(priceVal);
+
+            if (price !== null && (isNaN(price) || price < 0)) {
+                toastr.warning('Vui lòng nhập giá hợp lệ.');
+                return;
+            }
+
+            try {
+                await api.patch(`/pools/${poolId}/ticket-types/${ticketTypeId}/price`, { price: price });
+                toastr.success('Cập nhật giá thành công!');
+                priceModal.hide();
+                loadPoolTickets(poolId);
+            } catch (e) { }
+        }
+
+        // ── TOGGLE STATUS ────────────────────────────────────────────
+        function togglePoolTicket(ticketTypeId, action) {
+            const t = poolTickets.find(x => x.ticketTypeId === ticketTypeId);
+            const label = action === 'close' ? 'ngừng bán' : (t.status === 'NotApplied' ? 'áp dụng (bật bán)' : 'mở lại');
+            $('#confirmTitle').text(`Xác nhận ${label} vé?`);
+            $('#confirmMessage').text(`Bạn có chắc muốn ${label} vé "${t?.ticketName}" tại bể bơi này?`);
+            confirmCb = async () => {
+                try {
+                    await api.patch(`/pools/${selectedPoolId}/ticket-types/${ticketTypeId}/${action}`);
+                    toastr.success(`Đã ${label} vé thành công.`);
+                    confirmModal.hide();
+                    loadPoolTickets(selectedPoolId);
+                } catch (e) { }
+            };
+            confirmModal.show();
+        }
+
+        $('#btnConfirmAction').click(function () { if (confirmCb) confirmCb(); });
+
+        // ── UTILS ────────────────────────────────────────────────────
+        function formatMoney(v) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(v)) + ' ₫';
+        }
+    </script>
+}

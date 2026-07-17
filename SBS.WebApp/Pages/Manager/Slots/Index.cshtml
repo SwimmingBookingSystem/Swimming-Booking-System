@@ -1,0 +1,248 @@
+@page
+@model SBS.WebApp.Pages.Manager.Slots.IndexModel
+@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Quản lý Khung giờ";
+    ViewData["Breadcrumb"] = "Quản lý / Khung giờ";
+}
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Chọn Bể bơi</label>
+            <select id="filterPool" class="form-select">
+                <option value="">Đang tải...</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Ngày</label>
+            <input type="date" id="filterDate" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">Trạng thái</label>
+            <select id="filterStatus" class="form-select">
+                <option value="">Tất cả</option>
+                <option value="Open">Mở (Open)</option>
+                <option value="Closed">Đóng (Closed)</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex justify-content-end gap-2">
+            <a href="/Manager/Slots/Generate" class="btn btn-warning text-dark fw-medium shadow-sm">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Tạo Tự Động
+            </a>
+            <a href="/Manager/Slots/Create" class="btn btn-primary shadow-sm" id="btnCreateSlot">
+                <i class="fa-solid fa-plus me-1"></i> Tạo Slot
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Bể bơi</th>
+                    <th class="text-muted small fw-bold text-uppercase">Tên Slot</th>
+                    <th class="text-muted small fw-bold text-uppercase">Ngày</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Khung giờ</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Sức chứa</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
+                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="slotTableBody">
+                <tr><td colspan="7" class="text-center p-5 text-muted">Vui lòng chọn bể bơi để xem Slot.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 slot</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allPools = [];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        $(document).ready(function() {
+            // Khôi phục bộ lọc từ SessionStorage
+            const savedDate = sessionStorage.getItem('Slots_Filter_Date');
+            if (savedDate) {
+                $('#filterDate').val(savedDate);
+            } else {
+                document.getElementById('filterDate').valueAsDate = new Date();
+            }
+
+            const savedStatus = sessionStorage.getItem('Slots_Filter_Status');
+            if (savedStatus) $('#filterStatus').val(savedStatus);
+
+            initData();
+
+            $('#filterPool').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_PoolId', $(this).val());
+                loadSlots(1);
+                const poolId = $(this).val();
+                const createUrl = poolId ? `/Manager/Slots/Create?poolId=${poolId}` : `/Manager/Slots/Create`;
+                $('#btnCreateSlot').attr('href', createUrl);
+            });
+
+            $('#filterDate').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_Date', $(this).val());
+                loadSlots(1);
+            });
+
+            $('#filterStatus').on('change', function() {
+                sessionStorage.setItem('Slots_Filter_Status', $(this).val());
+                loadSlots(1);
+            });
+        });
+
+        async function initData() {
+            try {
+                const res = await api.get('/pools?pageSize=100');
+                allPools = res.items || [];
+                
+                let opts = '<option value="">-- Chọn Bể bơi --</option>';
+                allPools.forEach(p => {
+                    opts += `<option value="${p.poolId}">${p.poolName}</option>`;
+                });
+                $('#filterPool').html(opts);
+
+                const savedPool = sessionStorage.getItem('Slots_Filter_PoolId');
+                if (savedPool && allPools.find(p => p.poolId == savedPool)) {
+                    $('#filterPool').val(savedPool);
+                } else if(allPools.length > 0) {
+                    $('#filterPool').val(allPools[0].poolId);
+                }
+                
+                let initialPage = 1;
+                const savedPage = sessionStorage.getItem('Slots_Filter_Page');
+                if (savedPage) initialPage = parseInt(savedPage);
+
+                const poolId = $('#filterPool').val();
+                const createUrl = poolId ? `/Manager/Slots/Create?poolId=${poolId}` : `/Manager/Slots/Create`;
+                $('#btnCreateSlot').attr('href', createUrl);
+
+                loadSlots(initialPage);
+            } catch(e) {}
+        }
+
+        async function loadSlots(page = 1) {
+            currentPage = page;
+            sessionStorage.setItem('Slots_Filter_Page', page);
+            
+            const poolId = $('#filterPool').val();
+            const date = $('#filterDate').val();
+            const status = $('#filterStatus').val();
+            
+            if(!poolId) {
+                $('#slotTableBody').html('<tr><td colspan="7" class="text-center p-5 text-muted"><i class="fa-solid fa-swimming-pool fa-3x mb-3 text-light"></i><br>Vui lòng chọn bể bơi để xem Slot.</td></tr>');
+                $('#pagination').html('');
+                $('#pageInfo').text('Hiển thị 0-0 trong 0 slot');
+                return;
+            }
+
+            try {
+                let url = `/pools/${poolId}/slots?page=${page}&pageSize=${pageSize}`;
+                if(date) url += `&date=${date}`;
+                if(status) url += `&status=${status}`;
+
+                const res = await api.get(url);
+                renderTable(res.items || []);
+                renderPagination(res.totalCount, res.page, res.pageSize);
+            } catch(e) {
+                $('#slotTableBody').html('<tr><td colspan="7" class="text-center p-5 text-danger">Lỗi tải dữ liệu.</td></tr>');
+            }
+        }
+
+        function renderPagination(totalCount, page, pSize) {
+            const totalPages = Math.ceil(totalCount / pSize) || 1;
+            const startItem = (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+            
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} slot`);
+
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page - 1}); return false;">Trước</a></li>`;
+            for(let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadSlots(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page + 1}); return false;">Sau</a></li>`;
+            
+            $('#pagination').html(html);
+        }
+
+        function renderTable(slots) {
+            let html = '';
+            if(slots.length === 0) {
+                html = '<tr><td colspan="7" class="text-center p-5 text-muted"><i class="fa-solid fa-calendar-xmark fa-3x mb-3 text-light"></i><br>Không có slot nào trong ngày này.</td></tr>';
+            } else {
+                slots.forEach(s => {
+                    const badgeClass = s.status === 'Open' ? 'bg-success text-success' : 'bg-danger text-danger';
+                    const actionBtn = s.status === 'Open'
+                        ? `<button class="btn btn-sm btn-light text-danger border me-1" onclick="toggleStatus(${s.poolSlotId}, 'close')" title="Đóng Slot"><i class="fa-solid fa-lock"></i></button>`
+                        : `<button class="btn btn-sm btn-light text-success border me-1" onclick="toggleStatus(${s.poolSlotId}, 'open')" title="Mở lại Slot"><i class="fa-solid fa-lock-open"></i></button>`;
+
+                    const poolName = allPools.find(p => p.poolId === s.poolId)?.poolName || '';
+                    const slotName = s.slotName || 'Ca bơi';
+
+                    html += `
+                        <tr>
+                            <td class="ps-4 fw-medium text-dark">${poolName}</td>
+                            <td class="text-muted">${slotName}</td>
+                            <td class="text-muted fw-medium">${s.slotDate}</td>
+                            <td class="text-center fw-bold text-primary">
+                                ${s.startTime.substring(0,5)} - ${s.endTime.substring(0,5)}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-sm text-center" style="width: 70px;" value="${s.capacity}" id="cap_${s.poolSlotId}">
+                                    <button class="btn btn-sm btn-light border text-primary" onclick="updateCapacity(${s.poolSlotId})" title="Lưu sức chứa"><i class="fa-solid fa-save"></i></button>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge ${badgeClass} bg-opacity-10 rounded-pill px-3 py-2 fw-bold">${s.status}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                ${actionBtn}
+                                <a href="/Manager/Slots/Edit/${s.poolSlotId}" class="btn btn-sm btn-light text-primary border" title="Sửa chi tiết">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#slotTableBody').html(html);
+        }
+
+        async function updateCapacity(id) {
+            const cap = parseInt($(`#cap_${id}`).val());
+            const poolId = parseInt($('#filterPool').val());
+            const currentPool = allPools.find(p => p.poolId === poolId);
+            const maxCap = currentPool && currentPool.standardCapacity ? currentPool.standardCapacity : 0;
+            
+            if(cap < 1 || (maxCap > 0 && cap > maxCap)) {
+                toastr.warning(`Sức chứa chuẩn nghiệp vụ phải lớn hơn 0 và tối đa là ${maxCap} người.`);
+                return;
+            }
+            try {
+                await api.patch(`/slots/${id}/capacity`, { capacity: cap });
+                toastr.success('Cập nhật sức chứa thành công');
+                loadSlots(currentPage);
+            } catch(e) {}
+        }
+
+        async function toggleStatus(id, action) {
+            try {
+                await api.patch(`/slots/${id}/${action}`);
+                toastr.success('Cập nhật trạng thái thành công');
+                loadSlots(currentPage);
+            } catch(e) {}
+        }
+    </script>
+}

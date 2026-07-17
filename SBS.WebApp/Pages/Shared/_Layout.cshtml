@@ -1,50 +1,203 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SBS.WebApp</title>
+    <title>@ViewData["Title"] - Swimming Booking System</title>
+
+    <!-- Google Fonts: Poppins (hỗ trợ tiếng Việt) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ocean-theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SBS.WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">SBS.WebApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-page="/Index">
+                    <i class="fa-solid fa-water text-ocean fs-3"></i>
+                    <span class="fw-bold fs-5 text-teal">Swimming<span class="text-ocean">Booking</span></span>
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav mx-auto gap-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")" asp-area="" asp-page="/Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("CustomerViewPoolIst") == true ? "active" : "")" href="/CustomerViewPoolIst/CustomerViewPoolIst">Bể Bơi</a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")" asp-area="" asp-page="/Contact">Liên hệ</a>
+                        </li>
+
                     </ul>
+                    <div class="d-flex align-items-center gap-2">
+                        @{
+                            var userName = Context.Request.Cookies["userName"];
+                            var role = Context.Request.Cookies["role"];
+                        }
+                        @if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(role))
+                        {
+                            var decodedUserName = System.Net.WebUtility.UrlDecode(userName);
+                            <div class="d-flex align-items-center gap-3">
+                                @if (role.ToLower() == "admin")
+                                {
+                                    <a class="btn d-flex align-items-center gap-2 px-3 py-2" href="/Admin/users" style="background: linear-gradient(135deg, #4DD4E9, #00C2E0); border: none; color: #fff; font-weight: 600; border-radius: 50rem; box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);">
+                                        <i class="fa-solid fa-shield-halved"></i> Dashboard Admin
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-area="" asp-page="/Customer/Profile/Index" title="Trang cá nhân của @decodedUserName">
+                                        <img src="https://ui-avatars.com/api/?name=@decodedUserName&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
+                                    </a>
+                                }
+                                <button class="btn ocean-btn-outline" onclick="logout()">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn ocean-btn-primary" asp-area="" asp-page="/Auth/Login">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+                            </a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    @if (ViewData["FullWidth"] is true)
+    {
+        <main role="main">
             @RenderBody()
         </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
+    }
+    else
+    {
         <div class="container">
-            &copy; 2026 - SBS.WebApp - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    }
+
+    <footer class="footer-section bg-beige py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa-solid fa-water text-ocean fs-3"></i>
+                        <span class="fw-bold fs-5" style="color: var(--text-main);">Swimming<span class="text-ocean">Booking</span></span>
+                    </div>
+                    <p class="text-muted mb-3" style="line-height: 1.7;">
+                        Hệ thống đặt lịch hồ bơi thông minh, giúp bạn dễ dàng tìm kiếm và đặt lịch bơi tại các hồ bơi hàng đầu Việt Nam.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" class="text-ocean fs-5"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <h6 class="fw-bold text-dark mb-3">Điều hướng</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li><a asp-area="" asp-page="/Index" class="text-decoration-none text-muted">Trang chủ</a></li>
+
+                        <li><a asp-area="" asp-page="/Privacy" class="text-decoration-none text-muted">Chính sách</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <h6 class="fw-bold text-dark mb-3">Hỗ trợ</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li><a href="#" class="text-decoration-none text-muted">Trung tâm trợ giúp</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Câu hỏi thường gặp</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Điều khoản sử dụng</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Khiếu nại & góp ý</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <h6 class="fw-bold text-dark mb-3">Liên hệ</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2 text-muted">
+                        <li><i class="bi bi-geo-alt text-ocean me-2"></i>Hòa Lạc</li>
+                        <li><i class="bi bi-telephone text-ocean me-2"></i> 0865327604</li>
+                        <li><i class="bi bi-envelope text-ocean me-2"></i> maivanhoang112k4@gmail.com</li>
+                        <li><i class="bi bi-clock text-ocean me-2"></i> 6:00 - 22:00 tất cả các ngày</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(0,0,0,0.1);">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-muted small">&copy; @DateTime.Now.Year - Swimming Booking System. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 text-muted small">
+                        <i class="bi bi-shield-check text-ocean me-1"></i> Bảo mật thông tin
+                        <span class="mx-2 text-muted">|</span>
+                        <i class="bi bi-credit-card text-ocean me-1"></i> Thanh toán an toàn
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';
+        window.logout = function() {
+            $.ajax({
+                url: window.API_BASE_URL + '/api/Auth/logout',
+                type: 'POST',
+                xhrFields: {
+                    withCredentials: true
+                },
+                complete: function() {
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+                    
+                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    window.location.href = '/Index';
+                }
+            });
+        };
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

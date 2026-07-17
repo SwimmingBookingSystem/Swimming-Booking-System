@@ -244,6 +244,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("CheckOutTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("CheckedByUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -291,6 +294,11 @@ namespace SBS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactRequestId"));
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -301,16 +309,25 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime?>("HandledAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("HandledByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Reason")
+                    b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -432,6 +449,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<double>("Area")
+                        .HasColumnType("float");
+
                     b.Property<TimeSpan>("ClosingTime")
                         .HasColumnType("time");
 
@@ -444,10 +464,6 @@ namespace SBS.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<TimeSpan>("OpeningTime")
                         .HasColumnType("time");
 
@@ -455,6 +471,9 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("StandardCapacity")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -469,6 +488,45 @@ namespace SBS.Infrastructure.Migrations
                     b.HasKey("PoolId");
 
                     b.ToTable("Pools", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
+                {
+                    b.Property<int>("PoolImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PoolImageId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsCover")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("PoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("PoolImageId");
+
+                    b.HasIndex("PoolId", "ImageUrl")
+                        .IsUnique();
+
+                    b.ToTable("PoolImages", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
@@ -517,6 +575,68 @@ namespace SBS.Infrastructure.Migrations
                     b.ToTable("PoolSlots", (string)null);
                 });
 
+            modelBuilder.Entity("SBS.Domain.Entities.PoolStaffAssignment", b =>
+                {
+                    b.Property<int>("AssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssignmentId"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid?>("AssignedByAdminId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PoolId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AssignmentId");
+
+                    b.HasIndex("PoolId")
+                        .IsUnique();
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("PoolStaffAssignments", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketPriceHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedByUserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("NewCustomPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("OldCustomPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PoolTicketTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PoolTicketTypeId");
+
+                    b.ToTable("PoolTicketPriceHistories", (string)null);
+                });
+
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
                     b.Property<int>("PoolTicketTypeId")
@@ -528,7 +648,7 @@ namespace SBS.Infrastructure.Migrations
                     b.Property<int>("PoolId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
@@ -549,6 +669,87 @@ namespace SBS.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PoolTicketTypes", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.TicketPriceHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedByUserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("NewBasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("NewDiscountPercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OldBasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OldDiscountPercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TicketTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketTypeId");
+
+                    b.ToTable("TicketPriceHistories", (string)null);
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
@@ -630,6 +831,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -949,6 +1153,17 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("SBS.Domain.Entities.PoolImage", b =>
+                {
+                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
+                        .WithMany("PoolImages")
+                        .HasForeignKey("PoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pool");
+                });
+
             modelBuilder.Entity("SBS.Domain.Entities.PoolSlot", b =>
                 {
                     b.HasOne("SBS.Domain.Entities.Pool", "Pool")
@@ -958,6 +1173,34 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Pool");
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.PoolStaffAssignment", b =>
+                {
+                    b.HasOne("SBS.Domain.Entities.Pool", "Pool")
+                        .WithMany()
+                        .HasForeignKey("PoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pool");
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.PoolTicketPriceHistory", b =>
+                {
+                    b.HasOne("SBS.Domain.Entities.PoolTicketType", "PoolTicketType")
+                        .WithMany("PriceHistories")
+                        .HasForeignKey("PoolTicketTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PoolTicketType");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
@@ -975,6 +1218,26 @@ namespace SBS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Pool");
+
+                    b.Navigation("TicketType");
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SBS.Infrastructure.Identity.AppUser", null)
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SBS.Domain.Entities.TicketPriceHistory", b =>
+                {
+                    b.HasOne("SBS.Domain.Entities.TicketType", "TicketType")
+                        .WithMany("PriceHistories")
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("TicketType");
                 });
@@ -1011,6 +1274,8 @@ namespace SBS.Infrastructure.Migrations
                 {
                     b.Navigation("Feedbacks");
 
+                    b.Navigation("PoolImages");
+
                     b.Navigation("PoolSlots");
 
                     b.Navigation("PoolTicketTypes");
@@ -1026,6 +1291,8 @@ namespace SBS.Infrastructure.Migrations
             modelBuilder.Entity("SBS.Domain.Entities.PoolTicketType", b =>
                 {
                     b.Navigation("BookingDetails");
+
+                    b.Navigation("PriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Domain.Entities.TicketType", b =>
@@ -1035,6 +1302,8 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("IncludedInCombos");
 
                     b.Navigation("PoolTicketTypes");
+
+                    b.Navigation("PriceHistories");
                 });
 
             modelBuilder.Entity("SBS.Infrastructure.Identity.AppUser", b =>
@@ -1048,6 +1317,8 @@ namespace SBS.Infrastructure.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("HandledContacts");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("WaitlistEntries");
                 });
