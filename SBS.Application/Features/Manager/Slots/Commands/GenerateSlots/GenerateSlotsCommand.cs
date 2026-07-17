@@ -73,7 +73,7 @@ public class GenerateSlotsCommandHandler : IRequestHandler<GenerateSlotsCommand,
                 currentTime = endTime.Add(TimeSpan.FromMinutes(request.BreakMinutes));
             }
 
-            // Hướng 1: Tự động ép dãn (coerce) ca cuối cùng 
+            // Tự động ép dãn (coerce) ca cuối cùng 
             // Nếu vẫn còn dư thời gian (ít nhất 30 phút) trước khi đóng cửa, tự động lấp đầy bằng 1 ca cuối.
             if (currentTime < pool.ClosingTime)
             {
