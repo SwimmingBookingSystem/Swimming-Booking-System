@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Interfaces;
+using SBS.Application.Common.ManagerExceptions;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Exceptions;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
@@ -33,7 +34,6 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
     public async Task<CreateBookingResponseDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
     {
-        var totalQuantity = request.Tickets.Sum(t => t.Quantity);
 
         // Convert to Vietnam Timezone (+7) for accurate time checking
         var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -71,28 +71,17 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new InvalidOperationException("Cannot book a slot that has already started or passed beyond 30 minutes.");
             }
 
-            var currentBooked = await _unitOfWork.Repository<BookingDetail>().Query()
-                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && 
-                             bd.Booking.Status != "Cancelled" && 
-                             bd.Booking.Status != "Failed" && 
-                             bd.Booking.Status != "Refunded")
-                .SumAsync(bd => bd.Quantity, cancellationToken);
-
-            if (slot.Capacity - currentBooked < totalQuantity)
-            {
-                throw new SlotFullException(slot.PoolSlotId, slot.SlotDate);
-            }
-
-            // 3. Retrieve requested ticket types and calculate total amount
+            // 2. Retrieve requested ticket types
             var poolTicketTypeIds = request.Tickets.Select(t => t.PoolTicketTypeId).ToList();
             var ticketTypes = await _unitOfWork.Repository<PoolTicketType>().Query()
                 .Include(t => t.TicketType)
+                    .ThenInclude(tt => tt.ComboItems)
                 .Where(t => poolTicketTypeIds.Contains(t.PoolTicketTypeId))
                 .ToListAsync(cancellationToken);
 
             if (ticketTypes.Count != poolTicketTypeIds.Count)
             {
-                throw new Exception("One or more invalid ticket types.");
+                throw new BadRequestException("Một hoặc nhiều loại vé không hợp lệ hoặc không tồn tại.");
             }
 
             if (ticketTypes.Any(t => t.Status != "Active" || t.TicketType.Status != "Active"))
@@ -106,6 +95,44 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new InvalidOperationException("One or more ticket types do not belong to the selected pool.");
             }
 
+            // 3. Calculate exact total slots requested (Slot Equivalent)
+            int totalSlotsRequested = 0;
+            foreach (var reqTicket in request.Tickets)
+            {
+                var ticketType = ticketTypes.First(t => t.PoolTicketTypeId == reqTicket.PoolTicketTypeId).TicketType;
+                int slotEq = ticketType.Category == "Combo" ? ticketType.ComboItems.Sum(c => c.Quantity) : 1;
+                totalSlotsRequested += reqTicket.Quantity * slotEq;
+            }
+
+            if (totalSlotsRequested > 20)
+            {
+                throw new BadRequestException("Bạn chỉ được phép đặt tối đa 20 suất bơi trong một lần giao dịch.");
+            }
+
+            // 4. Calculate current booked slots
+            var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
+                .Include(bd => bd.PoolTicketType)
+                    .ThenInclude(pt => pt.TicketType)
+                        .ThenInclude(tt => tt.ComboItems)
+                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && 
+                             bd.Booking.Status != "Cancelled" && 
+                             bd.Booking.Status != "Failed" && 
+                             bd.Booking.Status != "Refunded")
+                .ToListAsync(cancellationToken);
+
+            int currentBooked = currentBookedDetails.Sum(bd => 
+            {
+                var tt = bd.PoolTicketType.TicketType;
+                int slotEq = tt.Category == "Combo" ? tt.ComboItems.Sum(c => c.Quantity) : 1;
+                return bd.Quantity * slotEq;
+            });
+
+            if (slot.Capacity - currentBooked < totalSlotsRequested)
+            {
+                throw new SlotFullException(slot.PoolSlotId, slot.SlotDate);
+            }
+
+            // 5. Calculate total amount
             decimal totalAmount = 0;
             var bookingDetails = new System.Collections.Generic.List<BookingDetail>();
 

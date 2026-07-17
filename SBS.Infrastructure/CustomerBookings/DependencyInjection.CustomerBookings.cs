@@ -35,6 +35,7 @@ public static class DependencyInjectionCustomerBookings
         services.AddScoped<SBS.Application.Features.Customer_Bookings.Interfaces.IEmailService, SBS.Infrastructure.CustomerBookings.Services.EmailService>();
         services.AddScoped<SBS.Application.Features.Customer_Bookings.Interfaces.IQRCodeService, SBS.Infrastructure.CustomerBookings.Services.QRCodeService>();
         services.AddScoped<SBS.Application.Features.Customer_Bookings.Interfaces.IPayOSService, SBS.Infrastructure.CustomerBookings.Services.PayOSService>();
+        services.AddScoped<SBS.Application.Features.Customer_Bookings.Interfaces.ITemplateService, SBS.Infrastructure.CustomerBookings.Services.TemplateService>();
 
         // Register PayOS instance
         services.AddSingleton(provider => 
