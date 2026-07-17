@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Swimming Booking System</title>
 
-    <!-- Google Fonts: Inter (hỗ trợ tiếng Việt) -->
+    <!-- Google Fonts: Poppins (hỗ trợ tiếng Việt) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -25,7 +25,7 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-page="/Index">
                     <i class="fa-solid fa-water text-ocean fs-3"></i>
@@ -43,12 +43,7 @@
                         <li class="nav-item">
                             <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("CustomerViewPoolIst") == true ? "active" : "")" href="/CustomerViewPoolIst/CustomerViewPoolIst">Bể Bơi</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3 fw-medium" href="#features">Tiện ích</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3 fw-medium" href="#pricing">Bảng giá</a>
-                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link px-3 fw-medium @(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")" asp-area="" asp-page="/Contact">Liên hệ</a>
                         </li>
@@ -63,9 +58,18 @@
                         {
                             var decodedUserName = System.Net.WebUtility.UrlDecode(userName);
                             <div class="d-flex align-items-center gap-3">
-                                <a asp-area="" asp-page="/Customer/Profile/Index" title="Trang cá nhân của @decodedUserName">
-                                    <img src="https://ui-avatars.com/api/?name=@decodedUserName&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
-                                </a>
+                                @if (role.ToLower() == "admin")
+                                {
+                                    <a class="btn d-flex align-items-center gap-2 px-3 py-2" href="/Admin/users" style="background: linear-gradient(135deg, #4DD4E9, #00C2E0); border: none; color: #fff; font-weight: 600; border-radius: 50rem; box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);">
+                                        <i class="fa-solid fa-shield-halved"></i> Dashboard Admin
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-area="" asp-page="/Customer/Profile/Index" title="Trang cá nhân của @decodedUserName">
+                                        <img src="https://ui-avatars.com/api/?name=@decodedUserName&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
+                                    </a>
+                                }
                                 <button class="btn ocean-btn-outline" onclick="logout()">
                                     <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
                                 </button>
@@ -120,8 +124,7 @@
                     <h6 class="fw-bold text-dark mb-3">Điều hướng</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2">
                         <li><a asp-area="" asp-page="/Index" class="text-decoration-none text-muted">Trang chủ</a></li>
-                        <li><a href="#features" class="text-decoration-none text-muted">Tiện ích</a></li>
-                        <li><a href="#pricing" class="text-decoration-none text-muted">Bảng giá</a></li>
+
                         <li><a asp-area="" asp-page="/Privacy" class="text-decoration-none text-muted">Chính sách</a></li>
                     </ul>
                 </div>
