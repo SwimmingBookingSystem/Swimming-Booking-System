@@ -30,19 +30,20 @@
             <i class="fa-solid fa-water"></i> SBS Manager
         </a>
         <div class="nav flex-column">
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Dashboard" ? "active" : "")" href="/Manager/Dashboard">
+            @{ var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? ""; }
+            <a class="nav-link @(currentPage.StartsWith("/Manager/Dashboard") ? "active" : "")" href="/Manager/Dashboard">
                 <i class="fa-solid fa-chart-pie w-20px"></i> Tổng quan
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Pools/Index" ? "active" : "")" href="/Manager/Pools">
+            <a class="nav-link @(currentPage.StartsWith("/Manager/Pools") ? "active" : "")" href="/Manager/Pools">
                 <i class="fa-solid fa-swimming-pool w-20px"></i> Bể bơi
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Slots/Index" ? "active" : "")" href="/Manager/Slots">
+            <a class="nav-link @(currentPage.StartsWith("/Manager/Slots") ? "active" : "")" href="/Manager/Slots">
                 <i class="fa-regular fa-clock w-20px"></i> Khung giờ
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Tickets/Index" ? "active" : "")" href="/Manager/Tickets">
+            <a class="nav-link @(currentPage.StartsWith("/Manager/Tickets") ? "active" : "")" href="/Manager/Tickets">
                 <i class="fa-solid fa-ticket w-20px"></i> Loại vé
             </a>
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Manager/Pricing/Index" ? "active" : "")" href="/Manager/Pricing">
+            <a class="nav-link @(currentPage.StartsWith("/Manager/Pricing") ? "active" : "")" href="/Manager/Pricing">
                 <i class="fa-solid fa-tags w-20px"></i> Bảng giá
             </a>
         </div>
@@ -87,16 +88,7 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        $(document).ready(function () {
-            // Apply 24h format to all time inputs globally
-            flatpickr('input[type="time"]', {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                time_24hr: true,
-                allowInput: true
-            });
-        });
+        // Removed Flatpickr time initialization to use native browser time picker
     </script>
     <script>
         // Helper đọc cookie
