@@ -8,7 +8,7 @@
     <!-- Back Button -->
     <div class="row mb-4">
         <div class="col-lg-9 mx-auto">
-            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+            <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-outline px-4 py-2.5 rounded-3 fw-semibold shadow-sm"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
         </div>
     </div>
 
@@ -18,10 +18,10 @@
             <div class="card glass-card p-4 p-md-5 border-0">
                 <!-- Loader -->
                 <div id="detail-loader" class="text-center my-5">
-                    <div class="spinner-border text-white" role="status" style="width: 3rem; height: 3rem;">
+                    <div class="spinner-border text-ocean" role="status" style="width: 3rem; height: 3rem;">
                         <span class="visually-hidden">Đang tải...</span>
                     </div>
-                    <p class="mt-3 text-white fs-6" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Đang tải thông tin chi tiết bể bơi...</p>
+                    <p class="mt-3 text-teal fs-6 fw-medium">Đang tải thông tin chi tiết bể bơi...</p>
                 </div>
 
                 <!-- Detail Content (Initially hidden) -->
@@ -46,24 +46,24 @@
 
                     <!-- Pool Title & Location Info Header -->
                     <div class="mb-4 pb-3 border-bottom border-light">
-                        <h1 id="pool-name" class="fw-bold text-dark display-6 mb-2">--</h1>
-                        <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> <span id="pool-street-top">--</span></p>
+                        <h1 id="pool-name" class="fw-bold text-teal display-6 mb-2">--</h1>
+                        <p class="text-secondary mb-0"><i class="bi bi-geo-alt-fill text-ocean"></i> <span id="pool-street-top">--</span></p>
                     </div>
 
                     <!-- Pool Information Table & Details -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <div class="p-4 bg-white-50 rounded-4 h-100 shadow-sm border border-light">
-                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-clock-fill text-primary"></i> Thời gian hoạt động</h5>
+                                <h5 class="fw-bold text-teal border-bottom pb-2 mb-3"><i class="bi bi-clock-fill text-ocean"></i> Thời gian hoạt động</h5>
                                 <ul class="list-unstyled mb-0 d-flex flex-column gap-3 fs-6 text-secondary">
-                                    <li><i class="bi bi-alarm-fill text-primary me-2"></i> <strong>Giờ mở cửa:</strong> <span id="pool-open" class="text-dark fw-medium">--</span></li>
+                                    <li><i class="bi bi-alarm-fill text-ocean me-2"></i> <strong>Giờ mở cửa:</strong> <span id="pool-open" class="text-dark fw-medium">--</span></li>
                                     <li><i class="bi bi-alarm-fill text-danger me-2"></i> <strong>Giờ đóng cửa:</strong> <span id="pool-close" class="text-dark fw-medium">--</span></li>
                                 </ul>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-4 bg-white-50 rounded-4 h-100 shadow-sm border border-light">
-                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-file-earmark-text-fill text-primary"></i> Mô tả bể bơi</h5>
+                                <h5 class="fw-bold text-teal border-bottom pb-2 mb-3"><i class="bi bi-file-earmark-text-fill text-ocean"></i> Mô tả bể bơi</h5>
                                 <p id="pool-desc" class="text-secondary fs-6 mb-0" style="text-align: justify; line-height: 1.6;">--</p>
                             </div>
                         </div>
@@ -71,7 +71,7 @@
 
                     <!-- Book Pool Button -->
                     <div class="text-center mt-5">
-                        <button onclick="handleBooking()" class="btn btn-primary btn-lg px-5 py-3 fs-5 rounded-pill shadow-md w-100 w-md-auto fw-semibold"><i class="bi bi-calendar2-check-fill"></i> Đặt bể bơi</button>
+                        <button onclick="handleBooking()" class="btn ocean-btn-primary btn-lg px-5 py-3 fs-5 rounded-3 shadow fw-bold w-100 w-md-auto"><i class="bi bi-calendar2-check-fill me-2"></i>Đặt lịch ngay</button>
                     </div>
                 </div>
             </div>
@@ -81,20 +81,21 @@
 
 <style>
     body {
-        background-image: linear-gradient(rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.6)), url('/images/swimming_pool_bg.png');
+        background-image: linear-gradient(rgba(0, 194, 224, 0.12), rgba(0, 95, 106, 0.6)), url('/images/swimming_pool_bg.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
         min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
     }
     .glass-card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: var(--radius-lg);
-        box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.3), 0 1px 3px rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        box-shadow: var(--shadow-soft);
     }
     .bg-white-50 {
         background-color: rgba(248, 250, 252, 0.8);

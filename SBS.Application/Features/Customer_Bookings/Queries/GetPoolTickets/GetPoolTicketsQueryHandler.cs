@@ -24,6 +24,7 @@ public class GetPoolTicketsQueryHandler : IRequestHandler<GetPoolTicketsQuery, L
         var tickets = await _readOnlyUnitOfWork.Repository<PoolTicketType>().Query()
             .AsNoTracking()
             .Include(pt => pt.TicketType)
+                .ThenInclude(tt => tt.ComboItems)
             .Where(pt => pt.PoolId == request.PoolId && pt.Status == "Active" && pt.TicketType.Status == "Active")
             .Select(pt => new CustomerPoolTicketDto
             {
@@ -31,7 +32,8 @@ public class GetPoolTicketsQueryHandler : IRequestHandler<GetPoolTicketsQuery, L
                 TicketName = pt.TicketType.TicketName,
                 Category = pt.TicketType.Category,
                 Price = pt.Price ?? (pt.TicketType.BasePrice * (1 - pt.TicketType.DiscountPercent / 100m)),
-                Description = pt.TicketType.Description
+                Description = pt.TicketType.Description,
+                SlotEquivalent = pt.TicketType.Category == "Combo" ? pt.TicketType.ComboItems.Sum(c => c.Quantity) : 1
             })
             .ToListAsync(cancellationToken);
 
