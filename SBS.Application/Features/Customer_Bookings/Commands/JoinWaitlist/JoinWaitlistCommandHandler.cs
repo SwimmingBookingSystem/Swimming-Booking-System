@@ -36,13 +36,22 @@ public class JoinWaitlistCommandHandler : IRequestHandler<JoinWaitlistCommand, J
         if (slot == null)
             return new JoinWaitlistResultDto { Succeeded = false, Message = "Không tìm thấy ca bơi." };
 
-        var bookedCapacity = await _unitOfWork.Repository<BookingDetail>().Query()
-            .Include(bd => bd.Booking)
+        var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
+            .Include(bd => bd.PoolTicketType)
+                .ThenInclude(pt => pt.TicketType)
+                    .ThenInclude(tt => tt.ComboItems)
             .Where(bd => bd.Booking.PoolSlotId == request.PoolSlotId && 
                          bd.Booking.Status != "Cancelled" && 
                          bd.Booking.Status != "Failed" &&
                          bd.Booking.Status != "Refunded")
-            .SumAsync(bd => (int?)bd.Quantity, cancellationToken) ?? 0;
+            .ToListAsync(cancellationToken);
+
+        int bookedCapacity = currentBookedDetails.Sum(bd => 
+        {
+            var tt = bd.PoolTicketType.TicketType;
+            int slotEq = tt.Category == "Combo" ? tt.ComboItems.Sum(c => c.Quantity) : 1;
+            return bd.Quantity * slotEq;
+        });
 
         var availableCapacity = slot.Capacity - bookedCapacity;
         if (availableCapacity > 0)

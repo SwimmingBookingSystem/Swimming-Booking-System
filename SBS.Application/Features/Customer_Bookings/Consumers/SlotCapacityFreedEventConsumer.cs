@@ -58,13 +58,22 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
             await _unitOfWork.Repository<PoolSlot>().Query().Include(s => s.Pool).ThenInclude(p => p.PoolTicketTypes)
                 .Where(s => s.PoolSlotId == poolSlotId).FirstOrDefaultAsync(context.CancellationToken);
 
-            var bookedCapacity = await _unitOfWork.Repository<BookingDetail>().Query()
-                .Include(bd => bd.Booking)
+            var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
+                .Include(bd => bd.PoolTicketType)
+                    .ThenInclude(pt => pt.TicketType)
+                        .ThenInclude(tt => tt.ComboItems)
                 .Where(bd => bd.Booking.PoolSlotId == poolSlotId && 
                              bd.Booking.Status != "Cancelled" && 
                              bd.Booking.Status != "Failed" &&
                              bd.Booking.Status != "Refunded")
-                .SumAsync(bd => (int?)bd.Quantity, context.CancellationToken) ?? 0;
+                .ToListAsync(context.CancellationToken);
+
+            int bookedCapacity = currentBookedDetails.Sum(bd => 
+            {
+                var tt = bd.PoolTicketType.TicketType;
+                int slotEq = tt.Category == "Combo" ? tt.ComboItems.Sum(c => c.Quantity) : 1;
+                return bd.Quantity * slotEq;
+            });
 
             var availableCapacity = poolSlot.Capacity - bookedCapacity;
 
@@ -90,7 +99,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     break; // break the loop, continue to commit transaction
                 }
 
-                var ticket = poolSlot.Pool?.PoolTicketTypes?.FirstOrDefault(t => t.Status == "Active");
+                var ticket = poolSlot.Pool?.PoolTicketTypes?.FirstOrDefault(t => t.Status == "Active" && t.TicketType?.Category == "Single");
                 if (ticket == null) 
                 {
                     _logger.LogWarning("No active ticket types found for pool {PoolId}.", poolSlot.PoolId);

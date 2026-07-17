@@ -29,6 +29,15 @@ public class ExceptionHandlingMiddleware
                 Message = ex.Message
             });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            context.Response.StatusCode  = 401;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new ErrorResponse
+            {
+                Message = ex.Message
+            });
+        }
         catch (SBS.Application.Features.Customer_Bookings.Exceptions.SlotNotFoundException ex)
         {
             context.Response.StatusCode  = 404;

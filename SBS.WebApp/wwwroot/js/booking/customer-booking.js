@@ -184,24 +184,42 @@ $(document).ready(function () {
                     return;
                 }
 
-                let html = '';
+                let singleHtml = '';
+                let comboHtml = '';
+
                 tickets.forEach(ticket => {
-                    html += `
+                    const slotEqText = ticket.slotEquivalent > 1 ? `<div class="small text-warning fw-bold"><i class="bi bi-people-fill"></i> Tương đương ${ticket.slotEquivalent} suất bơi</div>` : '';
+                    
+                    const cardHtml = `
                         <div class="ticket-card d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="fw-bold mb-1">${ticket.ticketName}</h6>
                                 <div class="text-primary fw-semibold">${Number(ticket.price).toLocaleString('vi-VN')}đ</div>
+                                ${slotEqText}
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <button type="button" class="qty-btn qty-minus" data-id="${ticket.poolTicketTypeId}">-</button>
-                                <input type="number" class="qty-input" id="qty-${ticket.poolTicketTypeId}" value="0" min="0" max="10" readonly>
-                                <button type="button" class="qty-btn qty-plus" data-id="${ticket.poolTicketTypeId}">+</button>
+                                <input type="number" class="qty-input" id="qty-${ticket.poolTicketTypeId}" value="0" min="0" max="20" readonly>
+                                <button type="button" class="qty-btn qty-plus" data-id="${ticket.poolTicketTypeId}" data-sloteq="${ticket.slotEquivalent}">+</button>
                             </div>
                         </div>
                     `;
+
+                    if (ticket.category === 'Combo') {
+                        comboHtml += cardHtml;
+                    } else {
+                        singleHtml += cardHtml;
+                    }
                 });
 
-                $('#tickets-container').html(html);
+                if (singleHtml) {
+                    $('#single-tickets-section').removeClass('d-none');
+                    $('#single-tickets-container').html(singleHtml);
+                }
+                if (comboHtml) {
+                    $('#combo-tickets-section').removeClass('d-none');
+                    $('#combo-tickets-container').html(comboHtml);
+                }
 
                 // Gắn sự kiện tăng giảm
                 $('.qty-minus').on('click', function () {
@@ -216,9 +234,27 @@ $(document).ready(function () {
 
                 $('.qty-plus').on('click', function () {
                     const id = $(this).data('id');
+                    const slotEq = parseInt($(this).data('sloteq') || 1);
                     const input = $(`#qty-${id}`);
                     let val = parseInt(input.val());
-                    if (val < 10) {
+                    
+                    // Check total slots globally
+                    let currentTotalSlots = 0;
+                    ticketsData.forEach(t => {
+                        currentTotalSlots += parseInt($(`#qty-${t.poolTicketTypeId}`).val() || 0) * (t.slotEquivalent || 1);
+                    });
+
+                    if (currentTotalSlots + slotEq > 20) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Đạt giới hạn',
+                            text: 'Bạn chỉ được phép đặt tối đa 20 suất bơi trong một lần giao dịch!',
+                            confirmButtonColor: '#0ea5e9'
+                        });
+                        return;
+                    }
+
+                    if (val < 20) {
                         input.val(val + 1);
                         calculateTotal();
                     }
@@ -273,11 +309,13 @@ $(document).ready(function () {
         const btn = $(this);
         
         let count = 0;
+        let totalSlots = 0;
         const tickets = [];
         ticketsData.forEach(ticket => {
             const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
             if (qty > 0) {
                 count += qty;
+                totalSlots += qty * (ticket.slotEquivalent || 1);
                 tickets.push({
                     poolTicketTypeId: ticket.poolTicketTypeId,
                     quantity: qty
@@ -349,7 +387,7 @@ $(document).ready(function () {
                 if (result.isConfirmed) {
                     const payload = {
                         poolSlotId: selectedSlotId,
-                        quantity: count
+                        quantity: totalSlots
                     };
 
                     btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');

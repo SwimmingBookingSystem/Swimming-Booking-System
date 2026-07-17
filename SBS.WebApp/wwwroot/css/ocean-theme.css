@@ -1,5 +1,5 @@
-/* Google Font: Poppins */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Google Font: Poppins (hỗ trợ tiếng Việt) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap&subset=vietnamese');
 
 :root {
     --ocean-aqua: #00C2E0;
@@ -17,7 +17,7 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif !important;
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif !important;
     background-color: var(--cool-gray) !important;
     color: var(--text-main);
 }
@@ -52,6 +52,9 @@ body {
 }
 
 .ocean-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: linear-gradient(135deg, var(--ocean-aqua) 0%, var(--dark-teal) 100%);
     border: none;
     color: white;
@@ -67,6 +70,9 @@ body {
 }
 
 .ocean-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: 2px solid var(--ocean-aqua);
     color: var(--ocean-aqua);
