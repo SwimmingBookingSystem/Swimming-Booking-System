@@ -26,10 +26,11 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif;
     color: var(--dark);
     margin: 0;
     padding: 0;
+    padding-top: 70px;
 }
 
 /* ===== NAVBAR ===== */
@@ -104,12 +105,14 @@ body {
     color: #fff;
     padding: 8px 20px;
     border-radius: 50px;
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif;
     font-size: 0.85rem;
     font-weight: 500;
     margin-bottom: 24px;
     animation: fadeInUp 0.8s ease;
 }
 .hero-title {
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif;
     font-size: 3.5rem;
     font-weight: 800;
     color: #fff;
@@ -119,12 +122,14 @@ body {
     animation: fadeInUp 0.8s ease 0.1s both;
 }
 .hero-title .highlight {
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif;
     background: linear-gradient(135deg, #4DD4E9, #b2ebf2);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 .hero-subtitle {
+    font-family: 'Segoe UI', Poppins, Tahoma, Arial, sans-serif;
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.85);
     max-width: 600px;
@@ -140,6 +145,9 @@ body {
     animation: fadeInUp 0.8s ease 0.3s both;
 }
 .hero-buttons .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: var(--gradient-primary);
     border: none;
     padding: 14px 36px;
@@ -154,6 +162,9 @@ body {
     box-shadow: 0 12px 35px rgba(0, 194, 224, 0.4);
 }
 .hero-buttons .btn-outline-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 2px solid rgba(255, 255, 255, 0.5);
     padding: 14px 36px;
     font-weight: 600;
