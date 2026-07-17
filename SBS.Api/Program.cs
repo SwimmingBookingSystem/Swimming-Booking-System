@@ -94,13 +94,20 @@ var app = builder.Build();
 // Seed Data
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
-    var cloudinaryService = services.GetRequiredService<SBS.Application.Common.Interfaces.ICloudinaryService>();
-    await DataSeeder.SeedDataAsync(context, userManager, roleManager);
-    await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context, cloudinaryService);
+    try
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<AppUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
+        var cloudinaryService = services.GetRequiredService<SBS.Application.Common.Interfaces.ICloudinaryService>();
+        await DataSeeder.SeedDataAsync(context, userManager, roleManager);
+        await SBS.Infrastructure.Data.Seed.CustomerSeed.CustomerPoolSeeder.SeedCustomerPoolsAsync(context, cloudinaryService);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Seed Warning] Data seeding failed (app continues): {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.

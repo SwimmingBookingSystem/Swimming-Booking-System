@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vé Điện Tử & Hóa Đơn</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            color: #334155;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0f2fe;
+        }
+        .header {
+            background-color: #0ea5e9;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .invoice-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .invoice-details th, .invoice-details td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .invoice-details th {
+            color: #64748b;
+            font-weight: 500;
+            width: 40%;
+        }
+        .invoice-details td {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .total-row th, .total-row td {
+            border-bottom: none;
+            color: #0369a1;
+            font-size: 18px;
+            padding-top: 24px;
+        }
+        .qr-section {
+            text-align: center;
+            background-color: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e1;
+            margin-top: 32px;
+        }
+        .qr-section h3 {
+            margin-top: 0;
+            color: #0369a1;
+        }
+        .qr-section p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Swimming Booking System</h1>
+            <p>Vé điện tử & Hóa đơn thanh toán</p>
+        </div>
+        
+        <div class="content">
+            <p style="margin-top: 0;">Xin chào <strong>{{CustomerName}}</strong>,</p>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi. Dưới đây là thông tin chi tiết hóa đơn và vé điện tử của bạn:</p>
+
+            <table class="invoice-details">
+                <tr>
+                    <th>Mã đặt vé (Booking Code)</th>
+                    <td>#{{BookingCode}}</td>
+                </tr>
+                <tr>
+                    <th>Bể bơi</th>
+                    <td>{{PoolName}}</td>
+                </tr>
+                <tr>
+                    <th>Ngày bơi</th>
+                    <td>{{BookingDate}}</td>
+                </tr>
+                <tr>
+                    <th>Suất bơi (Khung giờ)</th>
+                    <td>{{SlotTime}}</td>
+                </tr>
+                <tr>
+                    <th>Số lượng vé</th>
+                    <td>{{TicketDetails}}</td>
+                </tr>
+                <tr class="total-row">
+                    <th>Tổng thanh toán</th>
+                    <td>{{TotalAmount}} VNĐ</td>
+                </tr>
+            </table>
+
+            <div class="qr-section">
+                <h3>Mã QR Check-in</h3>
+                <p>Vui lòng xuất trình mã QR được đính kèm trong email này cho nhân viên tại quầy để làm thủ tục vào bể.</p>
+                <!-- Lưu ý: Ảnh QR Code sẽ được đính kèm vào email dưới dạng file ẩn và link tới nếu cần, hoặc người dùng mở file đính kèm -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Email này được gửi tự động từ hệ thống SBS. Vui lòng không trả lời email này.</p>
+            <p>&copy; 2026 Swimming Booking System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

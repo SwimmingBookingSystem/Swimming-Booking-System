@@ -1,0 +1,116 @@
+@startuml
+title SBS - Sequence đặt vé, thanh toán và xác nhận booking
+
+autonumber
+actor "Customer" as Customer
+boundary "Booking Razor Page" as UI
+control "CustomerBookingsController" as Controller
+control "MediatR" as Mediator
+control "CreateBookingCommandHandler" as CreateHandler
+control "PoolSlotBookingRepository" as SlotRepo
+control "UnitOfWork" as UoW
+database "SQL Server" as DB
+entity "PayOS" as PayOS
+control "ProcessPaymentWebhookHandler" as WebhookHandler
+queue "RabbitMQ / MassTransit" as MQ
+control "SendBookingConfirmationConsumer" as MailConsumer
+control "QR Code Service" as QR
+entity "Email Service" as Email
+control "PendingBookingExpirationWorker" as ExpiryWorker
+
+Customer -> UI: Chọn bể, ngày, slot và số lượng vé
+UI -> Controller: POST /api/customer-bookings/create\n{poolSlotId, tickets[]}
+Controller -> Mediator: Send(CreateBookingCommand)
+Mediator -> CreateHandler: Handle(command)
+CreateHandler -> CreateHandler: Lấy userId từ JWT\nTính tổng quantity và giờ Việt Nam
+CreateHandler -> UoW: BeginTransaction()
+CreateHandler -> SlotRepo: GetPoolSlotWithLockAsync(poolSlotId)
+SlotRepo -> DB: SELECT PoolSlots\nWITH (UPDLOCK, ROWLOCK)
+DB --> SlotRepo: PoolSlot hoặc null
+SlotRepo --> CreateHandler: PoolSlot hoặc null
+
+alt Slot không tồn tại/không Open/đã quá giờ
+    CreateHandler -> UoW: RollbackTransaction()
+    CreateHandler --> Mediator: Throw exception
+    Mediator --> Controller: Global exception flow
+    Controller --> UI: HTTP error
+else Slot hợp lệ
+    CreateHandler -> DB: SUM BookingDetail.Quantity\nloại Cancelled/Failed/Refunded
+    DB --> CreateHandler: currentBooked
+    alt Sức chứa còn lại < số vé yêu cầu
+        CreateHandler -> UoW: RollbackTransaction()
+        CreateHandler --> Controller: SlotFullException
+        Controller --> UI: HTTP error / slot full
+    else Còn đủ chỗ
+        CreateHandler -> DB: SELECT PoolTicketTypes + TicketTypes
+        DB --> CreateHandler: Danh sách loại vé
+        CreateHandler -> CreateHandler: Kiểm tra vé Active và cùng Pool\nTính giá, subtotal, totalAmount
+        alt Vé không hợp lệ/không active/khác pool
+            CreateHandler -> UoW: RollbackTransaction()
+            CreateHandler --> UI: HTTP error
+        else Vé hợp lệ
+            CreateHandler -> DB: INSERT Booking(PendingPayment,\ndeadline = UTC+15 phút)\nINSERT BookingDetails
+            DB --> CreateHandler: bookingId, bookingCode
+            CreateHandler -> PayOS: CreatePaymentLink(bookingId, amount, code, deadline)
+            PayOS --> CreateHandler: paymentLink
+            CreateHandler -> UoW: CommitTransaction()
+            CreateHandler --> Mediator: bookingId, bookingCode, paymentLink
+            Mediator --> Controller: CreateBookingResponseDto
+            Controller --> UI: 200 OK + paymentLink
+            UI --> Customer: Redirect sang PayOS
+        end
+    end
+end
+
+group PayOS xác nhận thanh toán server-to-server
+    Customer -> PayOS: Hoàn tất thanh toán
+    PayOS -> Controller: POST /api/customer-bookings/payos-webhook\nraw webhook body
+    Controller -> Mediator: Send(ProcessPaymentWebhookCommand)
+    Mediator -> WebhookHandler: Handle(command)
+    WebhookHandler -> PayOS: VerifyPaymentWebhookData(body)
+    PayOS --> WebhookHandler: transactionId/orderCode đã xác thực
+    WebhookHandler -> UoW: BeginTransaction()
+    WebhookHandler -> DB: Tìm Payment theo transactionId
+    DB --> WebhookHandler: Payment hoặc null
+    alt Payment Success đã tồn tại
+        WebhookHandler -> UoW: Rollback (idempotent acknowledgement)
+        WebhookHandler --> Controller: true
+        Controller --> PayOS: 200 OK
+    else Booking không tồn tại hoặc đã Paid/Cancelled
+        WebhookHandler -> UoW: Rollback
+        WebhookHandler --> Controller: true
+        Controller --> PayOS: 200 OK
+    else Webhook hợp lệ, chưa xử lý
+        WebhookHandler -> WebhookHandler: booking.Status = Paid\nQrCodeData = BookingCode + GUID
+        WebhookHandler -> DB: UPDATE Booking\nINSERT Payment(Status=Success)
+        DB --> WebhookHandler: Saved
+        WebhookHandler -> UoW: CommitTransaction()
+        WebhookHandler -> DB: Lấy profile/email khách hàng
+        DB --> WebhookHandler: User profile
+        WebhookHandler -> MQ: Publish BookingConfirmedEvent
+        WebhookHandler --> Controller: true
+        Controller --> PayOS: 200 OK
+
+        MQ -> MailConsumer: Consume BookingConfirmedEvent
+        MailConsumer -> QR: GenerateQrCode(QrCodeData)
+        QR --> MailConsumer: PNG bytes
+        MailConsumer -> Email: Send email + QR attachment
+        Email --> Customer: Email xác nhận booking
+    end
+end
+
+opt Không thanh toán trước deadline
+    loop Mỗi 1 phút
+        ExpiryWorker -> DB: Tìm PendingPayment quá hạn
+        DB --> ExpiryWorker: expired bookings
+        ExpiryWorker -> DB: UPDATE Booking = Cancelled\nWaitlist Offered = Expired (nếu có)
+        ExpiryWorker -> MQ: Publish SlotCapacityFreedEvent\ncho từng slot khác nhau
+    end
+end
+
+note over CreateHandler,DB
+Khóa bi quan giữ dòng PoolSlot cho tới khi transaction kết thúc,
+ngăn nhiều request đồng thời bán vượt Capacity.
+end note
+@enduml
+

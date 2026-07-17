@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
-using SBS.Application.Features.Customer_Bookings.Dtos;
+using SBS.WebApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
