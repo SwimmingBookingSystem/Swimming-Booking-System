@@ -39,6 +39,10 @@
             </tbody>
         </table>
     </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 yêu cầu</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
 </div>
 
 <!-- Respond Modal -->
@@ -80,25 +84,41 @@
 @section Scripts {
     <script>
         let respondModal = new bootstrap.Modal(document.getElementById('respondModal'));
-        let allContacts = [];
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentContacts = [];
 
         $(document).ready(function() {
-            loadContacts();
-            $('#statusFilter').on('change', function() { loadContacts(); });
+            loadContacts(1);
+            $('#statusFilter').on('change', function() { loadContacts(1); });
         });
 
-        async function loadContacts() {
+        async function loadContacts(page) {
+            currentPage = page;
             const status = $('#statusFilter').val();
             try {
-                allContacts = await api.get('/contacts');
-                let filtered = allContacts;
-                if (status) {
-                    filtered = allContacts.filter(c => c.status === status);
-                }
-                renderTable(filtered);
+                const res = await api.get(`/contacts?page=${page}&pageSize=${pageSize}${status ? '&status=' + status : ''}`);
+                currentContacts = res.items;
+                renderTable(currentContacts);
+                renderPagination(res.totalCount, res.page, res.pageSize, res.totalPages);
             } catch (e) {
                 $('#contactTableBody').html('<tr><td colspan="7" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+                $('#pageInfo').text('');
+                $('#pagination').html('');
             }
+        }
+
+        function renderPagination(totalCount, page, pSize, totalPages) {
+            const startItem = (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+            $('#pageInfo').text(`Hiển thị ${totalCount === 0 ? 0 : startItem}-${endItem} trong ${totalCount} yêu cầu`);
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadContacts(${page - 1}); return false;">Trước</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadContacts(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadContacts(${page + 1}); return false;">Sau</a></li>`;
+            $('#pagination').html(html);
         }
 
         function renderTable(contacts) {
@@ -143,16 +163,17 @@
             $('#respondContactId').val(id);
             $('#responseMessage').val('');
 
-            const contact = allContacts.find(c => c.contactRequestId === id);
+            const contact = currentContacts.find(c => c.contactRequestId === id);
             if (contact) {
                 $('#respondCustomerName').text(contact.fullName);
                 $('#respondCustomerEmail').text(contact.email);
                 $('#respondCustomerPhone').text(contact.phoneNumber || '---');
                 $('#respondCategory').text(contact.category);
                 $('#respondCustomerMessage').text(contact.message);
+                respondModal.show();
+            } else {
+                toastr.error('Không tìm thấy thông tin yêu cầu.');
             }
-
-            respondModal.show();
         }
 
         $('#btnSendResponse').click(async function() {
@@ -174,7 +195,7 @@
                 });
                 toastr.success(result.message || 'Phản hồi thành công.');
                 respondModal.hide();
-                loadContacts();
+                loadContacts(currentPage);
             } catch (e) {
                 // Error handled by admin-api.js toastr
             } finally {
