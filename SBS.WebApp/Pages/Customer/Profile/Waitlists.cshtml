@@ -62,10 +62,6 @@
                                                 @if (waitlist.Status == "Waiting")
                                                 {
                                                     <span class="badge-ocean-warning text-nowrap">Đang chờ</span>
-                                                    <button type="button" class="btn btn-sm ocean-btn-outline mt-2 cancel-waitlist-btn" 
-                                                            data-id="@waitlist.WaitlistEntryId">
-                                                        Hủy chờ
-                                                    </button>
                                                 }
                                                 else if (waitlist.Status == "Offered")
                                                 {
@@ -92,64 +88,3 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const cancelButtons = document.querySelectorAll('.cancel-waitlist-btn');
-            
-            cancelButtons.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const waitlistId = this.getAttribute('data-id');
-                    
-                    Swal.fire({
-                        title: 'Xác nhận hủy',
-                        text: 'Bạn có chắc chắn muốn rời khỏi danh sách chờ này không?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#be123c',
-                        cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Đồng ý hủy',
-                        cancelButtonText: 'Không'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch(`/api/customer-bookings/waitlist/cancel`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Bearer ' + getCookie('accessToken')
-                                },
-                                body: JSON.stringify({ waitlistEntryId: parseInt(waitlistId) })
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    Swal.fire(
-                                        'Đã hủy!',
-                                        'Bạn đã rời khỏi danh sách chờ.',
-                                        'success'
-                                    ).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    response.json().then(data => {
-                                        Swal.fire('Lỗi', data.message || 'Không thể hủy chờ.', 'error');
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                Swal.fire('Lỗi', 'Đã xảy ra lỗi kết nối.', 'error');
-                            });
-                        }
-                    });
-                });
-            });
-
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-                return '';
-            }
-        });
-    </script>
-}
