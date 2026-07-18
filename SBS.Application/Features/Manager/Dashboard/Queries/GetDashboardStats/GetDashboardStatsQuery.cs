@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SBS.Application.Features.Manager.Dashboard.Queries.GetDashboardStats;
 
-public record GetDashboardStatsQuery : IRequest<DashboardStatsDto>;
+public record GetDashboardStatsQuery(string TimeRange = "week") : IRequest<DashboardStatsDto>;
 
 public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQuery, DashboardStatsDto>
 {
@@ -31,34 +31,69 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
         dto.ActivePools = await _uow.Repository<Pool>().Query().CountAsync(p => p.Status == "Active", ct);
         dto.ActiveTickets = await _uow.Repository<TicketType>().Query().CountAsync(t => t.Status == "Active", ct);
 
-        // 2. Revenue (Last 7 Days)
+        // 2. Revenue (based on TimeRange)
         var today = DateTime.UtcNow.Date;
-        var sevenDaysAgo = today.AddDays(-6); // Including today makes it 7 days
-
-        var paymentsLast7Days = await _uow.Repository<Payment>().Query()
-            .Where(p => p.Status == "Success" && p.PaymentDate >= sevenDaysAgo)
-            .ToListAsync(ct);
-
-        dto.WeeklyRevenue = paymentsLast7Days.Sum(p => p.Amount);
-
-        // Populate Line Chart Data
-        for (int i = 6; i >= 0; i--)
+        DateTime startDate;
+        
+        switch (request.TimeRange?.ToLower())
         {
-            var date = today.AddDays(-i);
-            var dailyTotal = paymentsLast7Days
-                .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == date)
-                .Sum(p => p.Amount);
-            
-            // Convert to Millions for UI friendliness, e.g., 12.5M
-            dto.RevenueLast7Days.Add(dailyTotal / 1000000m);
-            
-            // Format label e.g., "T2", "T3" or "25/06"
-            dto.LabelsLast7Days.Add(date.ToString("dd/MM"));
+            case "month":
+                startDate = new DateTime(today.Year, today.Month, 1);
+                break;
+            case "year":
+                startDate = new DateTime(today.Year, 1, 1);
+                break;
+            case "week":
+            default:
+                startDate = today.AddDays(-6);
+                break;
         }
 
-        // Just a mock growth percentage based on some random logic or hardcode for now
-        // since we don't fetch last week's data. 
-        dto.RevenueGrowthPercentage = dto.WeeklyRevenue > 0 ? 8.5m : 0; 
+        var paymentsPeriod = await _uow.Repository<Payment>().Query()
+            .Where(p => p.Status == "Success" && p.PaymentDate >= startDate && p.PaymentDate <= today.AddDays(1))
+            .ToListAsync(ct);
+
+        dto.PeriodRevenue = paymentsPeriod.Sum(p => p.Amount);
+
+        // Populate Line Chart Data
+        if (request.TimeRange?.ToLower() == "year")
+        {
+            for (int i = 1; i <= 12; i++)
+            {
+                var monthTotal = paymentsPeriod
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Month == i)
+                    .Sum(p => p.Amount);
+                dto.ChartData.Add(monthTotal / 1000000m);
+                dto.ChartLabels.Add($"Tháng {i}");
+            }
+        }
+        else if (request.TimeRange?.ToLower() == "month")
+        {
+            var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+            for (int i = 1; i <= daysInMonth; i++)
+            {
+                var dailyTotal = paymentsPeriod
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Day == i)
+                    .Sum(p => p.Amount);
+                dto.ChartData.Add(dailyTotal / 1000000m);
+                dto.ChartLabels.Add($"{i:00}/{today.Month:00}");
+            }
+        }
+        else
+        {
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = today.AddDays(-i);
+                var dailyTotal = paymentsPeriod
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == date)
+                    .Sum(p => p.Amount);
+                dto.ChartData.Add(dailyTotal / 1000000m);
+                dto.ChartLabels.Add(date.ToString("dd/MM"));
+            }
+        }
+
+        // Mock growth percentage
+        dto.RevenueGrowthPercentage = dto.PeriodRevenue > 0 ? 8.5m : 0; 
 
         // 3. Ticket Distribution (Doughnut Chart)
         var bookingDetails = await _uow.Repository<BookingDetail>().Query()
@@ -80,7 +115,13 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
 
         foreach (var group in ticketGroups)
         {
-            dto.TicketLabels.Add(group.Name);
+            var labelName = group.Name;
+            if (labelName.Contains("Vé cá nhân", StringComparison.OrdinalIgnoreCase))
+            {
+                labelName = labelName.Replace("Vé cá nhân", "Vé đơn", StringComparison.OrdinalIgnoreCase);
+            }
+
+            dto.TicketLabels.Add(labelName);
             dto.TicketQuantities.Add(group.Count);
         }
 
