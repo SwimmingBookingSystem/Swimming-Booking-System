@@ -45,21 +45,31 @@ body {
 }
 #sidebar .nav-link {
     color: var(--sidebar-text);
-    padding: 12px 24px;
+    padding: 14px 20px;
     font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.3px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent; /* Chống giật khung (layout shift) khi active */
+}
+#sidebar .nav-link i {
+    width: 24px; /* Fix cứng độ rộng icon để chữ bên phải luôn căn thẳng lề */
+    text-align: center;
+    font-size: 18px;
+    margin-right: 14px;
 }
 #sidebar .nav-link:hover {
     background-color: var(--sidebar-hover);
     color: #fff;
+    border-left-color: #64748b;
 }
 #sidebar .nav-link.active {
     background-color: rgba(59, 130, 246, 0.1);
     color: var(--sidebar-active);
-    border-left: 4px solid var(--sidebar-active);
+    border-left-color: var(--sidebar-active);
+    font-weight: 600;
 }
 
 /* Main Content */
