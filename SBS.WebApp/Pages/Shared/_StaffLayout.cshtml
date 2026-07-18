@@ -23,11 +23,16 @@
 <body>
     <!-- Sidebar -->
     <nav id="sidebar">
-        <div class="sidebar-header">
-            <a href="/Staff/CheckIn" class="brand">
-                <i class="fa-solid fa-water text-info me-2"></i> SBS Staff
-            </a>
-            <button type="button" id="sidebarClose" class="btn btn-link text-white d-md-none p-0 border-0">
+        <div class="sidebar-header position-relative">
+            <div>
+                <a href="/Staff/CheckIn" class="brand">
+                    <i class="fa-solid fa-water text-info me-2"></i> SBS Staff
+                </a>
+                <div id="userPoolDisplay" class="text-info small mt-1" style="display: none; font-size: 0.85rem;">
+                    <i class="fa-solid fa-location-dot me-1"></i> <span class="pool-name-text"></span>
+                </div>
+            </div>
+            <button type="button" id="sidebarClose" class="btn btn-link text-white d-md-none p-0 border-0 position-absolute top-0 end-0 mt-3 me-3">
                 <i class="fa-solid fa-xmark fs-4"></i>
             </button>
         </div>
@@ -37,6 +42,10 @@
             </a>
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Staff/Bookings") == true ? "active" : "")" href="/Staff/Bookings">
                 <i class="fa-solid fa-ticket w-20px"></i> Quản lý Booking
+            </a>
+            <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
+            <a class="nav-link text-white-50" href="/" style="font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left w-20px"></i> Về trang chủ
             </a>
         </div>
     </nav>
@@ -96,6 +105,7 @@
 
         const userRole = getCookie('role');
         const fullName = decodeURIComponent(getCookie('fullName') || getCookie('userName') || 'Staff');
+        const poolName = decodeURIComponent(getCookie('poolName') || '');
 
         if (!userRole || (userRole.toLowerCase() !== 'staff' && userRole.toLowerCase() !== 'manager' && userRole.toLowerCase() !== 'admin')) {
             window.location.href = '/Auth/Login';
@@ -107,12 +117,14 @@
             document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
             document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
             document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
+            document.cookie = "poolName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
             
             document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "poolName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             
             window.location.href = '/Auth/Login';
         }
@@ -120,6 +132,11 @@
         $(document).ready(function() {
             $('#userNameDisplay').text(fullName);
             $('#userAvatar').attr('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284C7&color=fff`);
+            
+            if (poolName) {
+                $('#userPoolDisplay .pool-name-text').text(poolName);
+                $('#userPoolDisplay').show();
+            }
 
             // Sidebar toggles for mobile responsiveness
             $('#sidebarCollapse, #sidebarClose, #sidebar-overlay').on('click', function() {
