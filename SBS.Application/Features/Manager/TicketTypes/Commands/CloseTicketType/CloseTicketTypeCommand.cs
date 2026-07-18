@@ -29,21 +29,10 @@ public class CloseTicketTypeCommandHandler
         if (ticket.Status == "Inactive")
             throw new BadRequestException("Loại vé đã ở trạng thái Inactive, không cần đóng lại.");
 
-        // Kiểm tra xem vé này có đang được sử dụng trong Booking nào chưa hoàn thành trên toàn hệ thống không
-        bool hasActiveBookings = await _uow.AnyAsync(
-            _uow.Repository<BookingDetail>().Query()
-                .Where(bd => bd.PoolTicketType.TicketTypeId == ticket.TicketTypeId 
-                          && (bd.Booking.Status == "PendingPayment" || bd.Booking.Status == "Confirmed")), ct);
-
-        if (hasActiveBookings)
-        {
-            throw new BadRequestException("Không thể ngừng kích hoạt loại vé này vì đang có khách hàng chờ thanh toán hoặc đã xác nhận sử dụng tại một hoặc nhiều bể bơi.");
-        }
-
         ticket.Status = "Inactive";
         _uow.Repository<TicketType>().Update(ticket);
         await _uow.SaveChangesAsync(ct);
 
-        return new SuccessResponse { Message = "Đã ngừng kích hoạt loại vé." };
+        return new SuccessResponse { Message = "Đã ngừng kinh doanh loại vé trên toàn hệ thống." };
     }
 }
