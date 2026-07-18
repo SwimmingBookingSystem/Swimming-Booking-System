@@ -100,6 +100,11 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("role", result.Data.Role ?? "", normalCookieOptions);
         Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
         Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
+        
+        if (!string.IsNullOrEmpty(result.Data.PoolName))
+        {
+            Response.Cookies.Append("poolName", result.Data.PoolName, normalCookieOptions);
+        }
 
         return Ok(new
         {
@@ -107,6 +112,7 @@ public class AuthController : ControllerBase
             userName = result.Data.UserName,
             fullName = result.Data.FullName,
             role = result.Data.Role,
+            poolName = result.Data.PoolName,
             expiryDate = result.Data.ExpiryDate
         });
     }
@@ -184,12 +190,18 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
         Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
 
+        if (!string.IsNullOrEmpty(result.Data.PoolName))
+        {
+            Response.Cookies.Append("poolName", result.Data.PoolName, normalCookieOptions);
+        }
+
         return Ok(new
         {
             id = result.Data.Id,
             userName = result.Data.UserName,
             fullName = result.Data.FullName,
             role = result.Data.Role,
+            poolName = result.Data.PoolName,
             expiryDate = result.Data.ExpiryDate
         });
     }
@@ -354,6 +366,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("role", "", expiredNormalCookieOptions);
         Response.Cookies.Append("userName", "", expiredNormalCookieOptions);
         Response.Cookies.Append("userId", "", expiredNormalCookieOptions);
+        Response.Cookies.Append("poolName", "", expiredNormalCookieOptions);
 
         return Ok(new { message = "Đăng xuất thành công." });
     }

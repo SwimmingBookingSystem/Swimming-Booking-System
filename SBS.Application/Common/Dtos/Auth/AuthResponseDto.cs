@@ -12,5 +12,6 @@ public class AuthResponseDto
     public string UserName { get; set; } = null!;
     public string FullName { get; set; } = null!;
     public string Role { get; set; } = null!;
+    public string? PoolName { get; set; }
 }
 
