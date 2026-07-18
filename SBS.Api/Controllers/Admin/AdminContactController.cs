@@ -26,10 +26,13 @@ public class AdminContactController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetContactRequests()
+    public async Task<IActionResult> GetContactRequests(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? status = null)
     {
-        var contacts = await _mediator.Send(new GetContactRequestsQuery());
-        return Ok(contacts);
+        var result = await _mediator.Send(new GetContactRequestsQuery(page, pageSize, status));
+        return Ok(result);
     }
 
     [HttpPost("{id:int}/respond")]
