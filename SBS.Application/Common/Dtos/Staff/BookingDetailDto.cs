@@ -9,6 +9,7 @@ public record BookingDetailDto
     public int BookingId { get; init; }
     public string BookingCode { get; init; } = null!;
     public string Status { get; init; } = null!;
+    public string StatusDisplay { get; init; } = null!;  // Tiếng Việt
     public DateOnly BookingDate { get; init; }
     public decimal TotalAmount { get; init; }
     public string BookingType { get; init; } = null!;
@@ -47,6 +48,7 @@ public record PaymentInfoDto
 {
     public string PaymentMethod { get; init; } = null!;
     public string Status { get; init; } = null!;
+    public string StatusDisplay { get; init; } = null!;  // Tiếng Việt: "Thành công"
     public decimal Amount { get; init; }
     public DateTime? PaymentDate { get; init; }
 }
