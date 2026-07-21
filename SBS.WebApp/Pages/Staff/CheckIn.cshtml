@@ -284,6 +284,29 @@
                     // Toastr đã tự xử lý ở interceptor
                 }
             });
+
+            // Parse URL Query parameters for auto-fill and auto-tab selection
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            const codeParam = urlParams.get('code');
+            
+            if (tabParam) {
+                // Select the requested tab
+                const tabId = '#' + tabParam + '-tab';
+                const tabEl = document.querySelector(tabId);
+                if (tabEl) {
+                    const tab = new bootstrap.Tab(tabEl);
+                    tab.show();
+                }
+            }
+            
+            if (codeParam) {
+                if (tabParam === 'manual') {
+                    $('#manual-booking-input').val(codeParam);
+                } else if (tabParam === 'checkout-manual') {
+                    $('#checkout-input').val(codeParam);
+                }
+            }
         });
 
         // ========================
