@@ -190,18 +190,33 @@ $(document).ready(function () {
                 tickets.forEach(ticket => {
                     const slotEqText = ticket.slotEquivalent > 1 ? `<div class="small text-warning fw-bold"><i class="bi bi-people-fill"></i> Tương đương ${ticket.slotEquivalent} suất bơi</div>` : '';
                     
-                    const cardHtml = `
-                        <div class="ticket-card d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-bold mb-1">${ticket.ticketName}</h6>
-                                <div class="text-primary fw-semibold">${Number(ticket.price).toLocaleString('vi-VN')}đ</div>
-                                ${slotEqText}
-                            </div>
+                    let actionsHtml = '';
+                    let opacityClass = '';
+                    let inactiveBadge = '';
+
+                    if (ticket.isActive === false) {
+                        opacityClass = 'opacity-50';
+                        inactiveBadge = '<div class="small text-danger fw-bold mt-1"><i class="bi bi-exclamation-circle"></i> Vé ngừng hoạt động</div>';
+                        actionsHtml = `<span class="badge bg-secondary">Ngừng bán</span>`;
+                    } else {
+                        actionsHtml = `
                             <div class="d-flex align-items-center gap-2">
                                 <button type="button" class="qty-btn qty-minus" data-id="${ticket.poolTicketTypeId}">-</button>
                                 <input type="number" class="qty-input" id="qty-${ticket.poolTicketTypeId}" value="0" min="0" max="20" readonly>
                                 <button type="button" class="qty-btn qty-plus" data-id="${ticket.poolTicketTypeId}" data-sloteq="${ticket.slotEquivalent}">+</button>
                             </div>
+                        `;
+                    }
+
+                    const cardHtml = `
+                        <div class="ticket-card d-flex justify-content-between align-items-center ${opacityClass}">
+                            <div>
+                                <h6 class="fw-bold mb-1">${ticket.ticketName}</h6>
+                                <div class="text-primary fw-semibold">${Number(ticket.price).toLocaleString('vi-VN')}đ</div>
+                                ${slotEqText}
+                                ${inactiveBadge}
+                            </div>
+                            ${actionsHtml}
                         </div>
                     `;
 
