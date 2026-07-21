@@ -21,7 +21,7 @@
             <i class="fa-solid fa-shield-halved"></i> SBS Admin
         </a>
         <div class="nav flex-column">
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Dashboard" ? "active" : "")" href="/Admin/Dashboard">
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Dashboard/Index" ? "active" : "")" href="/Admin/Dashboard">
                 <i class="fa-solid fa-chart-pie w-20px"></i> Tổng quan
             </a>
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Users/Index" ? "active" : "")" href="/Admin/Users">
