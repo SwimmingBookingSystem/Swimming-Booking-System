@@ -118,6 +118,39 @@ public class PoolManagementService : IPoolManagementService
                 .Where(p => p.PoolId == request.PoolId), ct)
             ?? throw new NotFoundException(nameof(Pool), request.PoolId);
 
+        if (pool.OpeningTime != request.OpeningTime || pool.ClosingTime != request.ClosingTime)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            
+            var affectedSlots = await _uow.ToListAsync(
+                _uow.Repository<PoolSlot>().Query()
+                    .Include(s => s.Bookings)
+                    .Where(s => s.PoolId == request.PoolId && s.SlotDate >= today && s.Status != "Cancelled"
+                                && (s.StartTime < request.OpeningTime || s.EndTime > request.ClosingTime)),
+                ct);
+
+            if (affectedSlots.Any())
+            {
+                var slotsWithActiveBookings = affectedSlots
+                    .Where(s => s.Bookings.Any(b => b.Status == "Paid" || b.Status == "PendingPayment" || b.Status == "Confirmed" || b.Status == "Success"))
+                    .ToList();
+
+                if (slotsWithActiveBookings.Any())
+                {
+                    throw new BadRequestException("Không thể thu hẹp giờ hoạt động vì đang có khách đặt vé trong ca bơi nằm ngoài khung giờ mới. Vui lòng xử lý (hoàn tiền/huỷ vé) cho khách hàng trước.");
+                }
+                else
+                {
+                    foreach(var slot in affectedSlots)
+                    {
+                        slot.Status = "Cancelled";
+                        _uow.Repository<PoolSlot>().Update(slot);
+                    }
+                }
+            }
+        }
+
+
         pool.PoolName    = request.PoolName;
         pool.Address     = request.Address;
         pool.Description = request.Description;
