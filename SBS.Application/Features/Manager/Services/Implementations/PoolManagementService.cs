@@ -50,6 +50,11 @@ public class PoolManagementService : IPoolManagementService
 
     public async Task<CreatePoolResponse> CreatePoolAsync(CreatePoolCommand request, CancellationToken ct)
     {
+        var isDuplicateName = await _uow.AnyAsync(
+            _uow.Repository<Pool>().Query().Where(p => p.PoolName.ToLower() == request.PoolName.ToLower()), ct);
+        if (isDuplicateName)
+            throw new BadRequestException("Tên bể bơi đã tồn tại trong hệ thống, vui lòng chọn tên khác.");
+
         var pool = new Pool
         {
             PoolName    = request.PoolName,
@@ -113,11 +118,17 @@ public class PoolManagementService : IPoolManagementService
 
     public async Task<PoolDto> UpdatePoolAsync(UpdatePoolCommand request, CancellationToken ct)
     {
+        var isDuplicateName = await _uow.AnyAsync(
+            _uow.Repository<Pool>().Query().Where(p => p.PoolId != request.PoolId && p.PoolName.ToLower() == request.PoolName.ToLower()), ct);
+        if (isDuplicateName)
+            throw new BadRequestException("Tên bể bơi đã tồn tại trong hệ thống, vui lòng chọn tên khác.");
+
         var pool = await _uow.FirstOrDefaultAsync(
             _uow.Repository<Pool>().Query()
                 .Where(p => p.PoolId == request.PoolId), ct)
             ?? throw new NotFoundException(nameof(Pool), request.PoolId);
 
+        int cancelledSlotsCount = 0;
         if (pool.OpeningTime != request.OpeningTime || pool.ClosingTime != request.ClosingTime)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -145,6 +156,7 @@ public class PoolManagementService : IPoolManagementService
                     {
                         slot.Status = "Cancelled";
                         _uow.Repository<PoolSlot>().Update(slot);
+                        cancelledSlotsCount++;
                     }
                 }
             }
@@ -190,25 +202,34 @@ public class PoolManagementService : IPoolManagementService
         _uow.Repository<Pool>().Update(pool);
         await _uow.SaveChangesAsync(ct);
 
-        return new PoolDto
+        var resultDto = new PoolDto
         {
-            PoolId      = pool.PoolId,
-            PoolName    = pool.PoolName,
-            Address     = pool.Address,
-            Description = pool.Description,
-            Images      = pool.PoolImages.Select(img => new PoolImageDto 
+            PoolId           = pool.PoolId,
+            PoolName         = pool.PoolName,
+            Address          = pool.Address,
+            Description      = pool.Description,
+            OpeningTime      = pool.OpeningTime.ToString(@"hh\:mm"),
+            ClosingTime      = pool.ClosingTime.ToString(@"hh\:mm"),
+            Area             = pool.Area,
+            StandardCapacity = pool.StandardCapacity,
+            Status           = pool.Status,
+            CreatedAt        = pool.CreatedAt,
+            UpdatedAt        = pool.UpdatedAt,
+            Images           = pool.PoolImages.Select(img => new PoolImageDto
             {
                 PoolImageId = img.PoolImageId,
                 ImageUrl    = img.ImageUrl,
                 IsCover     = img.IsCover,
                 SortOrder   = img.SortOrder,
                 CreatedAt   = img.CreatedAt
-            }).ToList(),
-            OpeningTime = pool.OpeningTime.ToString(@"hh\:mm"),
-            ClosingTime = pool.ClosingTime.ToString(@"hh\:mm"),
-            Status      = pool.Status,
-            Area        = pool.Area,
-            StandardCapacity = pool.StandardCapacity
+            }).ToList()
         };
+
+        if (cancelledSlotsCount > 0)
+        {
+            resultDto.Message = $"Đã cập nhật giờ hoạt động thành công. Hệ thống đã tự động huỷ {cancelledSlotsCount} ca bơi nằm ngoài khung giờ mới.";
+        }
+
+        return resultDto;
     }
 }
