@@ -15,30 +15,13 @@ public record CloseSlotCommand(int SlotId) : IRequest<SuccessResponse>;
 //  Handler 
 public class CloseSlotCommandHandler : IRequestHandler<CloseSlotCommand, SuccessResponse>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly SBS.Application.Features.Manager.Services.Interfaces.ISlotManagementService _slotService;
 
-    public CloseSlotCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public CloseSlotCommandHandler(SBS.Application.Features.Manager.Services.Interfaces.ISlotManagementService slotService) => _slotService = slotService;
 
     public async Task<SuccessResponse> Handle(CloseSlotCommand request, CancellationToken ct)
     {
-        var slot = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<PoolSlot>().Query().Where(s => s.PoolSlotId == request.SlotId), ct)
-            ?? throw new NotFoundException(nameof(PoolSlot), request.SlotId);
-
-        if (slot.Status == "Closed")
-            throw new BadRequestException("Slot đã ở trạng thái Closed.");
-
-        var hasActiveBookings = await _uow.AnyAsync(
-            _uow.Repository<Booking>().Query()
-                .Where(b => b.PoolSlotId == request.SlotId && (b.Status == "Paid" || b.Status == "PendingPayment")), ct);
-                
-        if (hasActiveBookings)
-            throw new BadRequestException("Không thể đóng slot vì đã có người booking.");
-
-        slot.Status = "Closed";
-        _uow.Repository<PoolSlot>().Update(slot);
-        await _uow.SaveChangesAsync(ct);
-
-        return new SuccessResponse { Message = "Đã đóng slot thành công." };
+        return await _slotService.CloseSlotAsync(request.SlotId, ct);
     }
 }
+

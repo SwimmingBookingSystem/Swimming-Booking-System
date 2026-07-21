@@ -16,25 +16,13 @@ public record ReopenPoolCommand(int PoolId) : IRequest<SuccessResponse>;
 // Handler
 public class ReopenPoolCommandHandler : IRequestHandler<ReopenPoolCommand, SuccessResponse>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService _poolService;
 
-    public ReopenPoolCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public ReopenPoolCommandHandler(SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService poolService) => _poolService = poolService;
 
     public async Task<SuccessResponse> Handle(ReopenPoolCommand request, CancellationToken ct)
     {
-        var pool = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<Pool>().Query().Where(p => p.PoolId == request.PoolId), ct)
-            ?? throw new NotFoundException(nameof(Pool), request.PoolId);
-
-        if (pool.Status == "Active")
-            throw new BadRequestException("Bể bơi đang ở trạng thái Active, không cần mở lại.");
-
-        pool.Status    = "Active";
-        pool.UpdatedAt = DateTime.UtcNow;
-
-        _uow.Repository<Pool>().Update(pool);
-        await _uow.SaveChangesAsync(ct);
-
-        return new SuccessResponse { Message = "Đã mở lại bể bơi thành công." };
+        return await _poolService.ReopenPoolAsync(request.PoolId, ct);
     }
 }
+

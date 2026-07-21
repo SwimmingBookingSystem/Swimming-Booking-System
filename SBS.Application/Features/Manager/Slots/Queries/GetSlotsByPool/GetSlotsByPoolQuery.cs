@@ -20,9 +20,9 @@ public record GetSlotsByPoolQuery(
 
 public class GetSlotsByPoolQueryHandler : IRequestHandler<GetSlotsByPoolQuery, PagedResponse<PoolSlotDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetSlotsByPoolQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetSlotsByPoolQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PagedResponse<PoolSlotDto>> Handle(GetSlotsByPoolQuery request, CancellationToken ct)
     {

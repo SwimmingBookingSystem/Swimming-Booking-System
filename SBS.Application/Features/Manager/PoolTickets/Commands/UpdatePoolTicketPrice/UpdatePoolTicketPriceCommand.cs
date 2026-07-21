@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using SBS.Application.Common.Dtos.Manager;
 using SBS.Application.Common.Interfaces;
+using SBS.Application.Features.Manager.Services.Interfaces;
 using SBS.Application.Common.ManagerExceptions;
 using SBS.Domain.Entities;
 using System.Linq;
@@ -21,36 +22,17 @@ public record UpdatePoolTicketPriceCommand(
 public class UpdatePoolTicketPriceCommandHandler
     : IRequestHandler<UpdatePoolTicketPriceCommand, SuccessResponse>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly ITicketManagementService _ticketService;
 
-    public UpdatePoolTicketPriceCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public UpdatePoolTicketPriceCommandHandler(ITicketManagementService ticketService)
+    {
+        _ticketService = ticketService;
+    }
 
     public async Task<SuccessResponse> Handle(
         UpdatePoolTicketPriceCommand request, CancellationToken ct)
     {
-        var pt = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<PoolTicketType>().Query()
-                .Where(x => x.PoolId       == request.PoolId
-                         && x.TicketTypeId == request.TicketTypeId), ct)
-            ?? throw new NotFoundException(
-                "PoolTicketType",
-                $"Pool {request.PoolId} – TicketType {request.TicketTypeId}");
-
-        if (pt.Price != request.Price)
-        {
-            await _uow.Repository<PoolTicketPriceHistory>().AddAsync(new PoolTicketPriceHistory
-            {
-                PoolTicketTypeId = pt.PoolTicketTypeId,
-                OldCustomPrice = pt.Price, // Giá cũ
-                NewCustomPrice = request.Price,  // Giá mới
-                ModifiedAt = System.DateTime.UtcNow,
-                ModifiedByUserName = "Manager" // Lấy từ HttpContext nếu có
-            }, ct);
-        }
-
-        pt.Price = request.Price;
-        _uow.Repository<PoolTicketType>().Update(pt);
-        await _uow.SaveChangesAsync(ct);
+        await _ticketService.UpdatePoolTicketPriceAsync(request.PoolId, request.TicketTypeId, request.Price, ct);
 
         return new SuccessResponse
         {

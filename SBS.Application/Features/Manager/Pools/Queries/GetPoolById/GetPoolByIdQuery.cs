@@ -13,9 +13,9 @@ public record GetPoolByIdQuery(int PoolId) : IRequest<PoolDto>;
 
 public class GetPoolByIdQueryHandler : IRequestHandler<GetPoolByIdQuery, PoolDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetPoolByIdQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetPoolByIdQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PoolDto> Handle(GetPoolByIdQuery request, CancellationToken ct)
     {
