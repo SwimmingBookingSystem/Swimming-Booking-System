@@ -196,9 +196,9 @@
 
                     let actions = `<button class="btn btn-sm btn-outline-primary me-1" onclick="viewDetail(${b.bookingId})" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>`;
                     if (b.status === 'Confirmed') {
-                        actions += `<button class="btn btn-sm btn-success" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check me-1"></i>Check-in</button>`;
+                        actions += `<a href="/Staff/CheckIn?tab=manual&code=${b.bookingCode}" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i>Check-in</a>`;
                     } else if (b.status === 'CheckIn') {
-                        actions += `<button class="btn btn-sm btn-warning text-dark" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</button>`;
+                        actions += `<a href="/Staff/CheckIn?tab=checkout-manual&code=${b.bookingCode}" class="btn btn-sm btn-warning text-dark"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</a>`;
                     }
 
                     html += `
