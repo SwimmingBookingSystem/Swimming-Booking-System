@@ -19,17 +19,20 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
     private readonly IPoolSlotBookingRepository _poolSlotBookingRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IPayOSService _payOSService;
+    private readonly IBookingCalculationService _bookingCalculationService;
 
     public CreateBookingCommandHandler(
         IUnitOfWork unitOfWork,
         IPoolSlotBookingRepository poolSlotBookingRepository,
         ICurrentUserService currentUserService,
-        IPayOSService payOSService)
+        IPayOSService payOSService,
+        IBookingCalculationService bookingCalculationService)
     {
         _unitOfWork = unitOfWork;
         _poolSlotBookingRepository = poolSlotBookingRepository;
         _currentUserService = currentUserService;
         _payOSService = payOSService;
+        _bookingCalculationService = bookingCalculationService;
     }
 
     public async Task<CreateBookingResponseDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
@@ -95,64 +98,26 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 throw new InvalidOperationException("One or more ticket types do not belong to the selected pool.");
             }
 
-            // 3. Calculate exact total slots requested (Slot Equivalent)
-            int totalSlotsRequested = 0;
-            foreach (var reqTicket in request.Tickets)
-            {
-                var ticketType = ticketTypes.First(t => t.PoolTicketTypeId == reqTicket.PoolTicketTypeId).TicketType;
-                int slotEq = ticketType.Category == "Combo" ? ticketType.ComboItems.Sum(c => c.Quantity) : 1;
-                totalSlotsRequested += reqTicket.Quantity * slotEq;
-            }
+            // 3. Calculate requested slots using Domain Calculation Service
+            int totalSlotsRequested = _bookingCalculationService.CalculateTotalRequestedSlots(request.Tickets, ticketTypes);
 
             if (totalSlotsRequested > 20)
             {
                 throw new BadRequestException("Bạn chỉ được phép đặt tối đa 20 suất bơi trong một lần giao dịch.");
             }
 
-            // 4. Calculate current booked slots
-            var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
-                .Include(bd => bd.PoolTicketType)
-                    .ThenInclude(pt => pt.TicketType)
-                        .ThenInclude(tt => tt.ComboItems)
-                .Where(bd => bd.Booking.PoolSlotId == slot.PoolSlotId && 
-                             bd.Booking.Status != "Cancelled" && 
-                             bd.Booking.Status != "Failed" && 
-                             bd.Booking.Status != "Refunded")
-                .ToListAsync(cancellationToken);
+            // 4. Calculate available capacity using Domain Calculation Service
+            int availableCapacity = await _bookingCalculationService.GetAvailableCapacityAsync(slot.PoolSlotId, slot.Capacity, cancellationToken);
 
-            int currentBooked = currentBookedDetails.Sum(bd => 
-            {
-                var tt = bd.PoolTicketType.TicketType;
-                int slotEq = tt.Category == "Combo" ? tt.ComboItems.Sum(c => c.Quantity) : 1;
-                return bd.Quantity * slotEq;
-            });
-
-            if (slot.Capacity - currentBooked < totalSlotsRequested)
+            if (availableCapacity < totalSlotsRequested)
             {
                 throw new SlotFullException(slot.PoolSlotId, slot.SlotDate);
             }
 
-            // 5. Calculate total amount
-            decimal totalAmount = 0;
-            var bookingDetails = new System.Collections.Generic.List<BookingDetail>();
+            // 5. Calculate total amount & booking details
+            var (totalAmount, bookingDetails) = _bookingCalculationService.CalculateBookingAmount(request.Tickets, ticketTypes);
 
-            foreach (var reqTicket in request.Tickets)
-            {
-                var ticketType = ticketTypes.First(t => t.PoolTicketTypeId == reqTicket.PoolTicketTypeId);
-                var actualPrice = ticketType.Price ?? Math.Round(ticketType.TicketType.BasePrice * (1 - ticketType.TicketType.DiscountPercent / 100m), 0);
-                var subTotal = actualPrice * reqTicket.Quantity;
-                totalAmount += subTotal;
-
-                bookingDetails.Add(new BookingDetail
-                {
-                    PoolTicketTypeId = reqTicket.PoolTicketTypeId,
-                    Quantity = reqTicket.Quantity,
-                    UnitPrice = actualPrice,
-                    SubTotal = subTotal
-                });
-            }
-
-            // 4. Create Booking
+            // 6. Create Booking
             var booking = new Booking
             {
                 BookingCode = $"BK-{DateTime.UtcNow:yyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
@@ -167,11 +132,9 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             };
 
             await _unitOfWork.Repository<Booking>().AddAsync(booking, cancellationToken);
-
-
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // 5. Generate Payment Link via PayOS
+            // 7. Generate Payment Link via PayOS
             var paymentLink = await _payOSService.CreatePaymentLinkAsync(booking.BookingId, booking.TotalAmount, booking.BookingCode, booking.PaymentDeadline.Value);
 
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
