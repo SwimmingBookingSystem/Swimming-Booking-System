@@ -31,4 +31,6 @@ public interface IAdminService
     Task<ResultDto> RespondContactRequestAsync(int contactRequestId, string responseMessage, CancellationToken cancellationToken = default);
 
     Task<PagedResultDto<ContactRequestListDto>> GetContactRequestsAsync(int page, int pageSize, string? status, CancellationToken cancellationToken = default);
+
+    Task<PagedResultDto<BookingListDto>> GetBookingsAsync(int page, int pageSize, string? status, string? search, string? fromDate, string? toDate, CancellationToken cancellationToken = default);
 }
