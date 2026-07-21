@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SBS.Application.Features.Customer.CustomerViewPoolList;
-using SBS.Application.Features.Customer.CustomerViewPoolDetail;
+using SBS.Application.Features.Customer.CustomerViewPoolList.Queries;
+using SBS.Application.Features.Customer.CustomerViewPoolDetail.Queries;
 using System;
 using System.Threading.Tasks;
 
