@@ -165,48 +165,13 @@
 
 @section Scripts {
     <script>
-        function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
-
-        window.logout = function() {
-            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
-            $.ajax({
-                url: apiBaseUrl + '/api/Auth/logout',
-                type: 'POST',
-                xhrFields: {
-                    withCredentials: true
-                },
-                complete: function() {
-                    // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
-                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    
-                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    
-                    window.location.href = '/Index';
-                }
-            });
-        };
+        // Lấy thông tin role được phân tích an toàn từ cookie mã hóa ở server-side
+        const userRole = '@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")';
 
         function checkLoginState() {
-            const userName = getCookie('userName');
-            const role = getCookie('role');
-            if (userName && role) {
+            if (userRole) {
                 // If customer is logged in, change the Booking/CTA button links to the Pools List
-                if (role.toLowerCase() === 'customer') {
+                if (userRole.toLowerCase() === 'customer') {
                     $('#hero-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay');
                     $('#cta-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-swimming me-2"></i>Xem danh sách bể bơi');
                 }
@@ -218,7 +183,7 @@
             checkLoginState();
 
             const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
-            const role = getCookie('role');
+            const role = userRole;
 
             $.ajax({
                 url: apiBaseUrl + '/api/public/homepage',

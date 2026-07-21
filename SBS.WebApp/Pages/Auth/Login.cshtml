@@ -348,27 +348,37 @@
             <div class="brand-subtitle">Đăng nhập tài khoản của bạn để đặt lịch bơi</div>
             
             <!-- Alert báo lỗi -->
-            <div id="error-alert" class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span id="error-alert-text">Tên đăng nhập hoặc mật khẩu không chính xác.</span>
-            </div>
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div id="error-alert" class="alert alert-danger" role="alert" style="display: flex;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="error-alert-text">@Model.ErrorMessage</span>
+                </div>
+            }
+            else
+            {
+                <div id="error-alert" class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span id="error-alert-text"></span>
+                </div>
+            }
 
-            <form id="login-form">
+            <form id="login-form" method="post">
                 <!-- Tên đăng nhập -->
                 <div class="form-group-custom">
-                    <label for="username" class="form-label">Tên đăng nhập</label>
+                    <label asp-for="Username" class="form-label">Tên đăng nhập</label>
                     <div class="input-group-custom">
                         <i class="bi bi-person-fill input-icon-left"></i>
-                        <input type="text" class="form-control" id="username" placeholder="Nhập tên đăng nhập" required autocomplete="username" />
+                        <input type="text" asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" required autocomplete="username" />
                     </div>
                 </div>
                 
                 <!-- Mật khẩu -->
                 <div class="form-group-custom">
-                    <label for="password" class="form-label">Mật khẩu</label>
+                    <label asp-for="Password" class="form-label">Mật khẩu</label>
                     <div class="input-group-custom password-container">
                         <i class="bi bi-lock-fill input-icon-left"></i>
-                        <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" required autocomplete="current-password" />
+                        <input type="password" asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password" />
                         <button type="button" class="password-toggle" id="toggle-password-btn" aria-label="Hiển thị mật khẩu">
                             <i class="bi bi-eye" id="toggle-password-icon"></i>
                         </button>
@@ -415,12 +425,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Địa chỉ API trỏ thẳng về API localhost của nhóm đã cấu hình CORS
-            const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
-
             // Ẩn/Hiện mật khẩu
             $('#toggle-password-btn').click(function() {
-                const passwordInput = $('#password');
+                const passwordInput = $('#Password');
                 const toggleIcon = $('#toggle-password-icon');
                 
                 if (passwordInput.attr('type') === 'password') {
@@ -432,83 +439,10 @@
                 }
             });
 
-            // Gửi Form Đăng nhập qua AJAX
-            $('#login-form').submit(function(e) {
-                e.preventDefault();
-
-                const username = $('#username').val().trim();
-                const password = $('#password').val();
-
-                if (!username || !password) {
-                    showError('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.');
-                    return;
-                }
-
-                // Hiệu ứng Loading
+            // Khi submit form, bật hiệu ứng Loading
+            $('#login-form').submit(function() {
                 setLoadingState(true);
-                hideError();
-
-                $.ajax({
-                    url: `${apiBaseUrl}/api/Auth/login`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    xhrFields: {
-                        withCredentials: true // Cho phép trình duyệt lưu Cookie HttpOnly từ API
-                    },
-                    data: JSON.stringify({
-                        userName: username,
-                        password: password
-                    }),
-                    success: function(response) {
-                        setLoadingState(false);
-                        
-                        // Cơ chế mới: KHÔNG lưu bất kỳ thứ gì vào localStorage theo yêu cầu bảo mật
-                        if (response && response.role) {
-                            // Điều hướng tùy theo vai trò (Role)
-                            const role = response.role.toLowerCase();
-                            if (role === 'admin') {
-                                window.location.href = '/Admin/users';
-                            } else if (role === 'manager') {
-                                window.location.href = '/Manager/Dashboard';
-                            } else if (role === 'staff') {
-                                window.location.href = '/Staff/CheckIn';
-                            } else if (role === 'customer') {
-                                window.location.href = '/';
-                            } else {
-                                showError('Vai trò của bạn không được cấp quyền truy cập.');
-                            }
-                        } else {
-                            showError('Đăng nhập không thành công.');
-                        }
-                    },
-                    error: function(xhr) {
-                        setLoadingState(false);
-                        console.error('Lỗi chi tiết từ Server:', xhr.responseJSON || xhr.responseText);
-                        let errorMsg = 'Kết nối tới máy chủ thất bại.';
-                        
-                        if (xhr.responseJSON) {
-                            if (xhr.status === 500 && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
-                                // Đối với lỗi 500 (như lỗi DB/Redis), lấy thông báo lỗi đầu tiên để hiển thị cho lập trình viên/người dùng
-                                errorMsg = `Lỗi hệ thống: ${xhr.responseJSON.errors[0]}`;
-                            } else if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
-                                errorMsg = xhr.responseJSON.errors.join('<br>');
-                            } else if (xhr.responseJSON.message) {
-                                errorMsg = xhr.responseJSON.message;
-                            }
-                        }
-                        showError(errorMsg);
-                    }
-                });
             });
-
-            function showError(message) {
-                $('#error-alert-text').text(message);
-                $('#error-alert').css('display', 'flex').fadeIn();
-            }
-
-            function hideError() {
-                $('#error-alert').hide();
-            }
 
             function setLoadingState(isLoading) {
                 const btn = $('#login-submit-btn');
