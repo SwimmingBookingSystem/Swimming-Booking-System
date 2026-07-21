@@ -38,7 +38,8 @@ public class PaymentResultModel : PageModel
             var client = _httpClientFactory.CreateClient();
             var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7179";
             
-            if (Request.Cookies.TryGetValue("accessToken", out var token))
+            var token = User.FindFirst("AccessToken")?.Value;
+            if (!string.IsNullOrEmpty(token))
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }

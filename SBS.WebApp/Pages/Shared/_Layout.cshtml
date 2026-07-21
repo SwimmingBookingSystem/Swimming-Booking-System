@@ -180,6 +180,23 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Cung cấp Role và Token giải mã từ Server xuống bộ nhớ tạm của Browser để phục vụ AJAX
+        window.USER_ROLE = '@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")';
+        window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
+        window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';
+
+        // TỰ ĐỘNG cấu hình gửi kèm JWT Token cho tất cả các cuộc gọi AJAX (JQuery)
+        // Việc này giải quyết triệt để lỗi "Tải dữ liệu..." của các trang như Đặt vé, Profile, Lịch sử...
+        if (window.ACCESS_TOKEN) {
+            $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + window.ACCESS_TOKEN);
+                }
+            });
+        }
+    </script>
 
     @* Logout được xử lý trực tiếp qua đường dẫn /Auth/Logout trên server *@
     @await RenderSectionAsync("Scripts", required: false)
