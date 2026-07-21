@@ -18,9 +18,9 @@ public record GetPoolsQuery(
 
 public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse<PoolDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetPoolsQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetPoolsQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PagedResponse<PoolDto>> Handle(GetPoolsQuery request, CancellationToken ct)
     {

@@ -25,54 +25,13 @@ public record CreatePoolCommand(
 // ── Handler 
 public class CreatePoolCommandHandler : IRequestHandler<CreatePoolCommand, CreatePoolResponse>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService _poolService;
 
-    public CreatePoolCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public CreatePoolCommandHandler(SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService poolService) => _poolService = poolService;
 
     public async Task<CreatePoolResponse> Handle(CreatePoolCommand request, CancellationToken ct)
     {
-        var pool = new Pool
-        {
-            PoolName    = request.PoolName,
-            Address     = request.Address,
-            Description = request.Description,
-            OpeningTime = request.OpeningTime,
-            ClosingTime = request.ClosingTime,
-            Area        = request.Area,
-            StandardCapacity = (int)(request.Area / 2.5),
-            Status      = "Active",
-            CreatedAt   = DateTime.UtcNow
-        };
-
-        // Thêm ảnh nếu có
-        if (request.Images != null && request.Images.Any())
-        {
-            var coverCount = request.Images.Count(i => i.IsCover);
-            if (coverCount == 0) request.Images[0].IsCover = true;
-
-            int index = 1;
-            foreach (var img in request.Images)
-            {
-                pool.PoolImages.Add(new PoolImage
-                {
-                    ImageUrl  = img.ImageUrl,
-                    IsCover   = img.IsCover,
-                    SortOrder = img.SortOrder == 0 ? index : img.SortOrder,
-                    CreatedAt = DateTime.UtcNow
-                });
-                index++;
-            }
-        }
-
-        await _uow.Repository<Pool>().AddAsync(pool, ct);
-        await _uow.SaveChangesAsync(ct);
-
-        return new CreatePoolResponse
-        {
-            PoolId   = pool.PoolId,
-            PoolName = pool.PoolName,
-            Status   = pool.Status
-        };
+        return await _poolService.CreatePoolAsync(request, ct);
     }
 }
 
@@ -111,3 +70,4 @@ public class CreatePoolCommandValidator : AbstractValidator<CreatePoolCommand>
             });
     }
 }
+

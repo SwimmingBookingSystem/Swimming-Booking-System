@@ -14,9 +14,9 @@ public record GetSlotByIdQuery(int SlotId) : IRequest<PoolSlotDto>;
 
 public class GetSlotByIdQueryHandler : IRequestHandler<GetSlotByIdQuery, PoolSlotDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetSlotByIdQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetSlotByIdQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PoolSlotDto> Handle(GetSlotByIdQuery request, CancellationToken ct)
     {
