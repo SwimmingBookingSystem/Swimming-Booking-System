@@ -14,46 +14,19 @@ const api = {
         return new Promise((resolve, reject) => {
             $('#global-loader').css('display', 'flex');
             
-            // Helper đọc cookie
-            function getCookie(name) {
-                let value = "; " + document.cookie;
-                let parts = value.split("; " + name + "=");
-                if (parts.length === 2) return parts.pop().split(";").shift();
-                return null;
-            }
-
-            // Cấu hình Header công khai
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            let role = getCookie('role');
-            if (!role) {
-                // Auto dev login (Bypass for testing without Login UI)
-                $.ajax({
-                    url: (window.API_BASE_URL || 'https://localhost:7179') + '/api/Auth/login',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    xhrFields: {
-                        withCredentials: true // Lưu cookie HttpOnly
-                    },
-                    data: JSON.stringify({ userName: "manager1", password: "Password@123" }),
-                    async: false, // Đợi lưu cookie
-                    success: function(res) {
-                        role = res.role;
-                    },
-                    error: function(xhr) {
-                        console.error('Auto login failed:', xhr);
-                        alert('Auto login failed. Make sure SBS.Api is running on port 7179.');
-                    }
-                });
-            }
-
-            if (!role) {
+            const token = window.ACCESS_TOKEN;
+            if (!token) {
                 $('#global-loader').hide();
+                window.location.href = '/Auth/Logout';
                 reject(new Error("No active session available"));
                 return;
             }
+
+            // Cấu hình Header công khai kèm Token mã hóa ở server
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            };
 
             // Sử dụng jQuery $.ajax
             $.ajax({
@@ -61,7 +34,7 @@ const api = {
                 type: method,
                 headers: headers,
                 xhrFields: {
-                    withCredentials: true // RẤT QUAN TRỌNG: Tự động gửi kèm Cookie của API
+                    withCredentials: true // Tự động gửi kèm Cookie của API
                 },
                 data: data ? JSON.stringify(data) : null,
                 success: function(response) {
@@ -81,11 +54,7 @@ const api = {
                     // Xử lý lỗi toàn cục
                     if (status === 401) {
                         toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                        // Xóa các cookie thường
-                        document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        setTimeout(() => window.location.href = '/Auth/Login', 1000);
+                        setTimeout(() => window.location.href = '/Auth/Logout', 1000);
                     } else if (status === 403) {
                         toastr.error('Bạn không có quyền thực hiện thao tác này.');
                     } else if (status === 400 || status === 404 || status === 422) {
