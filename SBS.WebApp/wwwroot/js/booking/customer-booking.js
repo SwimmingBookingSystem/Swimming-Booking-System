@@ -13,7 +13,7 @@ $(document).ready(function () {
         return null;
     }
 
-    const role = getCookie("role");
+    const role = window.USER_ROLE || "";
     if (!role || role.toLowerCase() !== 'customer') {
         // Redirect to login if not customer
         window.location.href = '/Auth/Login';
@@ -62,7 +62,7 @@ $(document).ready(function () {
         updateSubmitButtonUI();
 
         $.ajax({
-            url: `${API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
+            url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
             type: 'GET',
             xhrFields: {
                 withCredentials: true
@@ -170,7 +170,7 @@ $(document).ready(function () {
 
     function loadTickets() {
         $.ajax({
-            url: `${API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/tickets`,
+            url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/tickets`,
             type: 'GET',
             xhrFields: {
                 withCredentials: true
@@ -408,7 +408,7 @@ $(document).ready(function () {
                     btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
 
                     $.ajax({
-                        url: `${API_BASE_URL}/api/customer-bookings/waitlist/join`,
+                        url: `${window.API_BASE_URL}/api/customer-bookings/waitlist/join`,
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify(payload),
@@ -464,7 +464,7 @@ $(document).ready(function () {
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
 
             $.ajax({
-                url: `${API_BASE_URL}/api/customer-bookings/create`,
+                url: `${window.API_BASE_URL}/api/customer-bookings/create`,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(payload),

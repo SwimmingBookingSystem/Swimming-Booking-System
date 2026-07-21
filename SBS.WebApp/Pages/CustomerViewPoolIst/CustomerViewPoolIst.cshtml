@@ -167,15 +167,11 @@
 
 @section Scripts {
     <script>
-        const API_BASE_URL = '@Model.ApiBaseUrl';
         let currentPage = 1;
         const pageSize = 6;
         let searchTimeout = null;
 
         $(document).ready(function() {
-            // Check login state
-            checkLoginState();
-
             // Load dynamic filter choices from DB
             loadFilterOptions();
 
@@ -198,48 +194,9 @@
             });
         });
 
-        window.logout = function() {
-            $.ajax({
-                url: API_BASE_URL + '/api/Auth/logout',
-                type: 'POST',
-                xhrFields: {
-                    withCredentials: true
-                },
-                complete: function() {
-                    // Xóa các Cookie bằng cách đặt ngày hết hạn về quá khứ
-                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-                    
-                    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    
-                    window.location.href = '/Index';
-                }
-            });
-        };
-
-        function checkLoginState() {
-            // Already handled in _Layout.cshtml server-side.
-        }
-
-        function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
-
         function loadFilterOptions() {
             $.ajax({
-                url: API_BASE_URL + '/api/customer/pools/filter-options',
+                url: window.API_BASE_URL + '/api/customer/pools/filter-options',
                 type: 'GET',
                 success: function(response) {
                     const openSelect = $('#search-open');
@@ -311,7 +268,7 @@
             };
 
             $.ajax({
-                url: API_BASE_URL + '/api/customer/pools',
+                url: window.API_BASE_URL + '/api/customer/pools',
                 type: 'GET',
                 data: params,
                 success: function(response) {
@@ -382,7 +339,7 @@
         }
 
         function handleBooking(poolId) {
-            const role = getCookie('role');
+            const role = window.USER_ROLE || '';
             if (!role || role.toLowerCase() !== 'customer') {
                 window.location.href = '/Auth/Login';
                 return;
