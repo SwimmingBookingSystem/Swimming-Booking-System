@@ -438,7 +438,11 @@ PayOSTest/
 .agents/
 local_test_seeder_guide.md
 .prompts
-demo_booking_flow.md
+# Ignore appsettings development/local secret files
+appsettings.Development.json
+appsettings.*.Development.json
+**/appsettings.Development.json
+**/appsettings.*.Development.json
 
 # Explicitly ignore all bin and obj folders globally 
 [Bb]in/
