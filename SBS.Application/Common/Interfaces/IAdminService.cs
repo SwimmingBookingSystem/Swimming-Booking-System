@@ -1,3 +1,4 @@
+using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Dtos.Admin;
 using SBS.Application.Common.Dtos.Profile;
 using System;
@@ -26,4 +27,8 @@ public interface IAdminService
     Task<List<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default);
 
     Task<DashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default);
+
+    Task<ResultDto> RespondContactRequestAsync(int contactRequestId, string responseMessage, CancellationToken cancellationToken = default);
+
+    Task<PagedResultDto<ContactRequestListDto>> GetContactRequestsAsync(int page, int pageSize, string? status, CancellationToken cancellationToken = default);
 }
