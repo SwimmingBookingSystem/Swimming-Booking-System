@@ -13,6 +13,7 @@ public record BookingListItemDto
     public string SlotTime { get; init; } = null!;   // "08:00 - 09:00"
     public DateOnly BookingDate { get; init; }
     public string Status { get; init; } = null!;
+    public string StatusDisplay { get; init; } = null!;  // Tiếng Việt: "Đã thanh toán", "Đã check-in", ...
     public decimal TotalAmount { get; init; }
     public string BookingType { get; init; } = null!; // Online / WalkIn
     public DateTime CreatedAt { get; init; }
