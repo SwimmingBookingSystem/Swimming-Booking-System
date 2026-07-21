@@ -13,23 +13,18 @@ const api = {
         return new Promise((resolve, reject) => {
             $('#global-loader').css('display', 'flex');
             
-            function getCookie(name) {
-                let value = "; " + document.cookie;
-                let parts = value.split("; " + name + "=");
-                if (parts.length === 2) return parts.pop().split(";").shift();
-                return null;
-            }
-
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            let role = getCookie('role');
-            if (!role) {
+            const token = window.ACCESS_TOKEN;
+            if (!token) {
                 $('#global-loader').hide();
+                window.location.href = '/Auth/Logout';
                 reject(new Error("No active session available"));
                 return;
             }
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            };
 
             $.ajax({
                 url: this.baseURL + url,
@@ -55,10 +50,9 @@ const api = {
                     
                     if (status === 401) {
                         toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                        document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                        setTimeout(() => window.location.href = '/Auth/Login', 1000);
+                        setTimeout(() => {
+                            window.location.href = '/Auth/Logout';
+                        }, 1500);
                     } else if (status === 403) {
                         toastr.error('Bạn không có quyền thực hiện thao tác này.');
                     } else if (status === 400 || status === 404 || status === 422) {

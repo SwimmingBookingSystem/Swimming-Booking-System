@@ -63,13 +63,24 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3">
+                @{
+                    var staffFullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Staff";
+                    var staffPoolName = User.FindFirst("PoolName")?.Value ?? "";
+                    
+                    // Kiểm tra quyền Staff/Manager/Admin từ Server-side
+                    if (User.Identity == null || !User.Identity.IsAuthenticated || 
+                        (!User.IsInRole("Staff") && !User.IsInRole("Manager") && !User.IsInRole("Admin")))
+                    {
+                        Context.Response.Redirect("/Auth/Login");
+                    }
+                }
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm px-3 py-2" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=Staff&background=0284C7&color=fff" class="rounded-circle me-2" width="32" height="32" />
-                        <span id="userNameDisplay" class="fw-medium">Đang tải...</span>
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(staffFullName)&background=0284C7&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <span id="userNameDisplay" class="fw-medium">@staffFullName</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                        <li><a class="dropdown-item text-danger py-2" href="#" onclick="logout(); return false;"><i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger py-2" href="/Auth/Logout"><i class="fa-solid fa-right-from-bracket me-2"></i>&#x0110;&#x0103;ng xu&#x1EA5;t</a></li>
                     </ul>
                 </div>
             </div>
@@ -96,43 +107,13 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <script>
-        function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
-
-        const userRole = getCookie('role');
-        const fullName = decodeURIComponent(getCookie('fullName') || getCookie('userName') || 'Staff');
-        const poolName = decodeURIComponent(getCookie('poolName') || '');
-
-        if (!userRole || (userRole.toLowerCase() !== 'staff' && userRole.toLowerCase() !== 'manager' && userRole.toLowerCase() !== 'admin')) {
-            window.location.href = '/Auth/Login';
-        }
-
-        function logout() {
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "poolName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "poolName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            
-            window.location.href = '/Auth/Login';
-        }
+        // Lấy token được giải mã ở server và nhúng vào biến JS
+        // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
+        window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
+        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
 
         $(document).ready(function() {
-            $('#userNameDisplay').text(fullName);
-            $('#userAvatar').attr('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284C7&color=fff`);
-            
+            var poolName = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(staffPoolName))';
             if (poolName) {
                 $('#userPoolDisplay .pool-name-text').text(poolName);
                 $('#userPoolDisplay').show();
@@ -144,6 +125,7 @@
                 $('#sidebar-overlay').toggleClass('d-none');
             });
         });
+    </script>
 
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
         window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
@@ -154,15 +136,18 @@
                 return new Promise((resolve, reject) => {
                     $('#global-loader').css('display', 'flex');
                     
-                    const role = getCookie('role');
-                    if (!role) {
+                    const token = window.ACCESS_TOKEN;
+                    if (!token) {
                         $('#global-loader').hide();
-                        logout();
+                        window.location.href = '/Auth/Logout';
                         reject(new Error("No active session available"));
                         return;
                     }
 
-                    const headers = { 'Content-Type': 'application/json' };
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    };
                     
                     $.ajax({
                         url: this.baseURL + url, 
@@ -183,7 +168,7 @@
                             
                             if (status === 401) {
                                 toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                                setTimeout(() => logout(), 1500);
+                                setTimeout(() => window.location.href = '/Auth/Logout', 1500);
                             } else if (status === 403) {
                                 toastr.error('Bạn không có quyền thực hiện thao tác này tại hồ bơi.');
                             } else if (status === 400 || status === 404 || status === 422) {
