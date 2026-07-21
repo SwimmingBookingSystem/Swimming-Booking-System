@@ -368,9 +368,11 @@ public class AdminService : IAdminService
         var today = DateOnly.FromDateTime(now);
         var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var totalRevenue = await _readContext.Payments
-            .Where(p => p.Status == "Completed")
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+        var paidBookingStatuses = new[] { "Paid", "CheckIn", "Completed" };
+
+        var totalRevenue = await _readContext.Bookings
+            .Where(b => paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed")))
+            .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var totalUsers = await _readContext.Users.CountAsync(cancellationToken);
         var totalBookings = await _readContext.Bookings.CountAsync(cancellationToken);
@@ -379,21 +381,21 @@ public class AdminService : IAdminService
         var todayBookings = await _readContext.Bookings
             .CountAsync(b => b.BookingDate == today, cancellationToken);
 
-        var thisMonthRevenue = await _readContext.Payments
-            .Where(p => p.Status == "Completed" && p.PaymentDate >= startOfMonth)
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+        var thisMonthRevenue = await _readContext.Bookings
+            .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt >= startOfMonth)
+            .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var newUsersThisMonth = await _readContext.Users
             .CountAsync(u => u.CreatedAt >= startOfMonth, cancellationToken);
 
-        var monthlyRevenues = await _readContext.Payments
-            .Where(p => p.Status == "Completed" && p.PaymentDate != null && p.PaymentDate.Value.Year == now.Year)
-            .GroupBy(p => new { p.PaymentDate!.Value.Year, p.PaymentDate.Value.Month })
+        var monthlyRevenues = await _readContext.Bookings
+            .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt.Year == now.Year)
+            .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
             .Select(g => new MonthlyRevenueDto
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
-                Revenue = g.Sum(p => p.Amount)
+                Revenue = g.Sum(b => b.TotalAmount)
             })
             .OrderBy(m => m.Month)
             .ToListAsync(cancellationToken);
