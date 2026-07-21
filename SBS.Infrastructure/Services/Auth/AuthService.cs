@@ -97,6 +97,18 @@ public class AuthService : IAuthService
         };
         await _cache.SetStringAsync(cacheKey, cacheValue, cacheOptions, cancellationToken);
 
+        string? poolName = null;
+        if (roles.Contains("Staff"))
+        {
+            var assignment = await _context.PoolStaffAssignments
+                .Include(a => a.Pool)
+                .FirstOrDefaultAsync(a => a.StaffId == user.Id, cancellationToken);
+            if (assignment?.Pool != null)
+            {
+                poolName = assignment.Pool.PoolName;
+            }
+        }
+
         return AuthResultDto.Success(new AuthResponseDto
         {
             AccessToken = accessToken,
@@ -105,7 +117,8 @@ public class AuthService : IAuthService
             Id = user.Id,
             UserName = user.UserName ?? string.Empty,
             FullName = user.FullName,
-            Role = roles.Count > 0 ? roles[0] : string.Empty
+            Role = roles.Count > 0 ? roles[0] : string.Empty,
+            PoolName = poolName
         });
     }
 
@@ -220,6 +233,18 @@ public class AuthService : IAuthService
             };
             await _cache.SetStringAsync(newCacheKey, newCacheValue, newCacheOptions, cancellationToken);
 
+            string? poolName = null;
+            if (roles.Contains("Staff"))
+            {
+                var assignment = await _context.PoolStaffAssignments
+                    .Include(a => a.Pool)
+                    .FirstOrDefaultAsync(a => a.StaffId == user.Id, cancellationToken);
+                if (assignment?.Pool != null)
+                {
+                    poolName = assignment.Pool.PoolName;
+                }
+            }
+
             return AuthResultDto.Success(new AuthResponseDto
             {
                 AccessToken = newAccessToken,
@@ -228,7 +253,8 @@ public class AuthService : IAuthService
                 Id = user.Id,
                 UserName = user.UserName ?? string.Empty,
                 FullName = user.FullName,
-                Role = roles.Count > 0 ? roles[0] : string.Empty
+                Role = roles.Count > 0 ? roles[0] : string.Empty,
+                PoolName = poolName
             });
         }
         catch (Exception)

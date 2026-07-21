@@ -10,25 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
-namespace SBS.Application.Features.Customer.CustomerViewPoolList;
-
-public record GetCustomerPoolsQuery(
-    int Page = 1,
-    int PageSize = 10,
-    string? SearchName = null,
-    string? Address = null,
-    TimeSpan? OpeningTime = null,
-    TimeSpan? ClosingTime = null,
-    int? MinCapacity = null,
-    int? MaxCapacity = null
-) : IRequest<PagedResponse<CustomerPoolDto>>;
+namespace SBS.Application.Features.Customer.CustomerViewPoolList.Queries;
 
 public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuery, PagedResponse<CustomerPoolDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
     private readonly IDistributedCache _cache;
 
-    public GetCustomerPoolsQueryHandler(IUnitOfWork uow, IDistributedCache cache)
+    public GetCustomerPoolsQueryHandler(IReadOnlyUnitOfWork uow, IDistributedCache cache)
     {
         _uow = uow;
         _cache = cache;
@@ -37,7 +26,7 @@ public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuer
     public async Task<PagedResponse<CustomerPoolDto>> Handle(GetCustomerPoolsQuery request, CancellationToken ct)
     {
         // 1. Tạo cache key độc nhất dựa trên các tham số lọc của query (Không dùng version để key luôn sạch)
-        string cacheKey = $"customer_pools_page_{request.Page}_size_{request.PageSize}_" +
+        string cacheKey = $"v3_customer_pools_page_{request.Page}_size_{request.PageSize}_" +
                           $"search_{request.SearchName ?? ""}_address_{request.Address ?? ""}_" +
                           $"open_{request.OpeningTime?.ToString() ?? ""}_close_{request.ClosingTime?.ToString() ?? ""}_" +
                           $"min_{request.MinCapacity?.ToString() ?? ""}_max_{request.MaxCapacity?.ToString() ?? ""}";
@@ -82,14 +71,14 @@ public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuer
             query = query.Where(p => p.Address.ToLower().Contains(addr));
         }
 
-        // Lọc theo giờ mở/đóng cửa
+        // Lọc theo giờ mở/đóng cửa (Khớp chính xác 100%)
         if (request.OpeningTime.HasValue)
         {
-            query = query.Where(p => p.OpeningTime <= request.OpeningTime.Value);
+            query = query.Where(p => p.OpeningTime == request.OpeningTime.Value);
         }
         if (request.ClosingTime.HasValue)
         {
-            query = query.Where(p => p.ClosingTime >= request.ClosingTime.Value);
+            query = query.Where(p => p.ClosingTime == request.ClosingTime.Value);
         }
 
         // Lọc theo sức chứa

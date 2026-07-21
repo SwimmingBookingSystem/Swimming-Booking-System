@@ -347,6 +347,7 @@
                 const isActive = t.status === 'Active';
                 const isCombo = t.category === 'Combo';
                 const isOverride = t.price !== null && t.price !== undefined;
+                const isGlobalInactive = t.globalTicketStatus === 'Inactive';
                 const trueSystemPrice = t.basePrice * (1 - (t.discountPercent || 0) / 100);
                 const currentPrice = isOverride ? t.price : trueSystemPrice;
                 const diff = currentPrice - trueSystemPrice;
@@ -364,8 +365,42 @@
                     ? `<span class="price-current">${formatMoney(currentPrice)}</span>` 
                     : `<span class="price-current text-muted"><i class="fa-solid fa-link me-1"></i>${formatMoney(currentPrice)}</span> <br><small class="text-muted">(Giá gốc)</small>`;
 
+                let statusBadgeHtml = '';
+                if (isGlobalInactive) {
+                    statusBadgeHtml = `<span class="pricing-status closed" style="background: #fee2e2; color: #b91c1c; border: 1px solid #f87171;" title="Đã bị ngừng kinh doanh từ phần Quản lý Loại vé.">⚠️ Ngừng KD (Global)</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="pricing-status ${isActive ? 'active' : (t.status === 'NotApplied' ? 'not-applied' : 'closed')}" 
+                              style="${t.status === 'NotApplied' ? 'background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1;' : ''}">
+                            ${isActive ? 'Hoạt động' : (t.status === 'NotApplied' ? 'Chưa áp dụng' : 'Đã đóng')}
+                        </span>`;
+                }
+
+                let actionHtml = '';
+                if (isGlobalInactive) {
+                     actionHtml = `
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="pricing-action-btn" disabled style="opacity: 0.3;" title="Không thể thao tác vì vé đã bị đóng toàn hệ thống"><i class="fa-solid fa-pen"></i></button>
+                            <button class="pricing-action-btn" disabled style="opacity: 0.3;" title="Không thể thao tác vì vé đã bị đóng toàn hệ thống"><i class="fa-solid fa-ban"></i></button>
+                        </div>
+                     `;
+                } else {
+                    actionHtml = `
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="pricing-action-btn" title="Sửa giá" onclick="openPriceModal(${t.ticketTypeId})" ${t.status === 'NotApplied' ? 'disabled style="opacity: 0.5;"' : ''}>
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            ${isActive
+                                ? `<button class="pricing-action-btn" title="Ngừng bán vé tại bể này" onclick="togglePoolTicket(${t.ticketTypeId}, 'close')" style="color:#ef4444;"><i class="fa-solid fa-ban"></i></button>`
+                                : `<button class="pricing-action-btn" title="${t.status === 'NotApplied' ? 'Áp dụng bán' : 'Mở lại'}" onclick="togglePoolTicket(${t.ticketTypeId}, 'open')" style="${t.status === 'NotApplied' ? 'color:#10b981;' : ''}">
+                                    <i class="fa-solid ${t.status === 'NotApplied' ? 'fa-check' : 'fa-rotate-left'}"></i>
+                                   </button>`
+                            }
+                        </div>
+                    `;
+                }
+
                 html += `
-                <tr>
+                <tr class="${isGlobalInactive ? 'opacity-50' : ''}">
                     <td>
                         <div class="ticket-info-cell">
                             <div class="ticket-icon ${isCombo ? 'combo' : 'single'}">
@@ -389,25 +424,8 @@
                     </td>
                     <td>${currentPriceHtml}</td>
                     <td>${diffHtml}</td>
-                    <td>
-                        <span class="pricing-status ${isActive ? 'active' : (t.status === 'NotApplied' ? 'not-applied' : 'closed')}" 
-                              style="${t.status === 'NotApplied' ? 'background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1;' : ''}">
-                            ${isActive ? 'Hoạt động' : (t.status === 'NotApplied' ? 'Chưa áp dụng' : 'Đã đóng')}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="d-flex gap-1 justify-content-center">
-                            <button class="pricing-action-btn" title="Sửa giá" onclick="openPriceModal(${t.ticketTypeId})" ${t.status === 'NotApplied' ? 'disabled style="opacity: 0.5;"' : ''}>
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            ${isActive
-                                ? `<button class="pricing-action-btn" title="Ngừng bán vé tại bể này" onclick="togglePoolTicket(${t.ticketTypeId}, 'close')" style="color:#ef4444;"><i class="fa-solid fa-ban"></i></button>`
-                                : `<button class="pricing-action-btn" title="${t.status === 'NotApplied' ? 'Áp dụng bán' : 'Mở lại'}" onclick="togglePoolTicket(${t.ticketTypeId}, 'open')" style="${t.status === 'NotApplied' ? 'color:#10b981;' : ''}">
-                                    <i class="fa-solid ${t.status === 'NotApplied' ? 'fa-check' : 'fa-rotate-left'}"></i>
-                                   </button>`
-                            }
-                        </div>
-                    </td>
+                    <td>${statusBadgeHtml}</td>
+                    <td>${actionHtml}</td>
                 </tr>`;
             });
             $('#pricingTableBody').html(html);

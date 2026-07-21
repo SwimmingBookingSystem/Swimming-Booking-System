@@ -14,17 +14,16 @@ public record GetTicketsByPoolQuery(int PoolId) : IRequest<List<PoolTicketTypeDt
 public class GetTicketsByPoolQueryHandler
     : IRequestHandler<GetTicketsByPoolQuery, List<PoolTicketTypeDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetTicketsByPoolQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetTicketsByPoolQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<List<PoolTicketTypeDto>> Handle(
         GetTicketsByPoolQuery request, CancellationToken ct)
     {
-        // Lấy toàn bộ Loại vé đang Active trên hệ thống
+        // Lấy toàn bộ Loại vé trên hệ thống (cả Active lẫn Inactive)
         var activeTickets = await _uow.ToListAsync(
             _uow.Repository<TicketType>().Query()
-                .Where(t => t.Status == "Active")
                 .OrderBy(t => t.CreatedAt), ct);
 
         // Lấy danh sách ánh xạ giá của riêng Bể bơi này
@@ -55,7 +54,8 @@ public class GetTicketsByPoolQueryHandler
                 BasePrice        = ticket.BasePrice,
                 DiscountPercent  = ticket.DiscountPercent,
                 Price            = pt?.Price, // Nếu null => Rơi tự do về BasePrice
-                Status           = pt?.Status ?? "NotApplied" // Nếu chưa có record => "Chưa áp dụng"
+                Status           = pt?.Status ?? "NotApplied", // Nếu chưa có record => "Chưa áp dụng"
+                GlobalTicketStatus = ticket.Status
             });
         }
 

@@ -11,6 +11,7 @@ public class PoolSlotDto
     public string EndTime { get; set; } = null!;    // "HH:mm"
     public string SlotDate { get; set; } = null!;   // "yyyy-MM-dd"
     public int Capacity { get; set; }
+    public int AvailableCapacity { get; set; }
     public string Status { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public bool HasBookings { get; set; }

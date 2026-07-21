@@ -13,4 +13,5 @@ public class PoolTicketTypeDto
     public decimal DiscountPercent { get; set; }
     public decimal? Price { get; set; }    // Giá riêng tại pool này, null = lấy giá hệ thống
     public string Status { get; set; } = null!;
+    public string GlobalTicketStatus { get; set; } = "Active"; // Trạng thái gốc của Loại vé
 }

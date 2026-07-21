@@ -1,0 +1,175 @@
+@page
+@model SBS.WebApp.Pages.Admin.Bookings.IndexModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Đặt chỗ";
+    ViewData["Breadcrumb"] = "Quản trị / Đặt chỗ";
+}
+
+@section Styles {
+    <style>
+        .booking-status { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .filter-box { background: #f8fafc; border-radius: 12px; padding: 16px; }
+    </style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1" style="font-size: 22px;">Thống Kê Đặt chỗ</h4>
+        <p class="text-muted small mb-0">Xem tất cả đơn đặt chỗ trong hệ thống</p>
+    </div>
+</div>
+
+<div class="filter-box mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Tìm kiếm</label>
+            <input type="text" id="searchInput" class="form-control form-control-sm shadow-sm" placeholder="Mã đặt chỗ, tên KH, email, SĐT..." />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">Trạng thái</label>
+            <select id="statusFilter" class="form-select form-select-sm shadow-sm">
+                <option value="">Tất cả</option>
+                <option value="PendingPayment">Chờ thanh toán</option>
+                <option value="Paid">Đã thanh toán</option>
+                <option value="Confirmed">Đã xác nhận</option>
+                <option value="CheckIn">Đã check-in</option>
+                <option value="Completed">Hoàn thành</option>
+                <option value="Cancelled">Đã hủy</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">Từ ngày</label>
+            <input type="date" id="fromDate" class="form-control form-control-sm shadow-sm" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold text-muted mb-1">Đến ngày</label>
+            <input type="date" id="toDate" class="form-control form-control-sm shadow-sm" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-primary btn-sm shadow-sm flex-fill" onclick="loadBookings(1)">
+                <i class="fa-solid fa-filter me-1"></i> Lọc
+            </button>
+            <button class="btn btn-outline-secondary btn-sm shadow-sm" onclick="clearFilters()">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-muted small fw-bold text-uppercase">Mã đặt chỗ</th>
+                    <th class="text-muted small fw-bold text-uppercase">Khách hàng</th>
+                    <th class="text-muted small fw-bold text-uppercase">Bể bơi / Khung giờ</th>
+                    <th class="text-muted small fw-bold text-uppercase">Số tiền</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Trạng thái</th>
+                    <th class="text-muted small fw-bold text-uppercase text-center">Ngày đặt</th>
+                    <th class="pe-4 text-muted small fw-bold text-uppercase text-end">Ngày tạo</th>
+                </tr>
+            </thead>
+            <tbody id="bookingTableBody">
+                <tr><td colspan="7" class="text-center p-4 text-muted">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+        <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 đơn đặt chỗ</div>
+        <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const statusMap = {
+            PendingPayment: { label: 'Chờ thanh toán', cls: 'bg-warning bg-opacity-10 text-warning' },
+            Paid: { label: 'Đã thanh toán', cls: 'bg-info bg-opacity-10 text-info' },
+            Confirmed: { label: 'Đã xác nhận', cls: 'bg-primary bg-opacity-10 text-primary' },
+            CheckIn: { label: 'Đã check-in', cls: 'bg-indigo bg-opacity-10 text-primary' },
+            Completed: { label: 'Hoàn thành', cls: 'bg-success bg-opacity-10 text-success' },
+            Cancelled: { label: 'Đã hủy', cls: 'bg-danger bg-opacity-10 text-danger' }
+        };
+
+        $(document).ready(function() {
+            loadBookings(1);
+        });
+
+        async function loadBookings(page) {
+            const status = $('#statusFilter').val();
+            const search = $('#searchInput').val().trim();
+            const fromDate = $('#fromDate').val();
+            const toDate = $('#toDate').val();
+
+            try {
+                const params = `page=${page}&pageSize=10`;
+                const statusParam = status ? `&status=${status}` : '';
+                const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+                const fromParam = fromDate ? `&fromDate=${fromDate}` : '';
+                const toParam = toDate ? `&toDate=${toDate}` : '';
+
+                const res = await api.get(`/bookings?${params}${statusParam}${searchParam}${fromParam}${toParam}`);
+                renderTable(res.items);
+                renderPagination(res.totalCount, res.page, res.pageSize, res.totalPages);
+            } catch (e) {
+                $('#bookingTableBody').html('<tr><td colspan="7" class="text-center p-4 text-danger">Lỗi tải dữ liệu.</td></tr>');
+                $('#pageInfo').text('');
+                $('#pagination').html('');
+            }
+        }
+
+        function renderPagination(totalCount, page, pSize, totalPages) {
+            const startItem = totalCount === 0 ? 0 : (page - 1) * pSize + 1;
+            const endItem = Math.min(page * pSize, totalCount);
+            $('#pageInfo').text(`Hiển thị ${startItem}-${endItem} trong ${totalCount} đơn đặt chỗ`);
+            let html = '';
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadBookings(${page - 1}); return false;">Trước</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadBookings(${i}); return false;">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadBookings(${page + 1}); return false;">Sau</a></li>`;
+            $('#pagination').html(html);
+        }
+
+        function renderTable(bookings) {
+            let html = '';
+            if (bookings.length === 0) {
+                html = '<tr><td colspan="7" class="text-center text-muted p-5"><i class="fa-solid fa-calendar-xmark fa-3x mb-3"></i><br>Không có đơn đặt chỗ nào.</td></tr>';
+            } else {
+                const money = n => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+                bookings.forEach(b => {
+                    const st = statusMap[b.status] || { label: b.status, cls: 'bg-secondary bg-opacity-10 text-secondary' };
+                    const date = new Date(b.createdAt).toLocaleString('vi-VN');
+                    const bookingDate = b.bookingDate;
+
+                    html += `<tr>
+                        <td class="ps-4 fw-medium">${b.bookingCode}</td>
+                        <td>
+                            <div class="fw-medium">${b.customerName}</div>
+                            <div class="small text-muted">${b.customerEmail || ''}</div>
+                        </td>
+                        <td>
+                            <div>${b.poolName}</div>
+                            <div class="small text-muted">${b.slotName || ''} ${b.slotTime}</div>
+                        </td>
+                        <td class="fw-medium">${money(b.totalAmount)}</td>
+                        <td class="text-center"><span class="booking-status ${st.cls}">${st.label}</span></td>
+                        <td class="text-center text-muted small">${bookingDate}</td>
+                        <td class="text-end pe-4 text-muted small">${date}</td>
+                    </tr>`;
+                });
+            }
+            $('#bookingTableBody').html(html);
+        }
+
+        function clearFilters() {
+            $('#statusFilter').val('');
+            $('#searchInput').val('');
+            $('#fromDate').val('');
+            $('#toDate').val('');
+            loadBookings(1);
+        }
+    </script>
+}

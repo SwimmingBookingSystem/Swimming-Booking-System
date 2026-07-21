@@ -17,9 +17,9 @@ public record GetTicketTypeByIdQuery(int TicketTypeId) : IRequest<TicketTypeDto>
 public class GetTicketTypeByIdQueryHandler
     : IRequestHandler<GetTicketTypeByIdQuery, TicketTypeDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetTicketTypeByIdQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetTicketTypeByIdQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<TicketTypeDto> Handle(
         GetTicketTypeByIdQuery request, CancellationToken ct)

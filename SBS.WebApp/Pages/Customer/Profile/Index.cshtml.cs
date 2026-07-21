@@ -44,7 +44,9 @@ public class IndexModel : PageModel
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(_configuration["ApiBaseUrl"] ?? "https://localhost:7179");
         
-        if (Request.Cookies.TryGetValue("accessToken", out var token))
+        // Đọc token từ Claims đã được giải mã bởi Cookie Authentication middleware
+        var token = User.FindFirst("AccessToken")?.Value;
+        if (!string.IsNullOrEmpty(token))
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
@@ -54,7 +56,7 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!Request.Cookies.ContainsKey("accessToken"))
+        if (!User.Identity?.IsAuthenticated == true || string.IsNullOrEmpty(User.FindFirst("AccessToken")?.Value))
         {
             return RedirectToPage("/Auth/Login");
         }
@@ -85,7 +87,7 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!Request.Cookies.ContainsKey("accessToken"))
+        if (!User.Identity?.IsAuthenticated == true || string.IsNullOrEmpty(User.FindFirst("AccessToken")?.Value))
         {
             return RedirectToPage("/Auth/Login");
         }

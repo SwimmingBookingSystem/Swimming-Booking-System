@@ -69,46 +69,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = result.Errors.FirstOrDefault() ?? "Tên đăng nhập hoặc mật khẩu không chính xác." });
         }
 
-        // Thiết lập Cookie HttpOnly bảo mật cho token
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true, // Luôn bật HTTPS trong môi trường chạy local và deploy
-            SameSite = SameSiteMode.None, // Để cho phép chia sẻ Cookie chéo origin (từ API sang WebApp)
-            Expires = result.Data.ExpiryDate
-        };
-
-        var refreshCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(7)
-        };
-
-        var normalCookieOptions = new CookieOptions
-        {
-            HttpOnly = false, // Cookie thường để JS đọc được
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = result.Data.ExpiryDate
-        };
-
-        Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
-        Response.Cookies.Append("refreshToken", result.Data.RefreshToken, refreshCookieOptions);
-        Response.Cookies.Append("fullName", result.Data.FullName ?? "", normalCookieOptions);
-        Response.Cookies.Append("role", result.Data.Role ?? "", normalCookieOptions);
-        Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
-        Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
-
-        return Ok(new
-        {
-            id = result.Data.Id,
-            userName = result.Data.UserName,
-            fullName = result.Data.FullName,
-            role = result.Data.Role,
-            expiryDate = result.Data.ExpiryDate
-        });
+        // Trả về trực tiếp AuthResponseDto nhận được từ Mediator
+        return Ok(result.Data);
     }
 
     [HttpPost("refresh")]
@@ -152,46 +114,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = result.Errors.FirstOrDefault() ?? "Token không hợp lệ hoặc đã hết hạn." });
         }
 
-        // Ghi lại Cookie mới sau khi làm mới thành công
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = result.Data.ExpiryDate
-        };
-
-        var refreshCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(7)
-        };
-
-        var normalCookieOptions = new CookieOptions
-        {
-            HttpOnly = false,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = result.Data.ExpiryDate
-        };
-
-        Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
-        Response.Cookies.Append("refreshToken", result.Data.RefreshToken, refreshCookieOptions);
-        Response.Cookies.Append("fullName", result.Data.FullName ?? "", normalCookieOptions);
-        Response.Cookies.Append("role", result.Data.Role ?? "", normalCookieOptions);
-        Response.Cookies.Append("userName", result.Data.UserName ?? "", normalCookieOptions);
-        Response.Cookies.Append("userId", result.Data.Id.ToString(), normalCookieOptions);
-
-        return Ok(new
-        {
-            id = result.Data.Id,
-            userName = result.Data.UserName,
-            fullName = result.Data.FullName,
-            role = result.Data.Role,
-            expiryDate = result.Data.ExpiryDate
-        });
+        // Trả về trực tiếp AuthResponseDto nhận được từ Mediator
+        return Ok(result.Data);
     }
 
     [HttpPost("register")]
@@ -330,30 +254,6 @@ public class AuthController : ControllerBase
         {
             await _mediator.Send(new LogoutCommand { RefreshToken = refreshToken });
         }
-
-        // Xóa các Cookie đăng nhập bằng cách ghi đè cookie hết hạn
-        var expiredCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(-1)
-        };
-
-        var expiredNormalCookieOptions = new CookieOptions
-        {
-            HttpOnly = false,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(-1)
-        };
-
-        Response.Cookies.Append("accessToken", "", expiredCookieOptions);
-        Response.Cookies.Append("refreshToken", "", expiredCookieOptions);
-        Response.Cookies.Append("fullName", "", expiredNormalCookieOptions);
-        Response.Cookies.Append("role", "", expiredNormalCookieOptions);
-        Response.Cookies.Append("userName", "", expiredNormalCookieOptions);
-        Response.Cookies.Append("userId", "", expiredNormalCookieOptions);
 
         return Ok(new { message = "Đăng xuất thành công." });
     }

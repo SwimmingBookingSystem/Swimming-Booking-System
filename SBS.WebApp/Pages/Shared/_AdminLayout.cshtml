@@ -21,7 +21,7 @@
             <i class="fa-solid fa-shield-halved"></i> SBS Admin
         </a>
         <div class="nav flex-column">
-            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Dashboard" ? "active" : "")" href="/Admin/Dashboard">
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Dashboard/Index" ? "active" : "")" href="/Admin/Dashboard">
                 <i class="fa-solid fa-chart-pie w-20px"></i> Tổng quan
             </a>
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Users/Index" ? "active" : "")" href="/Admin/Users">
@@ -32,6 +32,9 @@
             </a>
             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Contacts/Index" ? "active" : "")" href="/Admin/Contacts">
                 <i class="fa-solid fa-headset w-20px"></i> Liên hệ
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Admin/Bookings/Index" ? "active" : "")" href="/Admin/Bookings">
+                <i class="fa-solid fa-calendar-check w-20px"></i> Đặt chỗ
             </a>
             <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
             <a class="nav-link text-white-50" href="/" style="font-size: 0.85rem;">
@@ -46,15 +49,21 @@
                 @ViewData["Breadcrumb"]
             </div>
             <div class="d-flex align-items-center gap-3">
+                @{
+                    var adminFullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Admin";
+                    // Kiểm tra trực tiếp quyền truy cập Admin từ Server-side
+                    if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Admin"))
+                    {
+                        Context.Response.Redirect("/Auth/Login");
+                    }
+                }
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=DC2626&color=fff" class="rounded-circle me-2" width="32" height="32" />
-                        <span id="userNameDisplay">Đang tải...</span>
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(adminFullName)&background=DC2626&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <span id="userNameDisplay">@adminFullName</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;">Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger" href="/Auth/Logout">&#x0110;&#x0103;ng xu&#x1EA5;t</a></li>
                     </ul>
                 </div>
             </div>
@@ -72,44 +81,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="~/js/admin/admin-api.js" asp-append-version="true"></script>
-
     <script>
-        function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
-
-        const userRole = getCookie('role');
-        const fullName = decodeURIComponent(getCookie('fullName') || getCookie('userName') || 'Admin');
-
-        if (!userRole || userRole.toLowerCase() !== 'admin') {
-            window.location.href = '/Auth/Login';
-        }
-
-        function logout() {
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;";
-            
-            document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "fullName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "userName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            
-            window.location.href = '/';
-        }
-
-        $(document).ready(function() {
-            $('#userNameDisplay').text(fullName);
-            $('#userAvatar').attr('src', `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=DC2626&color=fff`);
-        });
+        // Lấy token được giải mã ở server và nhúng vào biến JS
+        // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
+        window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
+        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
     </script>
+    <script src="~/js/admin/admin-api.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)
 </body>

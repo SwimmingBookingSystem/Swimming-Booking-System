@@ -30,6 +30,7 @@ public class PendingBookingExpirationWorker : BackgroundService
             try
             {
                 await ProcessExpiredBookingsAsync(stoppingToken);
+                await ProcessExpiredWaitlistsAsync(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -84,5 +85,37 @@ public class PendingBookingExpirationWorker : BackgroundService
                 PoolSlotId = slotId
             }, stoppingToken);
         }
+    }
+
+    private async Task ProcessExpiredWaitlistsAsync(CancellationToken stoppingToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var localNow = DateTime.UtcNow.AddHours(7);
+        var currentDate = DateOnly.FromDateTime(localNow);
+        var currentTime = localNow.TimeOfDay;
+
+        // Fetch potential expired waitlists (Waiting status and SlotDate <= today)
+        var potentialExpiredWaitlists = await context.WaitlistEntries
+            .Include(w => w.PoolSlot)
+            .Where(w => w.Status == "Waiting" && w.PoolSlot.SlotDate <= currentDate)
+            .ToListAsync(stoppingToken);
+
+        // Filter in-memory to avoid EF Core TimeSpan arithmetic translation issues
+        var actuallyExpired = potentialExpiredWaitlists.Where(w =>
+            w.PoolSlot.SlotDate < currentDate ||
+            (w.PoolSlot.SlotDate == currentDate && (w.PoolSlot.EndTime - TimeSpan.FromMinutes(30)) <= currentTime)
+        ).ToList();
+
+        if (!actuallyExpired.Any()) return;
+
+        foreach (var waitlist in actuallyExpired)
+        {
+            waitlist.Status = "Expired";
+            _logger.LogInformation("Expired waitlist {WaitlistEntryId} because the slot {PoolSlotId} is less than 30 mins from ending.", waitlist.WaitlistEntryId, waitlist.PoolSlotId);
+        }
+
+        await context.SaveChangesAsync(stoppingToken);
     }
 }

@@ -21,9 +21,9 @@ public record GetTicketTypesQuery(
 public class GetTicketTypesQueryHandler
     : IRequestHandler<GetTicketTypesQuery, PagedResponse<TicketTypeDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetTicketTypesQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetTicketTypesQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PagedResponse<TicketTypeDto>> Handle(
         GetTicketTypesQuery request, CancellationToken ct)

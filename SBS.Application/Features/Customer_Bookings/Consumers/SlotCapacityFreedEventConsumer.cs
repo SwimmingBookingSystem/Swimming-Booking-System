@@ -18,6 +18,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
     private readonly SBS.Application.Features.Customer_Bookings.Interfaces.IEmailService _emailService;
     private readonly IIdentityService _identityService;
     private readonly IPoolSlotBookingRepository _poolSlotBookingRepository;
+    private readonly IBookingCalculationService _bookingCalculationService;
     private readonly ILogger<SlotCapacityFreedEventConsumer> _logger;
 
     public SlotCapacityFreedEventConsumer(
@@ -26,6 +27,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         SBS.Application.Features.Customer_Bookings.Interfaces.IEmailService emailService,
         IIdentityService identityService,
         IPoolSlotBookingRepository poolSlotBookingRepository,
+        IBookingCalculationService bookingCalculationService,
         ILogger<SlotCapacityFreedEventConsumer> logger)
     {
         _unitOfWork = unitOfWork;
@@ -33,6 +35,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         _emailService = emailService;
         _identityService = identityService;
         _poolSlotBookingRepository = poolSlotBookingRepository;
+        _bookingCalculationService = bookingCalculationService;
         _logger = logger;
     }
 
@@ -58,24 +61,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
             await _unitOfWork.Repository<PoolSlot>().Query().Include(s => s.Pool).ThenInclude(p => p.PoolTicketTypes)
                 .Where(s => s.PoolSlotId == poolSlotId).FirstOrDefaultAsync(context.CancellationToken);
 
-            var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
-                .Include(bd => bd.PoolTicketType)
-                    .ThenInclude(pt => pt.TicketType)
-                        .ThenInclude(tt => tt.ComboItems)
-                .Where(bd => bd.Booking.PoolSlotId == poolSlotId && 
-                             bd.Booking.Status != "Cancelled" && 
-                             bd.Booking.Status != "Failed" &&
-                             bd.Booking.Status != "Refunded")
-                .ToListAsync(context.CancellationToken);
-
-            int bookedCapacity = currentBookedDetails.Sum(bd => 
-            {
-                var tt = bd.PoolTicketType.TicketType;
-                int slotEq = tt.Category == "Combo" ? tt.ComboItems.Sum(c => c.Quantity) : 1;
-                return bd.Quantity * slotEq;
-            });
-
-            var availableCapacity = poolSlot.Capacity - bookedCapacity;
+            var availableCapacity = await _bookingCalculationService.GetAvailableCapacityAsync(poolSlotId, poolSlot.Capacity, context.CancellationToken);
 
             if (availableCapacity <= 0)
             {

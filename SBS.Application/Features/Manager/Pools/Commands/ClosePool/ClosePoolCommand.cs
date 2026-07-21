@@ -16,32 +16,13 @@ public record ClosePoolCommand(int PoolId) : IRequest<SuccessResponse>;
 //  Handler 
 public class ClosePoolCommandHandler : IRequestHandler<ClosePoolCommand, SuccessResponse>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService _poolService;
 
-    public ClosePoolCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public ClosePoolCommandHandler(SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService poolService) => _poolService = poolService;
 
     public async Task<SuccessResponse> Handle(ClosePoolCommand request, CancellationToken ct)
     {
-        var pool = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<Pool>().Query().Where(p => p.PoolId == request.PoolId), ct)
-            ?? throw new NotFoundException(nameof(Pool), request.PoolId);
-
-        if (pool.Status == "Closed")
-            throw new BadRequestException("Bể bơi đã ở trạng thái Closed, không thể đóng lại.");
-
-        var hasActiveBookings = await _uow.AnyAsync(
-            _uow.Repository<Booking>().Query()
-                .Where(b => b.PoolSlot.PoolId == request.PoolId && (b.Status == "Paid" || b.Status == "PendingPayment")), ct);
-                
-        if (hasActiveBookings)
-            throw new BadRequestException("Không thể đóng bể bơi vì đang có slot có người booking.");
-
-        pool.Status    = "Closed";
-        pool.UpdatedAt = DateTime.UtcNow;
-
-        _uow.Repository<Pool>().Update(pool);
-        await _uow.SaveChangesAsync(ct);
-
-        return new SuccessResponse { Message = "Đã tạm đóng bể bơi thành công." };
+        return await _poolService.ClosePoolAsync(request.PoolId, ct);
     }
 }
+

@@ -23,10 +23,10 @@
                         <label class="form-label fw-semibold small text-muted">Trạng thái</label>
                         <select id="filter-status" class="form-select">
                             <option value="">Tất cả trạng thái</option>
-                            <option value="Paid">Paid (Đã thanh toán)</option>
-                            <option value="CheckIn">CheckIn (Đang bơi)</option>
-                            <option value="Completed">Completed (Đã xong)</option>
-                            <option value="Cancelled">Cancelled (Đã hủy)</option>
+                            <option value="Paid">Đã thanh toán</option>
+                            <option value="CheckIn">Đã Check-in</option>
+                            <option value="Completed">Đã hoàn thành</option>
+                            <option value="Cancelled">Đã hủy</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -181,10 +181,11 @@
                 items.forEach(b => {
                     let badgeClass = 'bg-secondary';
                     let badgeText = b.status;
-                    if (b.status === 'Confirmed') { badgeClass = 'bg-success'; badgeText = 'Đã đặt'; }
-                    else if (b.status === 'CheckIn') { badgeClass = 'bg-info text-dark'; badgeText = 'Đang bơi'; }
-                    else if (b.status === 'Completed') { badgeClass = 'bg-primary'; badgeText = 'Hoàn thành'; }
+                    if (b.status === 'Confirmed' || b.status === 'Paid') { badgeClass = 'bg-success'; badgeText = 'Đã thanh toán'; }
+                    else if (b.status === 'CheckIn' || b.status === 'CheckedIn') { badgeClass = 'bg-info text-dark'; badgeText = 'Đã Check-in'; }
+                    else if (b.status === 'Completed') { badgeClass = 'bg-primary'; badgeText = 'Đã hoàn thành'; }
                     else if (b.status === 'Cancelled') { badgeClass = 'bg-danger'; badgeText = 'Đã hủy'; }
+                    else if (b.status === 'PendingPayment') { badgeClass = 'bg-warning text-dark'; badgeText = 'Chờ thanh toán'; }
 
                     const amount = (b.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
                     const slotTime = b.slotTime || '-';
@@ -195,9 +196,9 @@
 
                     let actions = `<button class="btn btn-sm btn-outline-primary me-1" onclick="viewDetail(${b.bookingId})" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>`;
                     if (b.status === 'Confirmed') {
-                        actions += `<button class="btn btn-sm btn-success" onclick="quickCheckIn(${b.bookingId})"><i class="fa-solid fa-check me-1"></i>Check-in</button>`;
+                        actions += `<a href="/Staff/CheckIn?tab=manual&code=${b.bookingCode}" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i>Check-in</a>`;
                     } else if (b.status === 'CheckIn') {
-                        actions += `<button class="btn btn-sm btn-warning text-dark" onclick="quickCheckOut(${b.bookingId})"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</button>`;
+                        actions += `<a href="/Staff/CheckIn?tab=checkout-manual&code=${b.bookingCode}" class="btn btn-sm btn-warning text-dark"><i class="fa-solid fa-right-from-bracket me-1"></i>Check-out</a>`;
                     }
 
                     html += `

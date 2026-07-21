@@ -432,13 +432,20 @@ FodyWeavers.xsd
 rule.md
 project_architecture_analysis.md
 customer_bookings_review_report.md
+create_pool_image_upload_analysis.md
 test_payos.cs
 test_payos.exe
+TestApi.cs
+demo_booking_flow.md
 PayOSTest/
 .agents/
 local_test_seeder_guide.md
 .prompts
-demo_booking_flow.md
+# Ignore appsettings development/local secret files
+appsettings.Development.json
+appsettings.*.Development.json
+**/appsettings.Development.json
+**/appsettings.*.Development.json
 
 # Explicitly ignore all bin and obj folders globally 
 [Bb]in/

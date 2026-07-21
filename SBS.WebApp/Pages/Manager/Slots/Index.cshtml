@@ -199,9 +199,14 @@
                                 ${s.startTime.substring(0,5)} - ${s.endTime.substring(0,5)}
                             </td>
                             <td class="text-center">
-                                <div class="d-inline-flex align-items-center gap-2">
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 70px;" value="${s.capacity}" id="cap_${s.poolSlotId}">
-                                    <button class="btn btn-sm btn-light border text-primary" onclick="updateCapacity(${s.poolSlotId})" title="Lưu sức chứa"><i class="fa-solid fa-save"></i></button>
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <input type="number" class="form-control form-control-sm text-center" style="width: 70px;" value="${s.capacity}" id="cap_${s.poolSlotId}" title="Sức chứa tối đa">
+                                        <button class="btn btn-sm btn-light border text-primary" onclick="updateCapacity(${s.poolSlotId})" title="Lưu sức chứa"><i class="fa-solid fa-save"></i></button>
+                                    </div>
+                                    <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                                        Còn trống: <span class="fw-bold ${s.availableCapacity === 0 ? 'text-danger' : 'text-success'}">${s.availableCapacity}</span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="text-center">

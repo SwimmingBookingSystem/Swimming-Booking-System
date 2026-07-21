@@ -22,7 +22,7 @@ function escapeHtml(unsafe) {
 }
 
 function loadContactHistory(pageNumber) {
-    const token = getCookie('accessToken') || '';
+    const token = window.ACCESS_TOKEN || '';
     const pageSize = 10;
     
     Swal.fire({
@@ -33,10 +33,11 @@ function loadContactHistory(pageNumber) {
         }
     });
 
-    fetch(`${API_BASE_URL}/api/contacts/my-history?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+    fetch(`${window.API_BASE_URL}/api/contacts/my-history?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
         },
         credentials: 'include'
     })

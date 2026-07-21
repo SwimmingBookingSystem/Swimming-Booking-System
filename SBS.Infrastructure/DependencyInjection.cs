@@ -126,6 +126,7 @@ public static class DependencyInjection
         services.AddHostedService<SBS.Application.Features.Customer.Events.PoolCacheExpirationWorker>();
         // 5. Staff-specific Services (isolated — no conflict with auth team)
         services.AddScoped<IStaffUserService, Services.StaffUserService>();
+        services.AddScoped<IStaffService, Services.StaffService>();
 
         return services;
     }

@@ -19,9 +19,9 @@ public class ManagerDashboardController : ControllerBase
     }
 
     [HttpGet("stats")]
-    public async Task<IActionResult> GetStats()
+    public async Task<IActionResult> GetStats([FromQuery] string timeRange = "week")
     {
-        var result = await _mediator.Send(new GetDashboardStatsQuery());
+        var result = await _mediator.Send(new GetDashboardStatsQuery(timeRange));
         return Ok(result);
     }
 }

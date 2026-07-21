@@ -7,15 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SBS.Application.Features.Customer.CustomerViewPoolDetail;
-
-public record GetCustomerPoolDetailQuery(int PoolId) : IRequest<CustomerPoolDetailDto>;
+namespace SBS.Application.Features.Customer.CustomerViewPoolDetail.Queries;
 
 public class GetCustomerPoolDetailQueryHandler : IRequestHandler<GetCustomerPoolDetailQuery, CustomerPoolDetailDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetCustomerPoolDetailQueryHandler(IUnitOfWork uow)
+    public GetCustomerPoolDetailQueryHandler(IReadOnlyUnitOfWork uow)
     {
         _uow = uow;
     }

@@ -7,20 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SBS.Application.Features.Customer.CustomerViewPoolList;
-
-public record GetPoolFilterOptionsQuery() : IRequest<PoolFilterOptionsDto>;
-
-public class TimeOptionDto
-{
-    public System.TimeSpan Time { get; set; }
-}
+namespace SBS.Application.Features.Customer.CustomerViewPoolList.Queries;
 
 public class GetPoolFilterOptionsQueryHandler : IRequestHandler<GetPoolFilterOptionsQuery, PoolFilterOptionsDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetPoolFilterOptionsQueryHandler(IUnitOfWork uow)
+    public GetPoolFilterOptionsQueryHandler(IReadOnlyUnitOfWork uow)
     {
         _uow = uow;
     }

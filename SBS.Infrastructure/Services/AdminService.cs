@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Dtos.Admin;
 using SBS.Application.Common.Dtos.Profile;
 using SBS.Application.Common.Interfaces;
@@ -19,12 +20,21 @@ public class AdminService : IAdminService
     private readonly UserManager<AppUser> _userManager;
     private readonly ApplicationDbContext _writeContext;
     private readonly ReadDbContext _readContext;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IEmailService _emailService;
 
-    public AdminService(UserManager<AppUser> userManager, ApplicationDbContext writeContext, ReadDbContext readContext)
+    public AdminService(
+        UserManager<AppUser> userManager,
+        ApplicationDbContext writeContext,
+        ReadDbContext readContext,
+        ICurrentUserService currentUserService,
+        IEmailService emailService)
     {
         _userManager = userManager;
         _writeContext = writeContext;
         _readContext = readContext;
+        _currentUserService = currentUserService;
+        _emailService = emailService;
     }
 
     public async Task<List<UserListDto>> GetUsersAsync(CancellationToken cancellationToken = default)
@@ -358,9 +368,11 @@ public class AdminService : IAdminService
         var today = DateOnly.FromDateTime(now);
         var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var totalRevenue = await _readContext.Payments
-            .Where(p => p.Status == "Completed")
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+        var paidBookingStatuses = new[] { "Paid", "CheckIn", "Completed" };
+
+        var totalRevenue = await _readContext.Bookings
+            .Where(b => paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed")))
+            .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var totalUsers = await _readContext.Users.CountAsync(cancellationToken);
         var totalBookings = await _readContext.Bookings.CountAsync(cancellationToken);
@@ -369,21 +381,21 @@ public class AdminService : IAdminService
         var todayBookings = await _readContext.Bookings
             .CountAsync(b => b.BookingDate == today, cancellationToken);
 
-        var thisMonthRevenue = await _readContext.Payments
-            .Where(p => p.Status == "Completed" && p.PaymentDate >= startOfMonth)
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+        var thisMonthRevenue = await _readContext.Bookings
+            .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt >= startOfMonth)
+            .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var newUsersThisMonth = await _readContext.Users
             .CountAsync(u => u.CreatedAt >= startOfMonth, cancellationToken);
 
-        var monthlyRevenues = await _readContext.Payments
-            .Where(p => p.Status == "Completed" && p.PaymentDate != null && p.PaymentDate.Value.Year == now.Year)
-            .GroupBy(p => new { p.PaymentDate!.Value.Year, p.PaymentDate.Value.Month })
+        var monthlyRevenues = await _readContext.Bookings
+            .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt.Year == now.Year)
+            .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
             .Select(g => new MonthlyRevenueDto
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
-                Revenue = g.Sum(p => p.Amount)
+                Revenue = g.Sum(b => b.TotalAmount)
             })
             .OrderBy(m => m.Month)
             .ToListAsync(cancellationToken);
@@ -461,6 +473,156 @@ public class AdminService : IAdminService
             UsersByRole = usersByRole,
             BookingsByStatus = bookingsByStatus,
             RecentBookings = recentBookings
+        };
+    }
+
+    public async Task<PagedResultDto<ContactRequestListDto>> GetContactRequestsAsync(int page, int pageSize, string? status, CancellationToken cancellationToken = default)
+    {
+        var query = _readContext.ContactRequests.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(c => c.Status == status);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var contacts = await query
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = contacts.Select(c => new ContactRequestListDto
+        {
+            ContactRequestId = c.ContactRequestId,
+            FullName = c.FullName,
+            Email = c.Email,
+            PhoneNumber = c.PhoneNumber,
+            Category = c.Category,
+            Message = c.Message,
+            Status = c.Status,
+            CreatedAt = c.CreatedAt
+        }).ToList();
+
+        return new PagedResultDto<ContactRequestListDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<ResultDto> RespondContactRequestAsync(int contactRequestId, string responseMessage, CancellationToken cancellationToken = default)
+    {
+        var adminIdString = _currentUserService.UserId;
+        if (string.IsNullOrEmpty(adminIdString) || !Guid.TryParse(adminIdString, out var adminId))
+            return ResultDto.Failure(new[] { "Admin chưa đăng nhập hoặc không hợp lệ." });
+
+        var contact = await _writeContext.ContactRequests
+            .FirstOrDefaultAsync(c => c.ContactRequestId == contactRequestId, cancellationToken);
+
+        if (contact is null)
+            return ResultDto.Failure(new[] { "Không tìm thấy yêu cầu hỗ trợ." });
+
+        if (contact.Status != "Pending")
+            return ResultDto.Failure(new[] { $"Yêu cầu hỗ trợ này đã được xử lý (Trạng thái: {contact.Status})." });
+
+        contact.Status = "Resolved";
+        contact.HandledByUserId = adminId;
+        contact.HandledAt = DateTime.UtcNow;
+
+        await _writeContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var emailSubject = $"Phản hồi yêu cầu hỗ trợ: {contact.Category}";
+            var emailBody = $@"
+                    <p>Chào {contact.FullName},</p>
+                    <p>Ban quản lý SBS đã phản hồi yêu cầu hỗ trợ của bạn như sau:</p>
+                    <hr/>
+                    <p>{responseMessage}</p>
+                    <hr/>
+                    <p>Nếu bạn còn thắc mắc, vui lòng liên hệ lại với chúng tôi qua email này.</p>
+                    <p>Trân trọng,<br>Ban quản lý SBS</p>";
+
+            await _emailService.SendEmailAsync(contact.Email, emailSubject, emailBody);
+        }
+        catch
+        {
+        }
+
+        return ResultDto.Success();
+    }
+
+    public async Task<PagedResultDto<BookingListDto>> GetBookingsAsync(int page, int pageSize, string? status, string? search, string? fromDate, string? toDate, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+
+        var query = from b in _readContext.Bookings
+                    join u in _readContext.Users on b.UserId equals u.Id
+                    join ps in _readContext.PoolSlots on b.PoolSlotId equals ps.PoolSlotId
+                    join p in _readContext.Pools on ps.PoolId equals p.PoolId
+                    join pay in _readContext.Payments on b.BookingId equals pay.BookingId into payJoin
+                    from pay in payJoin.DefaultIfEmpty()
+                    select new { b, u, ps, p, pay };
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var statusList = status.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            query = query.Where(x => statusList.Contains(x.b.Status));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(x => x.b.BookingCode.ToLower().Contains(term)
+                                  || x.u.FullName.ToLower().Contains(term)
+                                  || (x.u.Email != null && x.u.Email.ToLower().Contains(term))
+                                  || (x.u.PhoneNumber != null && x.u.PhoneNumber.Contains(term)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(fromDate) && DateOnly.TryParse(fromDate, out var from))
+        {
+            query = query.Where(x => x.b.BookingDate >= from);
+        }
+
+        if (!string.IsNullOrWhiteSpace(toDate) && DateOnly.TryParse(toDate, out var to))
+        {
+            query = query.Where(x => x.b.BookingDate <= to);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(x => x.b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new BookingListDto
+            {
+                BookingId = x.b.BookingId,
+                BookingCode = x.b.BookingCode,
+                CustomerName = x.u.FullName,
+                CustomerEmail = x.u.Email,
+                CustomerPhone = x.u.PhoneNumber,
+                PoolName = x.p.PoolName,
+                SlotName = x.ps.SlotName,
+                SlotTime = x.ps.StartTime.ToString(@"hh\:mm") + " - " + x.ps.EndTime.ToString(@"hh\:mm"),
+                BookingDate = x.b.BookingDate,
+                BookingType = x.b.BookingType,
+                TotalAmount = x.b.TotalAmount,
+                Status = x.b.Status,
+                CreatedAt = x.b.CreatedAt,
+                PaymentStatus = x.pay != null ? x.pay.Status : null,
+                PaymentMethod = x.pay != null ? x.pay.PaymentMethod : null
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResultDto<BookingListDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
         };
     }
 }

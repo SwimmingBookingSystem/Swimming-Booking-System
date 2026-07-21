@@ -18,9 +18,9 @@ public record GetPoolsQuery(
 
 public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse<PoolDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetPoolsQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetPoolsQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<PagedResponse<PoolDto>> Handle(GetPoolsQuery request, CancellationToken ct)
     {
@@ -34,9 +34,13 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
 
         var total = await _uow.CountAsync(query, ct);
 
+        int totalPages = (int)System.Math.Ceiling(total / (double)request.PageSize);
+        if (totalPages == 0) totalPages = 1;
+        int page = request.Page > totalPages ? totalPages : request.Page;
+
         var items = await _uow.ToListAsync(
             query.OrderBy(p => p.CreatedAt)
-                 .Skip((request.Page - 1) * request.PageSize)
+                 .Skip((page - 1) * request.PageSize)
                  .Take(request.PageSize)
                  .Select(p => new PoolDto
                  {
@@ -65,7 +69,7 @@ public class GetPoolsQueryHandler : IRequestHandler<GetPoolsQuery, PagedResponse
         {
             Items      = items,
             TotalCount = total,
-            Page       = request.Page,
+            Page       = page,
             PageSize   = request.PageSize
         };
     }
