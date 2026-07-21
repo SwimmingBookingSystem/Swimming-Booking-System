@@ -86,7 +86,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
             if (ticketTypes.Any(t => t.Status != "Active" || t.TicketType.Status != "Active"))
             {
-                throw new InvalidOperationException("One or more selected tickets are no longer active.");
+                throw new BadRequestException("Rất tiếc, một số loại vé bạn chọn vừa được hệ thống ngừng kinh doanh.");
             }
 
             // Cross-Pool Validation: Ensure all tickets belong to the same Pool as the slot

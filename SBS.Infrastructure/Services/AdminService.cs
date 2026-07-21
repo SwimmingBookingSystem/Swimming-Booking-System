@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Dtos.Admin;
 using SBS.Application.Common.Dtos.Profile;
 using SBS.Application.Common.Interfaces;
@@ -19,12 +20,21 @@ public class AdminService : IAdminService
     private readonly UserManager<AppUser> _userManager;
     private readonly ApplicationDbContext _writeContext;
     private readonly ReadDbContext _readContext;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IEmailService _emailService;
 
-    public AdminService(UserManager<AppUser> userManager, ApplicationDbContext writeContext, ReadDbContext readContext)
+    public AdminService(
+        UserManager<AppUser> userManager,
+        ApplicationDbContext writeContext,
+        ReadDbContext readContext,
+        ICurrentUserService currentUserService,
+        IEmailService emailService)
     {
         _userManager = userManager;
         _writeContext = writeContext;
         _readContext = readContext;
+        _currentUserService = currentUserService;
+        _emailService = emailService;
     }
 
     public async Task<List<UserListDto>> GetUsersAsync(CancellationToken cancellationToken = default)
@@ -462,5 +472,83 @@ public class AdminService : IAdminService
             BookingsByStatus = bookingsByStatus,
             RecentBookings = recentBookings
         };
+    }
+
+    public async Task<PagedResultDto<ContactRequestListDto>> GetContactRequestsAsync(int page, int pageSize, string? status, CancellationToken cancellationToken = default)
+    {
+        var query = _readContext.ContactRequests.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(c => c.Status == status);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var contacts = await query
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = contacts.Select(c => new ContactRequestListDto
+        {
+            ContactRequestId = c.ContactRequestId,
+            FullName = c.FullName,
+            Email = c.Email,
+            PhoneNumber = c.PhoneNumber,
+            Category = c.Category,
+            Message = c.Message,
+            Status = c.Status,
+            CreatedAt = c.CreatedAt
+        }).ToList();
+
+        return new PagedResultDto<ContactRequestListDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<ResultDto> RespondContactRequestAsync(int contactRequestId, string responseMessage, CancellationToken cancellationToken = default)
+    {
+        var adminIdString = _currentUserService.UserId;
+        if (string.IsNullOrEmpty(adminIdString) || !Guid.TryParse(adminIdString, out var adminId))
+            return ResultDto.Failure(new[] { "Admin chưa đăng nhập hoặc không hợp lệ." });
+
+        var contact = await _writeContext.ContactRequests
+            .FirstOrDefaultAsync(c => c.ContactRequestId == contactRequestId, cancellationToken);
+
+        if (contact is null)
+            return ResultDto.Failure(new[] { "Không tìm thấy yêu cầu hỗ trợ." });
+
+        if (contact.Status != "Pending")
+            return ResultDto.Failure(new[] { $"Yêu cầu hỗ trợ này đã được xử lý (Trạng thái: {contact.Status})." });
+
+        contact.Status = "Resolved";
+        contact.HandledByUserId = adminId;
+        contact.HandledAt = DateTime.UtcNow;
+
+        await _writeContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var emailSubject = $"Phản hồi yêu cầu hỗ trợ: {contact.Category}";
+            var emailBody = $@"
+                    <p>Chào {contact.FullName},</p>
+                    <p>Ban quản lý SBS đã phản hồi yêu cầu hỗ trợ của bạn như sau:</p>
+                    <hr/>
+                    <p>{responseMessage}</p>
+                    <hr/>
+                    <p>Nếu bạn còn thắc mắc, vui lòng liên hệ lại với chúng tôi qua email này.</p>
+                    <p>Trân trọng,<br>Ban quản lý SBS</p>";
+
+            await _emailService.SendEmailAsync(contact.Email, emailSubject, emailBody);
+        }
+        catch
+        {
+        }
+
+        return ResultDto.Success();
     }
 }
