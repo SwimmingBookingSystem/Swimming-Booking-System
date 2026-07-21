@@ -35,4 +35,12 @@ public interface IStaffUserService
     Task<List<int>> GetAssignedPoolIdsAsync(Guid staffId, CancellationToken cancellationToken = default);
 
     Task<bool> IsStaffAssignedToPoolAsync(Guid staffId, int poolId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy thông tin nhiều users cùng lúc bằng 1 query thay vì N queries riêng lẻ.
+    /// Dùng khi build danh sách booking cần enrich thông tin khách hàng.
+    /// </summary>
+    Task<Dictionary<Guid, UserBriefDto>> GetUserBriefsByIdsAsync(
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default);
 }

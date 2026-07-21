@@ -74,4 +74,21 @@ public class StaffUserService : IStaffUserService
         return await _readContext.PoolStaffAssignments
             .AnyAsync(a => a.StaffId == staffId && a.PoolId == poolId, cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<Dictionary<Guid, UserBriefDto>> GetUserBriefsByIdsAsync(
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default)
+    {
+        return await _readContext.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Select(u => new UserBriefDto
+            {
+                UserId = u.Id,
+                FullName = u.FullName ?? u.UserName ?? "Khách vãng lai",
+                Email = u.Email ?? string.Empty,
+                PhoneNumber = u.PhoneNumber
+            })
+            .ToDictionaryAsync(u => u.UserId, cancellationToken);
+    }
 }
