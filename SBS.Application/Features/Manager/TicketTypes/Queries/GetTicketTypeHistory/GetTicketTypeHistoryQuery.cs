@@ -25,8 +25,8 @@ public class TicketPriceHistoryDto
 
 public class GetTicketTypeHistoryQueryHandler : IRequestHandler<GetTicketTypeHistoryQuery, List<TicketPriceHistoryDto>>
 {
-    private readonly IUnitOfWork _uow;
-    public GetTicketTypeHistoryQueryHandler(IUnitOfWork uow) => _uow = uow;
+    private readonly IReadOnlyUnitOfWork _uow;
+    public GetTicketTypeHistoryQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<List<TicketPriceHistoryDto>> Handle(GetTicketTypeHistoryQuery request, CancellationToken ct)
     {

@@ -27,81 +27,13 @@ public record UpdatePoolCommand(
 // Handler
 public class UpdatePoolCommandHandler : IRequestHandler<UpdatePoolCommand, PoolDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService _poolService;
 
-    public UpdatePoolCommandHandler(IUnitOfWork uow) => _uow = uow;
+    public UpdatePoolCommandHandler(SBS.Application.Features.Manager.Services.Interfaces.IPoolManagementService poolService) => _poolService = poolService;
 
     public async Task<PoolDto> Handle(UpdatePoolCommand request, CancellationToken ct)
     {
-        var pool = await _uow.FirstOrDefaultAsync(
-            _uow.Repository<Pool>().Query()
-                .Where(p => p.PoolId == request.PoolId), ct)
-            ?? throw new NotFoundException(nameof(Pool), request.PoolId);
-
-        pool.PoolName    = request.PoolName;
-        pool.Address     = request.Address;
-        pool.Description = request.Description;
-        pool.OpeningTime = request.OpeningTime;
-        pool.ClosingTime = request.ClosingTime;
-        pool.Area        = request.Area;
-        pool.StandardCapacity = (int)(request.Area / 2.5);
-        pool.UpdatedAt   = DateTime.UtcNow;
-
-        // Xử lý cập nhật danh sách ảnh nếu có truyền lên
-        if (request.Images != null)
-        {
-            // Xóa ảnh cũ
-            var oldImages = await _uow.ToListAsync(
-                _uow.Repository<PoolImage>().Query().Where(img => img.PoolId == request.PoolId), ct);
-            
-            _uow.Repository<PoolImage>().DeleteRange(oldImages);
-
-            // Thêm ảnh mới
-            if (request.Images.Any())
-            {
-                var coverCount = request.Images.Count(i => i.IsCover);
-                if (coverCount == 0) request.Images[0].IsCover = true;
-
-                int index = 1;
-                foreach (var img in request.Images)
-                {
-                    pool.PoolImages.Add(new PoolImage
-                    {
-                        ImageUrl  = img.ImageUrl,
-                        IsCover   = img.IsCover,
-                        SortOrder = img.SortOrder == 0 ? index : img.SortOrder,
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    index++;
-                }
-            }
-        }
-
-        _uow.Repository<Pool>().Update(pool);
-        await _uow.SaveChangesAsync(ct);
-
-        return new PoolDto
-        {
-            PoolId      = pool.PoolId,
-            PoolName    = pool.PoolName,
-            Address     = pool.Address,
-            Description = pool.Description,
-            Images      = pool.PoolImages.Select(img => new PoolImageDto 
-            {
-                PoolImageId = img.PoolImageId,
-                ImageUrl    = img.ImageUrl,
-                IsCover     = img.IsCover,
-                SortOrder   = img.SortOrder,
-                CreatedAt   = img.CreatedAt
-            }).ToList(),
-            OpeningTime = pool.OpeningTime.ToString(@"hh\:mm"),
-            ClosingTime = pool.ClosingTime.ToString(@"hh\:mm"),
-            Status      = pool.Status,
-            Area        = pool.Area,
-            StandardCapacity = pool.StandardCapacity,
-            CreatedAt   = pool.CreatedAt,
-            UpdatedAt   = pool.UpdatedAt
-        };
+        return await _poolService.UpdatePoolAsync(request, ct);
     }
 }
 
@@ -140,3 +72,4 @@ public class UpdatePoolCommandValidator : AbstractValidator<UpdatePoolCommand>
             });
     }
 }
+

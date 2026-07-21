@@ -15,9 +15,9 @@ public record GetDashboardStatsQuery(string TimeRange = "week") : IRequest<Dashb
 
 public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQuery, DashboardStatsDto>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetDashboardStatsQueryHandler(IUnitOfWork uow)
+    public GetDashboardStatsQueryHandler(IReadOnlyUnitOfWork uow)
     {
         _uow = uow;
     }

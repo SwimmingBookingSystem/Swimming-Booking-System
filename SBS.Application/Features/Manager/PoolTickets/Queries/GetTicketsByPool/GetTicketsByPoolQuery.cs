@@ -14,9 +14,9 @@ public record GetTicketsByPoolQuery(int PoolId) : IRequest<List<PoolTicketTypeDt
 public class GetTicketsByPoolQueryHandler
     : IRequestHandler<GetTicketsByPoolQuery, List<PoolTicketTypeDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
 
-    public GetTicketsByPoolQueryHandler(IUnitOfWork uow) => _uow = uow;
+    public GetTicketsByPoolQueryHandler(IReadOnlyUnitOfWork uow) => _uow = uow;
 
     public async Task<List<PoolTicketTypeDto>> Handle(
         GetTicketsByPoolQuery request, CancellationToken ct)
