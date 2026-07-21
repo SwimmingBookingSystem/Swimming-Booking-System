@@ -553,4 +553,76 @@ public class AdminService : IAdminService
 
         return ResultDto.Success();
     }
+
+    public async Task<PagedResultDto<BookingListDto>> GetBookingsAsync(int page, int pageSize, string? status, string? search, string? fromDate, string? toDate, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+
+        var query = from b in _readContext.Bookings
+                    join u in _readContext.Users on b.UserId equals u.Id
+                    join ps in _readContext.PoolSlots on b.PoolSlotId equals ps.PoolSlotId
+                    join p in _readContext.Pools on ps.PoolId equals p.PoolId
+                    join pay in _readContext.Payments on b.BookingId equals pay.BookingId into payJoin
+                    from pay in payJoin.DefaultIfEmpty()
+                    select new { b, u, ps, p, pay };
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var statusList = status.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            query = query.Where(x => statusList.Contains(x.b.Status));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(x => x.b.BookingCode.ToLower().Contains(term)
+                                  || x.u.FullName.ToLower().Contains(term)
+                                  || (x.u.Email != null && x.u.Email.ToLower().Contains(term))
+                                  || (x.u.PhoneNumber != null && x.u.PhoneNumber.Contains(term)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(fromDate) && DateOnly.TryParse(fromDate, out var from))
+        {
+            query = query.Where(x => x.b.BookingDate >= from);
+        }
+
+        if (!string.IsNullOrWhiteSpace(toDate) && DateOnly.TryParse(toDate, out var to))
+        {
+            query = query.Where(x => x.b.BookingDate <= to);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(x => x.b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new BookingListDto
+            {
+                BookingId = x.b.BookingId,
+                BookingCode = x.b.BookingCode,
+                CustomerName = x.u.FullName,
+                CustomerEmail = x.u.Email,
+                CustomerPhone = x.u.PhoneNumber,
+                PoolName = x.p.PoolName,
+                SlotName = x.ps.SlotName,
+                SlotTime = x.ps.StartTime.ToString(@"hh\:mm") + " - " + x.ps.EndTime.ToString(@"hh\:mm"),
+                BookingDate = x.b.BookingDate,
+                BookingType = x.b.BookingType,
+                TotalAmount = x.b.TotalAmount,
+                Status = x.b.Status,
+                CreatedAt = x.b.CreatedAt,
+                PaymentStatus = x.pay != null ? x.pay.Status : null,
+                PaymentMethod = x.pay != null ? x.pay.PaymentMethod : null
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResultDto<BookingListDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
 }
