@@ -10,25 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
-namespace SBS.Application.Features.Customer.CustomerViewPoolList;
-
-public record GetCustomerPoolsQuery(
-    int Page = 1,
-    int PageSize = 10,
-    string? SearchName = null,
-    string? Address = null,
-    TimeSpan? OpeningTime = null,
-    TimeSpan? ClosingTime = null,
-    int? MinCapacity = null,
-    int? MaxCapacity = null
-) : IRequest<PagedResponse<CustomerPoolDto>>;
+namespace SBS.Application.Features.Customer.CustomerViewPoolList.Queries;
 
 public class GetCustomerPoolsQueryHandler : IRequestHandler<GetCustomerPoolsQuery, PagedResponse<CustomerPoolDto>>
 {
-    private readonly IUnitOfWork _uow;
+    private readonly IReadOnlyUnitOfWork _uow;
     private readonly IDistributedCache _cache;
 
-    public GetCustomerPoolsQueryHandler(IUnitOfWork uow, IDistributedCache cache)
+    public GetCustomerPoolsQueryHandler(IReadOnlyUnitOfWork uow, IDistributedCache cache)
     {
         _uow = uow;
         _cache = cache;
