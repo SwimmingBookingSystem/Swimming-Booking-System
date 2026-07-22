@@ -209,12 +209,18 @@
             }
 
             try {
-                await api.put(`/pools/${poolId}`, payload);
+                const res = await api.put(`/pools/${poolId}`, payload);
                 if (images.length > 0) {
                     await api.put(`/pools/${poolId}/images`, images);
                 }
-                toastr.success('Cập nhật thành công');
-                setTimeout(() => { window.location.href = '/Manager/Pools'; }, 1000);
+                
+                if (res && res.message) {
+                    toastr.success(res.message);
+                } else {
+                    toastr.success('Cập nhật thành công');
+                }
+                
+                setTimeout(() => { window.location.href = '/Manager/Pools'; }, 2000);
             } catch (e) {}
         }
     </script>

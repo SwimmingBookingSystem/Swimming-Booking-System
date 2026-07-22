@@ -183,7 +183,10 @@
                      await api.put(`/pools/${res.poolId}/images`, images);
                 }
                 toastr.success('Tạo bể bơi thành công');
-                setTimeout(() => { window.location.href = '/Manager/Pools'; }, 1000);
+                setTimeout(() => { 
+                    sessionStorage.setItem('Pools_Filter_Page', 999999);
+                    window.location.href = '/Manager/Pools'; 
+                }, 1000);
             } catch (e) {}
         }
     </script>

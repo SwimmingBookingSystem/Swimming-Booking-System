@@ -114,7 +114,7 @@ public class LoginModel : PageModel
     {
         return role.ToLower() switch
         {
-            "admin" => Redirect("/Admin/Users"),
+            "admin" => Redirect("/Admin/Dashboard"),
             "manager" => Redirect("/Manager/Dashboard"),
             "staff" => Redirect("/Staff/CheckIn"),
             "customer" => Redirect("/"),

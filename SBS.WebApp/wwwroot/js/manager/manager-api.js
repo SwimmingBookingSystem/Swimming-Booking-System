@@ -106,6 +106,9 @@ const api = {
                 data: formData,
                 processData: false,
                 contentType: false,
+                headers: {
+                    'Authorization': 'Bearer ' + (window.ACCESS_TOKEN || '')
+                },
                 xhrFields: {
                     withCredentials: true
                 },
