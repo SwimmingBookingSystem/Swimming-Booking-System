@@ -180,3 +180,61 @@ body {
     background-color: #f1f5f9;
     border-color: #e2e8f0;
 }
+
+/* Ocean Avatar Styling */
+.ocean-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.ocean-avatar-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--ocean-aqua);
+    box-shadow: 0 8px 25px rgba(0, 194, 224, 0.25);
+    transition: all 0.3s ease;
+}
+.ocean-avatar-wrapper:hover .ocean-avatar-img {
+    transform: scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 194, 224, 0.35);
+}
+.ocean-avatar-upload-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--ocean-aqua) 0%, var(--dark-teal) 100%);
+    color: #ffffff !important;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 194, 224, 0.4);
+    transition: all 0.3s ease;
+}
+.ocean-avatar-upload-btn:hover {
+    transform: scale(1.15) rotate(10deg);
+    box-shadow: 0 6px 20px rgba(0, 194, 224, 0.6);
+    background: linear-gradient(135deg, #00d5f7 0%, #007a88 100%);
+    color: #ffffff !important;
+}
+
+/* Ocean SweetAlert2 Custom Styling */
+.ocean-swal-popup {
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 194, 224, 0.2) !important;
+    box-shadow: 0 15px 35px rgba(0, 95, 106, 0.15) !important;
+}
+.ocean-swal-popup .swal2-title {
+    color: var(--dark-teal) !important;
+    font-family: 'Segoe UI', Poppins, sans-serif !important;
+    font-weight: 700 !important;
+}
+.ocean-swal-popup .swal2-html-container {
+    color: var(--text-main) !important;
+    font-size: 0.95rem !important;
+}

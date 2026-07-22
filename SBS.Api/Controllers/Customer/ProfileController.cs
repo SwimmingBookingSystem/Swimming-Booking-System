@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Users.Commands.ChangePassword;
 using SBS.Application.Features.Users.Commands.UpdateAvatar;
@@ -47,22 +48,18 @@ public class ProfileController : ControllerBase
         return Ok(new { message = "Cập nhật hồ sơ cá nhân thành công." });
     }
 
-    // PUT /api/profile/avatar - Cập nhật đường dẫn ảnh đại diện.
-    [HttpPut("avatar")]
-    public async Task<IActionResult> UpdateAvatar([FromBody] UpdateAvatarCommand command)
+    // POST /api/profile/upload-avatar - Upload ảnh đại diện trực tiếp từ máy tính lên Cloudinary
+    [HttpPost("upload-avatar")]
+    public async Task<IActionResult> UploadAvatar(IFormFile file)
     {
-        if (string.IsNullOrWhiteSpace(command.AvatarUrl))
+        if (file == null || file.Length == 0)
         {
-            return BadRequest(new { message = "Đường dẫn ảnh đại diện không được để trống." });
+            return BadRequest(new { message = "Vui lòng chọn một file ảnh hợp lệ." });
         }
 
-        var success = await _mediator.Send(command);
-        if (!success)
-        {
-            return BadRequest(new { message = "Cập nhật ảnh đại diện thất bại." });
-        }
-
-        return Ok(new { message = "Cập nhật ảnh đại diện thành công." });
+        using var stream = file.OpenReadStream();
+        var avatarUrl = await _mediator.Send(new UploadAvatarCommand(stream, file.FileName));
+        return Ok(new { avatarUrl, message = "Tải ảnh đại diện lên thành công." });
     }
 
     // POST /api/profile/change-password - Đổi mật khẩu của tài khoản hiện tại.

@@ -57,6 +57,7 @@ public class IdentityService : IIdentityService
             Address = user.Address,
             Dob = user.Dob,
             Gender = user.Gender,
+            AvatarUrl = user.AvatarUrl,
             Images = user.AvatarUrl,
             CreatedAt = user.CreatedAt
         };

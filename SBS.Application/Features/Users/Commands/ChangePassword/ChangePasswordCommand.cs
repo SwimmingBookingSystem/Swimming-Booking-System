@@ -9,8 +9,11 @@ namespace SBS.Application.Features.Users.Commands.ChangePassword;
 
 public record ChangePasswordCommand : IRequest<ResultDto>
 {
-    public string OldPassword { get; init; } = null!;
+    public string? CurrentPassword { get; init; }
+    public string? OldPassword { get; init; }
     public string NewPassword { get; init; } = null!;
+
+    public string EffectiveOldPassword => !string.IsNullOrEmpty(CurrentPassword) ? CurrentPassword : (OldPassword ?? string.Empty);
 }
 
 public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, ResultDto>
@@ -32,6 +35,6 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
             return ResultDto.Failure(new[] { "Người dùng chưa đăng nhập hoặc không hợp lệ." });
         }
 
-        return await _identityService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword, cancellationToken);
+        return await _identityService.ChangePasswordAsync(userId, request.EffectiveOldPassword, request.NewPassword, cancellationToken);
     }
 }
