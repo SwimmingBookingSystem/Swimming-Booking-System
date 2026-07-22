@@ -450,3 +450,8 @@ appsettings.*.Development.json
 # Explicitly ignore all bin and obj folders globally 
 [Bb]in/
 [Oo]bj/
+
+# Custom ignored files/folders
+docs/
+dummy.jpg
+

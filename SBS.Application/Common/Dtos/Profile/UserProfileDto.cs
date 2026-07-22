@@ -12,6 +12,7 @@ public class UserProfileDto
     public string? Address { get; set; }
     public DateOnly? Dob { get; set; }
     public string? Gender { get; set; }
+    public string? AvatarUrl { get; set; }
     public string? Images { get; set; }
     public DateTime CreatedAt { get; set; }
 }

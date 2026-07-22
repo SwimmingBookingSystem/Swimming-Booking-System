@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,9 +10,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SBS.WebApp.Pages.Customer.Profile;
+
+public class SyncAvatarRequest
+{
+    public string AvatarUrl { get; set; } = null!;
+}
 
 public class IndexModel : PageModel
 {
@@ -44,7 +52,6 @@ public class IndexModel : PageModel
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(_configuration["ApiBaseUrl"] ?? "https://localhost:7179");
         
-        // Đọc token từ Claims đã được giải mã bởi Cookie Authentication middleware
         var token = User.FindFirst("AccessToken")?.Value;
         if (!string.IsNullOrEmpty(token))
         {
@@ -80,7 +87,12 @@ public class IndexModel : PageModel
         Gender = profile.Gender;
         Address = profile.Address;
         Email = profile.Email;
-        AvatarUrl = profile.AvatarUrl;
+        AvatarUrl = profile.EffectiveAvatarUrl;
+
+        if (!string.IsNullOrEmpty(AvatarUrl))
+        {
+            await RefreshAvatarClaimAsync(AvatarUrl);
+        }
 
         return Page();
     }
@@ -125,10 +137,42 @@ public class IndexModel : PageModel
             if (profile != null)
             {
                 Email = profile.Email;
-                AvatarUrl = profile.AvatarUrl;
+                AvatarUrl = profile.EffectiveAvatarUrl;
+                if (!string.IsNullOrEmpty(AvatarUrl))
+                {
+                    await RefreshAvatarClaimAsync(AvatarUrl);
+                }
             }
         }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostSyncAvatarClaimAsync([FromBody] SyncAvatarRequest request)
+    {
+        if (request != null && !string.IsNullOrEmpty(request.AvatarUrl))
+        {
+            await RefreshAvatarClaimAsync(request.AvatarUrl);
+            return new JsonResult(new { success = true });
+        }
+        return new JsonResult(new { success = false });
+    }
+
+    private async Task RefreshAvatarClaimAsync(string newAvatarUrl)
+    {
+        if (User.Identity is not ClaimsIdentity identity || !identity.IsAuthenticated) return;
+
+        var existingClaim = identity.FindFirst("AvatarUrl");
+        if (existingClaim?.Value == newAvatarUrl) return;
+
+        if (existingClaim != null)
+        {
+            identity.RemoveClaim(existingClaim);
+        }
+        identity.AddClaim(new Claim("AvatarUrl", newAvatarUrl ?? ""));
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity));
     }
 }

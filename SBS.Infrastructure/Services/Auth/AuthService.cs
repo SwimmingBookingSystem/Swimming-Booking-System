@@ -119,7 +119,8 @@ public class AuthService : IAuthService
             UserName = user.UserName ?? string.Empty,
             FullName = user.FullName,
             Role = roles.Count > 0 ? roles[0] : string.Empty,
-            PoolName = poolName
+            PoolName = poolName,
+            AvatarUrl = user.AvatarUrl
         });
     }
 
@@ -255,7 +256,8 @@ public class AuthService : IAuthService
                 UserName = user.UserName ?? string.Empty,
                 FullName = user.FullName,
                 Role = roles.Count > 0 ? roles[0] : string.Empty,
-                PoolName = poolName
+                PoolName = poolName,
+                AvatarUrl = user.AvatarUrl
             });
         }
         catch (Exception)

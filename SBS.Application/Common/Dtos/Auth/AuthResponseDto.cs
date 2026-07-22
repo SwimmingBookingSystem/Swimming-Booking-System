@@ -13,5 +13,6 @@ public class AuthResponseDto
     public string FullName { get; set; } = null!;
     public string Role { get; set; } = null!;
     public string? PoolName { get; set; }
+    public string? AvatarUrl { get; set; }
 }
 

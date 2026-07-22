@@ -31,17 +31,17 @@ public class CancelWaitlistCommandHandler : IRequestHandler<CancelWaitlistComman
 
         if (entry == null)
         {
-            throw new Exception($"Không tìm thấy WaitlistEntry với ID {request.WaitlistEntryId}");
+            throw new System.InvalidOperationException($"Không tìm thấy lượt đăng ký hàng chờ với ID {request.WaitlistEntryId}");
         }
 
         if (entry.UserId != currentUserId)
         {
-            throw new UnauthorizedAccessException("Bạn không có quyền hủy đăng ký hàng chờ này.");
+            throw new System.UnauthorizedAccessException("Bạn không có quyền hủy đăng ký hàng chờ này.");
         }
 
         if (entry.Status != "Waiting")
         {
-            throw new Exception($"Không thể hủy hàng chờ ở trạng thái {entry.Status}.");
+            throw new System.InvalidOperationException($"Không thể hủy hàng chờ ở trạng thái {entry.Status}.");
         }
 
         entry.Status = "Cancelled";

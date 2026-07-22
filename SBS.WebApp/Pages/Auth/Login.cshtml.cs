@@ -81,6 +81,7 @@ public class LoginModel : PageModel
                 new Claim(ClaimTypes.NameIdentifier, apiResult.Id.ToString()),
                 new Claim(ClaimTypes.Name, apiResult.UserName ?? Username),
                 new Claim("FullName", apiResult.FullName ?? ""),
+                new Claim("AvatarUrl", apiResult.AvatarUrl ?? ""),
                 new Claim(ClaimTypes.Role, apiResult.Role),
                 new Claim("AccessToken", apiResult.AccessToken ?? ""),
                 new Claim("RefreshToken", apiResult.RefreshToken ?? ""),
@@ -132,6 +133,7 @@ public class LoginModel : PageModel
         public Guid Id { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string? AvatarUrl { get; set; }
         public string Role { get; set; } = string.Empty;
         public string AccessToken { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;

@@ -52,16 +52,9 @@ public class CustomerBookingsController : ControllerBase
     [HttpPost("{bookingId}/cancel")]
     public async Task<IActionResult> CancelBooking([FromRoute] int bookingId)
     {
-        try
-        {
-            var command = new CancelBookingCommand(bookingId);
-            await _mediator.Send(command);
-            return Ok(new { message = "Hủy vé thành công" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var command = new CancelBookingCommand(bookingId);
+        await _mediator.Send(command);
+        return Ok(new { message = "Hủy vé thành công" });
     }
 
     [HttpPost("payos-webhook")]
@@ -88,15 +81,8 @@ public class CustomerBookingsController : ControllerBase
     [HttpPost("waitlist/cancel")]
     public async Task<IActionResult> CancelWaitlist([FromBody] SBS.Application.Features.Customer_Bookings.Commands.CancelWaitlist.CancelWaitlistCommand command)
     {
-        try
-        {
-            await _mediator.Send(command);
-            return Ok(new { message = "Thành công" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        await _mediator.Send(command);
+        return Ok(new { message = "Thành công" });
     }
 
     [HttpGet("history")]
