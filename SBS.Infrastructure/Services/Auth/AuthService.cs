@@ -56,6 +56,11 @@ public class AuthService : IAuthService
             return AuthResultDto.Failure(new[] { "Tài khoản đang bị khóa hoặc ngừng hoạt động." });
         }
 
+        if (!user.EmailConfirmed)
+        {
+            return AuthResultDto.Failure(new[] { "Tài khoản chưa được xác thực email. Vui lòng xác thực bằng mã OTP trước khi đăng nhập." });
+        }
+
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
         if (!isPasswordValid)
