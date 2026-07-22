@@ -32,13 +32,23 @@
                         </div>
                     }
 
+                    @Html.AntiForgeryToken()
                     <form method="post">
                         <div class="row mb-3">
                             <div class="col-md-4 text-center mb-4 mb-md-0 d-flex flex-column align-items-center justify-content-center">
-                                <div class="position-relative mb-3">
-                                    <img id="avatarPreview" src="https://ui-avatars.com/api/?name=@(System.Net.WebUtility.UrlEncode(Model.FullName ?? "User"))&background=00C2E0&color=fff&rounded=true&size=200" alt="Avatar" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--cool-gray);">
+                                <div class="ocean-avatar-wrapper mb-3">
+                                    @{
+                                        var avatarUrlSrc = !string.IsNullOrEmpty(Model.AvatarUrl) 
+                                            ? Model.AvatarUrl 
+                                            : $"https://ui-avatars.com/api/?name={System.Net.WebUtility.UrlEncode(Model.FullName ?? "User")}&background=00C2E0&color=fff&rounded=true&size=200";
+                                    }
+                                    <img id="avatarPreview" src="@avatarUrlSrc" alt="Avatar" class="ocean-avatar-img">
+                                    <label for="avatarInput" class="ocean-avatar-upload-btn" title="Đổi ảnh đại diện">
+                                        <i class="bi bi-camera-fill fs-5"></i>
+                                    </label>
+                                    <input type="file" id="avatarInput" accept="image/*" class="d-none">
                                 </div>
-                                <p class="text-muted small">Ảnh đại diện được tạo tự động từ tên của bạn.</p>
+                                <p class="text-muted small fw-medium">Nhấp biểu tượng máy ảnh để đổi ảnh đại diện</p>
                             </div>
                             <div class="col-md-8">
                                 <div class="mb-3">

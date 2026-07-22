@@ -44,7 +44,11 @@
                 <i class="fa-solid fa-ticket w-20px"></i> Loại vé
             </a>
             <a class="nav-link @(currentPage.StartsWith("/Manager/Pricing") ? "active" : "")" href="/Manager/Pricing">
-                <i class="fa-solid fa-tags w-20px"></i> Bảng giá
+                <i class="fa-solid fa-tags w-20px me-2"></i> Bảng giá
+            </a>
+            <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
+            <a class="nav-link text-white-50" href="/" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-arrow-left w-20px me-2"></i> Về trang chủ
             </a>
         </div>
     </nav>
@@ -59,6 +63,9 @@
             <div class="d-flex align-items-center gap-3">
                 @{
                     var mgrFullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Manager";
+                    var mgrAvatarUrl = User.FindFirst("AvatarUrl")?.Value;
+                    var defaultMgrAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(mgrFullName)}&background=0D8ABC&color=fff";
+                    var mgrAvatarSrc = !string.IsNullOrEmpty(mgrAvatarUrl) ? mgrAvatarUrl : defaultMgrAvatar;
                     // Kiểm tra trực tiếp quyền truy cập Manager từ Server-side
                     if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Manager"))
                     {
@@ -67,7 +74,7 @@
                 }
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(mgrFullName)&background=0D8ABC&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <img id="userAvatar" src="@mgrAvatarSrc" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" />
                         <span id="userNameDisplay">@mgrFullName</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">

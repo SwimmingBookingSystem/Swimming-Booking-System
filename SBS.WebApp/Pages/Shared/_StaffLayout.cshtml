@@ -66,6 +66,9 @@
                 @{
                     var staffFullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Staff";
                     var staffPoolName = User.FindFirst("PoolName")?.Value ?? "";
+                    var staffAvatarUrl = User.FindFirst("AvatarUrl")?.Value;
+                    var defaultStaffAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(staffFullName)}&background=0284C7&color=fff";
+                    var staffAvatarSrc = !string.IsNullOrEmpty(staffAvatarUrl) ? staffAvatarUrl : defaultStaffAvatar;
                     
                     // Kiểm tra quyền Staff/Manager/Admin từ Server-side
                     if (User.Identity == null || !User.Identity.IsAuthenticated || 
@@ -76,7 +79,7 @@
                 }
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle rounded-pill border-0 shadow-sm px-3 py-2" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(staffFullName)&background=0284C7&color=fff" class="rounded-circle me-2" width="32" height="32" />
+                        <img id="userAvatar" src="@staffAvatarSrc" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;" />
                         <span id="userNameDisplay" class="fw-medium">@staffFullName</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
