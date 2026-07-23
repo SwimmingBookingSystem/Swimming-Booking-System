@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env*
+.env.example
+!.env.example
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -450,3 +453,8 @@ appsettings.*.Development.json
 # Explicitly ignore all bin and obj folders globally 
 [Bb]in/
 [Oo]bj/
+
+# Custom ignored files/folders
+docs/
+dummy.jpg
+

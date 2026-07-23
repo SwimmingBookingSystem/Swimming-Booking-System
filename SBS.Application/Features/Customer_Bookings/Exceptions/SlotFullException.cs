@@ -5,7 +5,7 @@ namespace SBS.Application.Features.Customer_Bookings.Exceptions;
 public class SlotFullException : Exception
 {
     public SlotFullException(int slotId, DateOnly date) 
-        : base($"Slot with ID {slotId} on {date:yyyy-MM-dd} is full and cannot accept more bookings.")
+        : base($"Rất tiếc, ca bơi mã #{slotId} ngày {date:dd/MM/yyyy} đã hết suất bơi trống.")
     {
     }
 }

@@ -12,6 +12,7 @@ public class AvailableSlotDto
     public TimeSpan EndTime { get; set; }
     public DateOnly SlotDate { get; set; }
     public int Capacity { get; set; }
+    public bool IsBookingClosed { get; set; }
     public int AvailableCapacity { get; set; }
     
     // Waitlist tracking

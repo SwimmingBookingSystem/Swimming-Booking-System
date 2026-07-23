@@ -50,7 +50,11 @@
                 <i class="fa-solid fa-ticket w-20px"></i> Loại vé
             </a>
             <a class="nav-link @(currentPage.StartsWith("/Manager/Pricing") ? "active" : "")" href="/Manager/Pricing">
-                <i class="fa-solid fa-tags w-20px"></i> Bảng giá
+                <i class="fa-solid fa-tags w-20px me-2"></i> Bảng giá
+            </a>
+            <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
+            <a class="nav-link text-white-50" href="/" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-arrow-left w-20px me-2"></i> Về trang chủ
             </a>
         </div>
     </nav>
@@ -73,6 +77,9 @@
             <div class="d-flex align-items-center gap-3">
                 @{
                     var mgrFullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Manager";
+                    var mgrAvatarUrl = User.FindFirst("AvatarUrl")?.Value;
+                    var defaultMgrAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(mgrFullName)}&background=0D8ABC&color=fff";
+                    var mgrAvatarSrc = !string.IsNullOrEmpty(mgrAvatarUrl) ? mgrAvatarUrl : defaultMgrAvatar;
                     // Kiểm tra trực tiếp quyền truy cập Manager từ Server-side
                     if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Manager"))
                     {
@@ -160,7 +167,7 @@
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         // --- 3. CẤU HÌNH GỌI API (MANAGER API INTERCEPTOR) ---
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };

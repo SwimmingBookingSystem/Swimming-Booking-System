@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Linq;
@@ -35,6 +36,19 @@ public class JoinWaitlistCommandHandler : IRequestHandler<JoinWaitlistCommand, J
 
         if (slot == null)
             return new JoinWaitlistResultDto { Succeeded = false, Message = "Không tìm thấy ca bơi." };
+
+        if (slot.Status != "Open")
+            return new JoinWaitlistResultDto { Succeeded = false, Message = "Ca bơi này hiện không mở để tham gia hàng đợi." };
+
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+        if (BookingTimePolicy.IsBookingClosed(slot.SlotDate, slot.EndTime, today, timeNow))
+        {
+            return new JoinWaitlistResultDto
+            {
+                Succeeded = false,
+                Message = "Không thể tham gia hàng đợi khi ca bơi đã qua hoặc chỉ còn tối đa 30 phút."
+            };
+        }
 
         var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
             .Include(bd => bd.PoolTicketType)
