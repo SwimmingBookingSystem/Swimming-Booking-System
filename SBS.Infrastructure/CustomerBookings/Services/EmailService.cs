@@ -19,10 +19,11 @@ public class EmailService : IEmailService
     public async Task SendEmailWithQrCodeAsync(string toEmail, string subject, string body, byte[]? qrCodeImage, string? qrCodeFileName)
     {
         var emailSettings = _configuration.GetSection("Smtp");
-        var host = emailSettings["Host"];
-        var port = int.Parse(emailSettings["Port"] ?? "587");
-        var username = emailSettings["Username"];
-        var password = emailSettings["AppPassword"];
+        var host = emailSettings["Host"] ?? _configuration["SmtpSettings:Host"];
+        var portStr = emailSettings["Port"] ?? _configuration["SmtpSettings:Port"] ?? "587";
+        var port = int.Parse(portStr);
+        var username = emailSettings["Username"] ?? emailSettings["UserName"] ?? _configuration["SmtpSettings:UserName"];
+        var password = emailSettings["AppPassword"] ?? emailSettings["Password"] ?? _configuration["SmtpSettings:Password"];
 
         using var client = new SmtpClient(host, port)
         {

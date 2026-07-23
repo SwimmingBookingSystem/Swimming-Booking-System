@@ -1,36 +1,280 @@
-﻿version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: sbs_rabbitmq
+  reverse-proxy:
+    image: nginx:1.26.2-alpine
+    container_name: sbs_proxy
     ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      - "${SBS_HTTP_PORT:-8080}:80"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    restart: unless-stopped
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/nginx-health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+          pids: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      sbs-webapp:
+        condition: service_healthy
+      sbs-api:
+        condition: service_healthy
     networks:
-      - sbs_network
+      - frontend
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    container_name: sbs_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=${MSSQL_PID}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_MEMORY_LIMIT_MB=1536
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backup
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $${MSSQL_SA_PASSWORD} -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 2G
+          pids: 500
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  db-bootstrap:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    container_name: sbs_db_bootstrap
+    volumes:
+      - ./setup-db-permissions.sql:/scripts/setup.sql:ro
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DB_WRITER_USER: ${DB_WRITER_USER}
+      DB_WRITER_PASSWORD: ${DB_WRITER_PASSWORD}
+      DB_READER_USER: ${DB_READER_USER}
+      DB_READER_PASSWORD: ${DB_READER_PASSWORD}
+    command: >
+      /bin/bash -c "
+      /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -v DB_WRITER_USER=\"$$DB_WRITER_USER\" -v DB_WRITER_PASSWORD=\"$$DB_WRITER_PASSWORD\" -v DB_READER_USER=\"$$DB_READER_USER\" -v DB_READER_PASSWORD=\"$$DB_READER_PASSWORD\" -i /scripts/setup.sql
+      "
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: "no"
+
+  db-migrator:
+    build:
+      context: .
+      dockerfile: SBS.Api/Dockerfile
+    container_name: sbs_db_migrator
+    environment:
+      - ConnectionStrings__WriteConnection=Server=sqlserver,1433;Database=SwimmingBookingDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+    command: ["--migrate-only"]
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+    networks:
+      - backend
+    restart: "no"
 
   redis:
-    image: redis:alpine
+    image: redis:8.8.0-alpine
     container_name: sbs_redis
-    ports:
-      - "6379:6379"
+    environment:
+      - REDISCLI_AUTH=${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - redis_data:/data
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+          pids: 100
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     networks:
-      - sbs_network
+      - backend
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13.7-management-alpine
+    container_name: sbs_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - "127.0.0.1:15672:15672" # SSH Tunnel Only
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+          pids: 300
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  sbs-api:
+    build:
+      context: .
+      dockerfile: SBS.Api/Dockerfile
+    container_name: sbs_api
+    ports:
+      - "127.0.0.1:${SBS_API_PORT:-8081}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Swagger__Enabled=true
+      - SeedSettings__UploadImagesToCloudinary=false
+      - ConnectionStrings__WriteConnection=Server=sqlserver,1433;Database=SwimmingBookingDB;User Id=${DB_WRITER_USER};Password=${DB_WRITER_PASSWORD};TrustServerCertificate=True;
+      - ConnectionStrings__ReadConnection=Server=sqlserver,1433;Database=SwimmingBookingDB;User Id=${DB_READER_USER};Password=${DB_READER_PASSWORD};TrustServerCertificate=True;
+      - ConnectionStrings__RedisConnection=redis:6379,password=${REDIS_PASSWORD}
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST}
+      - JwtSettings__Secret=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - CloudinarySettings__CloudName=${CLOUDINARY_CLOUD_NAME}
+      - CloudinarySettings__ApiKey=${CLOUDINARY_API_KEY}
+      - CloudinarySettings__ApiSecret=${CLOUDINARY_API_SECRET}
+      - PayOS__ClientId=${PAYOS_CLIENT_ID}
+      - PayOS__ApiKey=${PAYOS_API_KEY}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      - Smtp__Host=${SMTP_HOST}
+      - Smtp__Port=${SMTP_PORT}
+      - Smtp__Username=${SMTP_USERNAME}
+      - Smtp__AppPassword=${SMTP_PASSWORD}
+      - WebAppBaseUrl=${WEBAPP_BASE_URL:-http://127.0.0.1:8080}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+          pids: 200
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      db-bootstrap:
+        condition: service_completed_successfully
+      db-migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  sbs-webapp:
+    build:
+      context: .
+      dockerfile: SBS.WebApp/Dockerfile
+    container_name: sbs_webapp
+    ports:
+      - "127.0.0.1:${SBS_WEBAPP_PORT:-8082}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ApiBaseUrl=http://sbs-api:8080
+      - PublicApiBaseUrl=
+    volumes:
+      - webapp_keys:/home/app/.aspnet/DataProtection-Keys
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+          pids: 200
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      sbs-api:
+        condition: service_healthy
+    networks:
+      - frontend
+    restart: unless-stopped
 
 networks:
-  sbs_network:
-    driver: bridge
+  frontend:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+  backend:
+    internal: true
 
 volumes:
-  rabbitmq_data:
+  sqlserver_data:
   redis_data:
+  rabbitmq_data:
+  webapp_keys:

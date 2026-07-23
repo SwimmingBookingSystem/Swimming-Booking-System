@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Linq;
@@ -50,11 +51,35 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         {
             var poolSlot = await _poolSlotBookingRepository.GetPoolSlotWithLockAsync(poolSlotId, context.CancellationToken);
 
-            if (poolSlot == null) 
+            if (poolSlot == null)
             {
                 await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
                 return;
             }
+
+            var utcNow = DateTime.UtcNow;
+            var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
+            if (BookingTimePolicy.IsBookingClosed(poolSlot.SlotDate, poolSlot.EndTime, currentDate, currentTime))
+            {
+                var waitingEntries = await _unitOfWork.Repository<WaitlistEntry>().Query()
+                    .Where(w => w.PoolSlotId == poolSlotId && w.Status == "Waiting")
+                    .ToListAsync(context.CancellationToken);
+
+                foreach (var waitingEntry in waitingEntries)
+                {
+                    waitingEntry.Status = "Expired";
+                    _unitOfWork.Repository<WaitlistEntry>().Update(waitingEntry);
+                }
+
+                await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+                await _unitOfWork.CommitTransactionAsync(context.CancellationToken);
+                _logger.LogInformation(
+                    "Skipped waitlist offers for PoolSlotId {PoolSlotId}: booking cutoff reached.",
+                    poolSlotId);
+                return;
+            }
+
+            var bookingCutoffUtc = BookingTimePolicy.GetBookingCutoffUtc(poolSlot.SlotDate, poolSlot.EndTime);
 
             // We need Pool.PoolTicketTypes, which wasn't loaded by GetPoolSlotWithLockAsync
             // So we explicit load it
@@ -92,9 +117,16 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     break;
                 }
 
+                var offerNow = DateTime.UtcNow;
+                var paymentDeadline = offerNow.AddMinutes(5) < bookingCutoffUtc
+                    ? offerNow.AddMinutes(5)
+                    : bookingCutoffUtc;
+                var paymentWindowMinutes = Math.Max(
+                    1, (int)Math.Ceiling((paymentDeadline - offerNow).TotalMinutes));
+
                 // Update Waitlist status
                 waitlistEntry.Status = "Offered";
-                waitlistEntry.NotifiedAt = DateTime.UtcNow;
+                waitlistEntry.NotifiedAt = offerNow;
                 
                 var ticketPrice = ticket.Price ?? (ticket.TicketType != null ? ticket.TicketType.BasePrice * (1 - ticket.TicketType.DiscountPercent / 100m) : 0m);
 
@@ -106,7 +138,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     BookingCode = $"WL{DateTime.UtcNow:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
                     BookingDate = poolSlot.SlotDate,
                     Status = "PendingPayment", // 5 minutes to pay
-                    PaymentDeadline = DateTime.UtcNow.AddMinutes(5),
+                    PaymentDeadline = paymentDeadline,
                     TotalAmount = ticketPrice * waitlistEntry.Quantity,
                     BookingType = "Online"
                 };
@@ -145,7 +177,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 {
                     var body = $"<h3>Xin chào {userProfile.FullName}!</h3>" +
                                $"<p>Hồ bơi <b>{poolSlot.Pool?.PoolName}</b> ca bơi <b>{poolSlot.StartTime} - {poolSlot.EndTime}</b> vừa có chỗ trống.</p>" +
-                               $"<p>Hệ thống đã giữ {waitlistEntry.Quantity} vé cho bạn. Bạn có <b>5 phút</b> để hoàn tất thanh toán.</p>" +
+                               $"<p>Hệ thống đã giữ {waitlistEntry.Quantity} vé cho bạn. Bạn có <b>{paymentWindowMinutes} phút</b> để hoàn tất thanh toán.</p>" +
                                $"<p><a href='{paymentUrl}'>Bấm vào đây để thanh toán ngay</a></p>" +
                                $"<p>Nếu không thanh toán trong 5 phút, vé sẽ được chuyển cho người tiếp theo.</p>";
 

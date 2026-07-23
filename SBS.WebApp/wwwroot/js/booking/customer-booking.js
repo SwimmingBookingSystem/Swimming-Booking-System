@@ -198,18 +198,18 @@ $(document).ready(function () {
                 const now = new Date();
 
                 slots.forEach(slot => {
-                    const slotDateTimeStr = `${date}T${slot.startTime}`;
-                    const slotStartDateTime = new Date(slotDateTimeStr);
-                    const lateLimitDateTime = new Date(slotStartDateTime.getTime() + 30 * 60000);
-                    
-                    const isLate = slotStartDateTime <= now && now <= lateLimitDateTime;
-                    const isPassed = now > lateLimitDateTime;
+                    const slotStartDateTime = new Date(`${date}T${slot.startTime}`);
+                    const slotEndDateTime = new Date(`${date}T${slot.endTime}`);
+                    const bookingCutoffDateTime = new Date(slotEndDateTime.getTime() - 30 * 60000);
+
+                    const isPassed = slot.isBookingClosed === true || now >= bookingCutoffDateTime;
+                    const isLate = slotStartDateTime <= now && !isPassed;
                     const isFull = slot.availableCapacity <= 0;
                     const isDisabled = isPassed ? 'disabled' : '';
                     
                     let statusText = `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
                     if (isPassed) {
-                        statusText = '(Đã qua)';
+                        statusText = '(Đã đóng đặt vé - thời gian bơi còn lại không quá 30 phút)';
                     } else if (slot.isInWaitlist) {
                         statusText = `<span class="text-primary fw-bold">Đã vào hàng chờ (Vị trí: ${slot.waitlistPosition} / ${slot.totalWaitlistCount})</span>`;
                     } else if (isFull) {

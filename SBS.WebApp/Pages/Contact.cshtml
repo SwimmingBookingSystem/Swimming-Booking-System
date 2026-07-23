@@ -81,7 +81,7 @@
             };
 
             try {
-                const apiBaseUrl = '@Configuration["ApiBaseUrl"]';
+                const apiBaseUrl = '@Configuration["PublicApiBaseUrl"]';
                 const response = await fetch(`${apiBaseUrl}/api/contacts`, {
                     method: 'POST',
                     headers: {

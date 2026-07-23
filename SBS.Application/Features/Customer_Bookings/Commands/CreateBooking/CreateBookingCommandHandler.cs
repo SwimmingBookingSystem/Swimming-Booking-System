@@ -5,6 +5,7 @@ using SBS.Application.Common.ManagerExceptions;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Exceptions;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Linq;
@@ -37,17 +38,13 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
     public async Task<CreateBookingResponseDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
     {
-
-        // Convert to Vietnam Timezone (+7) for accurate time checking
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var vietnamTimeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
-        var today = DateOnly.FromDateTime(vietnamTimeNow);
-        var timeNow = vietnamTimeNow.TimeOfDay;
+        var utcNow = DateTime.UtcNow;
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
 
         var userIdString = _currentUserService.UserId;
         if (!Guid.TryParse(userIdString, out var userId))
         {
-            throw new UnauthorizedAccessException("User is not authenticated.");
+            throw new UnauthorizedAccessException("Người dùng chưa được xác thực hoặc phiên đăng nhập đã hết hạn.");
         }
 
         // Open transaction
@@ -65,13 +62,13 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
             if (slot.Status != "Open")
             {
-                throw new InvalidOperationException("Cannot book a slot that is not open.");
+                throw new InvalidOperationException("Không thể đặt suất bơi tại khung giờ đang bị đóng.");
             }
 
-            // 1.5 Check if the slot is in the past (Allow 30 minutes late booking)
-            if (slot.SlotDate < today || (slot.SlotDate == today && timeNow >= slot.StartTime.Add(TimeSpan.FromMinutes(30))))
+            // Booking remains open until the final 30 minutes of the swimming session.
+            if (BookingTimePolicy.IsBookingClosed(slot.SlotDate, slot.EndTime, today, timeNow))
             {
-                throw new InvalidOperationException("Cannot book a slot that has already started or passed beyond 30 minutes.");
+                throw new InvalidOperationException("Không thể đặt vé khi ca bơi đã qua hoặc chỉ còn tối đa 30 phút.");
             }
 
             // 2. Retrieve requested ticket types
@@ -95,7 +92,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             // Cross-Pool Validation: Ensure all tickets belong to the same Pool as the slot
             if (ticketTypes.Any(t => t.PoolId != slot.PoolId))
             {
-                throw new InvalidOperationException("One or more ticket types do not belong to the selected pool.");
+                throw new InvalidOperationException("Một hoặc nhiều loại vé đã chọn không thuộc về bể bơi này.");
             }
 
             // 3. Calculate requested slots using Domain Calculation Service
@@ -117,6 +114,11 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             // 5. Calculate total amount & booking details
             var (totalAmount, bookingDetails) = _bookingCalculationService.CalculateBookingAmount(request.Tickets, ticketTypes);
 
+            var bookingCutoffUtc = BookingTimePolicy.GetBookingCutoffUtc(slot.SlotDate, slot.EndTime);
+            var paymentDeadline = utcNow.AddMinutes(15) < bookingCutoffUtc
+                ? utcNow.AddMinutes(15)
+                : bookingCutoffUtc;
+
             // 6. Create Booking
             var booking = new Booking
             {
@@ -127,7 +129,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
                 Status = "PendingPayment",
                 TotalAmount = totalAmount,
                 BookingType = "Online",
-                PaymentDeadline = DateTime.UtcNow.AddMinutes(15), // 15 mins to pay
+                PaymentDeadline = paymentDeadline,
                 BookingDetails = bookingDetails
             };
 

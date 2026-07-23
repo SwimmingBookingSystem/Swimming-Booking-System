@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SBS.Application.Features.Customer_Bookings.Events;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Infrastructure.Data;
 using System;
 using System.Linq;
@@ -92,9 +93,7 @@ public class PendingBookingExpirationWorker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var localNow = DateTime.UtcNow.AddHours(7);
-        var currentDate = DateOnly.FromDateTime(localNow);
-        var currentTime = localNow.TimeOfDay;
+        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
 
         // Fetch potential expired waitlists (Waiting status and SlotDate <= today)
         var potentialExpiredWaitlists = await context.WaitlistEntries
@@ -104,8 +103,8 @@ public class PendingBookingExpirationWorker : BackgroundService
 
         // Filter in-memory to avoid EF Core TimeSpan arithmetic translation issues
         var actuallyExpired = potentialExpiredWaitlists.Where(w =>
-            w.PoolSlot.SlotDate < currentDate ||
-            (w.PoolSlot.SlotDate == currentDate && (w.PoolSlot.EndTime - TimeSpan.FromMinutes(30)) <= currentTime)
+            BookingTimePolicy.IsBookingClosed(
+                w.PoolSlot.SlotDate, w.PoolSlot.EndTime, currentDate, currentTime)
         ).ToList();
 
         if (!actuallyExpired.Any()) return;
