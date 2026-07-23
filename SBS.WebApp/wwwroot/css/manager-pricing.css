@@ -98,11 +98,14 @@
     background: #fff;
     border-radius: 14px;
     border: 1px solid #e2e8f0;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
 }
 .pricing-table {
     width: 100%;
+    min-width: 960px;
     border-collapse: collapse;
 }
 .pricing-table thead {
@@ -381,4 +384,84 @@
     border-top: 1px solid #f1f5f9;
     padding: 16px 24px;
     background: #f8fafc;
+}
+
+.pricing-pool-copy {
+    min-width: 0;
+}
+
+.pricing-pool-copy h6,
+.pricing-pool-copy .text-muted {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .pricing-controls {
+        justify-content: stretch !important;
+        flex-wrap: wrap;
+    }
+
+    .pricing-controls > div {
+        flex: 1 1 180px;
+    }
+
+    .pricing-controls .form-select {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .pricing-summary {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .pricing-header {
+        margin-bottom: 20px;
+    }
+
+    .pricing-header h4 {
+        font-size: 1.25rem;
+    }
+
+    .pricing-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .pricing-controls > div,
+    .pricing-controls > .btn {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .pool-selector-button {
+        padding: 10px 12px !important;
+    }
+
+    .pool-selector-button > .d-flex {
+        min-width: 0;
+    }
+
+    .pool-selector-action {
+        width: 32px !important;
+        height: 32px !important;
+        flex: 0 0 32px;
+    }
+
+    .price-edit-modal .modal-header,
+    .price-edit-modal .modal-body,
+    .price-edit-modal .modal-footer {
+        padding: 16px;
+    }
+}
+
+@media (pointer: coarse) {
+    .pricing-action-btn {
+        width: 44px;
+        height: 44px;
+    }
 }

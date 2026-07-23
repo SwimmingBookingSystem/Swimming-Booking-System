@@ -174,3 +174,38 @@
     background: #f87171;
     color: white;
 }
+
+@media (max-width: 991.98px) {
+    .master-detail-layout {
+        height: auto;
+        min-height: 0;
+        flex-direction: column;
+    }
+
+    .master-list {
+        width: 100%;
+        max-height: none;
+    }
+
+    .detail-panel {
+        min-height: 420px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    #imageUrlsContainer .img-row {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    #imageUrlsContainer .img-row .text-success {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .cover-btn,
+    .btn-delete-img {
+        min-height: 44px;
+        height: auto;
+    }
+}
