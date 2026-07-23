@@ -90,11 +90,14 @@
     background: #fff;
     border-radius: 14px;
     border: 1px solid #e2e8f0;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
 }
 .ticket-table {
     width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
 }
 .ticket-table thead {
@@ -408,4 +411,113 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
+}
+
+@media (max-width: 1199.98px) {
+    .ticket-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .tickets-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .tickets-header > .d-flex {
+        flex-wrap: wrap;
+    }
+
+    .tickets-header > .d-flex > .btn,
+    .tickets-header > .btn {
+        flex: 1 1 220px;
+    }
+
+    .tickets-toolbar .input-group,
+    .tickets-toolbar .form-select {
+        flex: 1 1 220px;
+        max-width: none;
+    }
+
+    .pagination-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .tickets-header h4 {
+        font-size: 1.25rem;
+    }
+
+    .tickets-header > .d-flex {
+        flex-direction: column;
+    }
+
+    .tickets-header > .d-flex > .btn,
+    .tickets-header > .btn {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .ticket-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        padding: 14px 16px;
+    }
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .tickets-toolbar {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+
+    .tickets-toolbar .input-group,
+    .tickets-toolbar .form-select {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .combo-row {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .combo-row > [class*="col-"],
+    .combo-row .qty-input,
+    .combo-row .btn-remove-combo {
+        width: 100% !important;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 16px;
+    }
+
+    .pagination-bar {
+        padding: 12px;
+    }
+
+    .pagination-info {
+        flex: 1 1 100%;
+    }
+}
+
+@media (pointer: coarse) {
+    .action-btn {
+        width: 44px;
+        height: 44px;
+    }
 }

@@ -86,6 +86,41 @@
         height: 300px;
         width: 100%;
     }
+    .dashboard-pools-table {
+        min-width: 640px;
+    }
+    @@media (max-width: 767.98px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 16px;
+        }
+        .dashboard-header .btn {
+            width: 100%;
+        }
+        .card-modern-header {
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .chart-container {
+            height: 260px;
+        }
+    }
+    @@media (max-width: 575.98px) {
+        .dashboard-header h3 {
+            font-size: 1.35rem;
+        }
+        .card-modern-header {
+            padding: 16px;
+            font-size: 1rem;
+        }
+        .chart-container {
+            height: 230px;
+        }
+        .quick-action-btn {
+            padding: 12px;
+        }
+    }
 </style>
 
 <!-- Welcome Header -->
@@ -227,8 +262,8 @@
                 <a href="/Manager/Pools" class="btn btn-sm btn-light border text-muted">Xem tất cả</a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                <div class="table-responsive" role="region" aria-label="Danh sách bể bơi mới cập nhật" tabindex="0">
+                    <table class="table table-hover align-middle mb-0 dashboard-pools-table">
                         <thead class="bg-light text-muted" style="font-size: 0.8rem; text-transform: uppercase;">
                             <tr>
                                 <th class="ps-4 py-3 border-0 rounded-start">Tên bể bơi</th>

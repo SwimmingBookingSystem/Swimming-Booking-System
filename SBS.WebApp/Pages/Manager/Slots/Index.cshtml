@@ -26,7 +26,7 @@
                 <option value="Closed">Đóng (Closed)</option>
             </select>
         </div>
-        <div class="col-md-4 d-flex justify-content-end gap-2">
+        <div class="col-md-4 d-flex justify-content-end gap-2 manager-filter-actions">
             <a href="/Manager/Slots/Generate" class="btn btn-warning text-dark fw-medium shadow-sm">
                 <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Tạo Tự Động
             </a>
@@ -38,8 +38,8 @@
 </div>
 
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+    <div class="table-responsive" role="region" aria-label="Danh sách khung giờ" tabindex="0">
+        <table class="table table-hover align-middle mb-0 manager-data-table manager-slots-table">
             <thead class="table-light">
                 <tr>
                     <th class="ps-4 text-muted small fw-bold text-uppercase">Bể bơi</th>
@@ -56,7 +56,7 @@
             </tbody>
         </table>
     </div>
-    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+    <div class="d-flex justify-content-between align-items-center p-3 border-top bg-light manager-table-footer">
         <div class="text-muted small" id="pageInfo">Hiển thị 0-0 trong 0 slot</div>
         <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
     </div>
@@ -168,9 +168,20 @@
 
             let html = '';
             html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page - 1}); return false;">Trước</a></li>`;
-            for(let i = 1; i <= totalPages; i++) {
-                html += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="loadSlots(${i}); return false;">${i}</a></li>`;
+
+            const visiblePages = new Set([1, totalPages]);
+            for (let i = Math.max(1, page - 1); i <= Math.min(totalPages, page + 1); i++) {
+                visiblePages.add(i);
             }
+
+            let previousPage = 0;
+            [...visiblePages].sort((a, b) => a - b).forEach(pageNumber => {
+                if (previousPage && pageNumber - previousPage > 1) {
+                    html += '<li class="page-item disabled" aria-hidden="true"><span class="page-link">…</span></li>';
+                }
+                html += `<li class="page-item ${page === pageNumber ? 'active' : ''}"><a class="page-link" href="#" onclick="loadSlots(${pageNumber}); return false;">${pageNumber}</a></li>`;
+                previousPage = pageNumber;
+            });
             html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadSlots(${page + 1}); return false;">Sau</a></li>`;
             
             $('#pagination').html(html);
