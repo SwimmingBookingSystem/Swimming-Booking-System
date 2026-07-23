@@ -5,7 +5,7 @@ namespace SBS.Application.Features.Customer_Bookings.Exceptions;
 public class BookingNotFoundException : Exception
 {
     public BookingNotFoundException(int bookingId) 
-        : base($"Booking with ID {bookingId} was not found.")
+        : base($"Không tìm thấy thông tin đơn đặt vé có mã #{bookingId}.")
     {
     }
 }

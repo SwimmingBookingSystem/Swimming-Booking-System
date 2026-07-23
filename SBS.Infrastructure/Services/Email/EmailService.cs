@@ -21,11 +21,12 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
-        var host = _configuration["SmtpSettings:Host"];
-        var portStr = _configuration["SmtpSettings:Port"];
-        var userName = _configuration["SmtpSettings:UserName"];
-        var password = _configuration["SmtpSettings:Password"];
-        var fromName = _configuration["SmtpSettings:FromName"] ?? "Swimming Booking System";
+        var smtpSection = _configuration.GetSection("Smtp");
+        var host = smtpSection["Host"] ?? _configuration["SmtpSettings:Host"];
+        var portStr = smtpSection["Port"] ?? _configuration["SmtpSettings:Port"];
+        var userName = smtpSection["Username"] ?? smtpSection["UserName"] ?? _configuration["SmtpSettings:UserName"];
+        var password = smtpSection["AppPassword"] ?? smtpSection["Password"] ?? _configuration["SmtpSettings:Password"];
+        var fromName = smtpSection["FromName"] ?? _configuration["SmtpSettings:FromName"] ?? "Swimming Booking System";
 
         // Fallback to console logging if SMTP settings are not fully configured
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))

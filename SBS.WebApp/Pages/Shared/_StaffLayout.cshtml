@@ -113,7 +113,7 @@
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         $(document).ready(function() {
             var poolName = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(staffPoolName))';
@@ -131,7 +131,7 @@
     </script>
     <script>
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
-        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         const staffApi = {
             baseURL: window.API_BASE_URL + '/api/staff',

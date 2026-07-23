@@ -88,7 +88,7 @@
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
     </script>
     <script src="~/js/admin/admin-api.js" asp-append-version="true"></script>
 
