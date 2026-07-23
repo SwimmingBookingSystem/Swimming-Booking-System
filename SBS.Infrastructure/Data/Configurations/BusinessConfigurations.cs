@@ -225,9 +225,13 @@ public class WaitlistEntryConfiguration : IEntityTypeConfiguration<WaitlistEntry
         builder.HasKey(e => e.WaitlistEntryId);
         builder.Property(e => e.WaitlistEntryId).ValueGeneratedOnAdd();
         builder.Property(e => e.UserId).IsRequired();
+        builder.Property(e => e.Quantity).IsRequired().HasDefaultValue(1);
         builder.Property(e => e.Position).IsRequired();
         builder.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Waiting");
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+        builder.HasIndex(e => e.BookingId)
+            .IsUnique()
+            .HasFilter("[BookingId] IS NOT NULL");
 
         // FK to AppUser
         builder.HasOne<AppUser>()
@@ -238,6 +242,11 @@ public class WaitlistEntryConfiguration : IEntityTypeConfiguration<WaitlistEntry
         builder.HasOne(e => e.PoolSlot)
             .WithMany(ps => ps.WaitlistEntries)
             .HasForeignKey(e => e.PoolSlotId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Booking>()
+            .WithOne()
+            .HasForeignKey<WaitlistEntry>(e => e.BookingId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

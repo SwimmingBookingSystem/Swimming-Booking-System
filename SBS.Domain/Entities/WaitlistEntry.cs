@@ -8,6 +8,7 @@ public class WaitlistEntry
     public Guid UserId { get; set; } // FK → AppUser
     public int PoolSlotId { get; set; }
     public int Quantity { get; set; } = 1;
+    public int? BookingId { get; set; }
     public int Position { get; set; }
     public string Status { get; set; } = "Waiting";
     public DateTime? NotifiedAt { get; set; }
