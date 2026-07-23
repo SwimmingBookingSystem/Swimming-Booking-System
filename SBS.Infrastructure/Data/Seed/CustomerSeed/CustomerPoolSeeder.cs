@@ -11,7 +11,10 @@ namespace SBS.Infrastructure.Data.Seed.CustomerSeed;
 
 public static class CustomerPoolSeeder
 {
-    public static async Task SeedCustomerPoolsAsync(ApplicationDbContext context, ICloudinaryService cloudinaryService)
+    public static async Task SeedCustomerPoolsAsync(
+        ApplicationDbContext context,
+        ICloudinaryService? cloudinaryService,
+        bool uploadImagesToCloudinary = false)
     {
         // Kiểm tra nếu trong CSDL chỉ có tối đa 1 bể bơi (bể bơi Quốc gia mặc định) thì mới seed thêm
         if (await context.Pools.CountAsync(p => p.Status == "Active") <= 1)
@@ -205,7 +208,7 @@ public static class CustomerPoolSeeder
                 }
             };
 
-            using var httpClient = new HttpClient();
+            using var httpClient = uploadImagesToCloudinary ? new HttpClient() : null;
 
             for (int i = 0; i < poolsToSeed.Count; i++)
             {
@@ -216,19 +219,22 @@ public static class CustomerPoolSeeder
                 for (int imgIdx = 0; imgIdx < images.Length; imgIdx++)
                 {
                     string imageUrl = images[imgIdx];
-                    try
+                    if (uploadImagesToCloudinary && httpClient != null && cloudinaryService != null)
                     {
-                        Console.WriteLine($"[Seeder] Uploading image for pool {i+1}, image {imgIdx+1}...");
-                        var response = await httpClient.GetAsync(imageUrl);
-                        if (response.IsSuccessStatusCode)
+                        try
                         {
-                            using var stream = await response.Content.ReadAsStreamAsync();
-                            imageUrl = await cloudinaryService.UploadImageAsync(stream, $"seed_pool_{i}_{imgIdx}_{DateTime.UtcNow.Ticks}.jpg", "pools_seed");
+                            Console.WriteLine($"[Seeder] Uploading image for pool {i+1}, image {imgIdx+1}...");
+                            var response = await httpClient.GetAsync(imageUrl);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                using var stream = await response.Content.ReadAsStreamAsync();
+                                imageUrl = await cloudinaryService.UploadImageAsync(stream, $"seed_pool_{i}_{imgIdx}_{DateTime.UtcNow.Ticks}.jpg", "pools_seed");
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Seeder] Cloudinary upload failed: {ex.Message}");
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Seeder] Cloudinary upload failed: {ex.Message}");
+                        }
                     }
 
                     pool.PoolImages.Add(new PoolImage

@@ -38,7 +38,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
 
         if (!int.TryParse(transactionId, out var bookingId))
         {
-            throw new InvalidPaymentWebhookException("Invalid orderCode returned from webhook.");
+            throw new InvalidPaymentWebhookException("Mã đơn hàng (orderCode) trả về từ Webhook không hợp lệ.");
         }
 
         // 2. Open Transaction for Idempotency and Updates

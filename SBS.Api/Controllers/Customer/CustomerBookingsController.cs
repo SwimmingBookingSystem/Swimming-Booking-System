@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Customer_Bookings.Commands.CancelBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
+using SBS.Application.Features.Customer_Bookings.Commands.ConfirmPayment;
 using SBS.Application.Features.Customer_Bookings.Commands.JoinWaitlist;
 using SBS.Application.Features.Customer_Bookings.Commands.ProcessPaymentWebhook;
 using SBS.Application.Features.Customer_Bookings.Dtos;
@@ -71,6 +72,12 @@ public class CustomerBookingsController : ControllerBase
         return Ok(new { message = "Webhook processed successfully" });
     }
 
+    [HttpPost("{bookingId}/confirm-payment")]
+    public async Task<IActionResult> ConfirmPayment([FromRoute] int bookingId)
+    {
+        await _mediator.Send(new ConfirmPaymentCommand(bookingId));
+        return Ok(new { message = "Payment confirmed successfully" });
+    }
     [HttpPost("waitlist/join")]
     public async Task<ActionResult<JoinWaitlistResultDto>> JoinWaitlist([FromBody] JoinWaitlistCommand command)
     {

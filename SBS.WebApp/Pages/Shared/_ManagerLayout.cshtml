@@ -107,7 +107,7 @@
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@Configuration["ApiBaseUrl"]';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         // --- 3. CẤU HÌNH GỌI API (MANAGER API INTERCEPTOR) ---
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };

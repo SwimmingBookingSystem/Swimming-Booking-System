@@ -188,7 +188,7 @@
         // Cung cấp Role và Token giải mã từ Server xuống bộ nhớ tạm của Browser để phục vụ AJAX
         window.USER_ROLE = '@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")';
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         // TỰ ĐỘNG cấu hình gửi kèm JWT Token cho tất cả các cuộc gọi AJAX (JQuery)
         // Việc này giải quyết triệt để lỗi "Tải dữ liệu..." của các trang như Đặt vé, Profile, Lịch sử...
