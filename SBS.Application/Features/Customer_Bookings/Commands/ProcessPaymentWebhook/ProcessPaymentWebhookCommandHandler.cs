@@ -1,6 +1,7 @@
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Exceptions;
@@ -42,6 +43,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
         }
 
         // 2. Open Transaction for Idempotency and Updates
+        var purchasedFromWaitlist = false;
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -65,6 +67,9 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                 await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 return true;
             }
+            var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
+                .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
+
 
             if (booking.Status == "Paid" || booking.Status == "Cancelled")
             {
@@ -73,7 +78,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
             }
 
             // 3. Update Booking and create Payment record
-            booking.Status = "Paid";
+            booking.Status = BookingStatus.Paid;
             booking.UpdatedAt = DateTime.UtcNow;
             
             // Generate simple QrCodeData token for Check-in module
@@ -90,6 +95,12 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
             };
 
             await _unitOfWork.Repository<Payment>().AddAsync(payment, cancellationToken);
+            if (waitlistEntry?.Status == WaitlistStatus.Offered)
+            {
+                waitlistEntry.Status = WaitlistStatus.Purchased;
+                _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
+                purchasedFromWaitlist = true;
+            }
             _unitOfWork.Repository<Booking>().Update(booking);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -105,6 +116,14 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                     BookingCode = booking.BookingCode,
                     UserEmail = userProfile.Email,
                     QrCodeData = booking.QrCodeData
+                }, cancellationToken);
+            }
+
+            if (purchasedFromWaitlist)
+            {
+                await _publishEndpoint.Publish(new SlotCapacityFreedEvent
+                {
+                    PoolSlotId = booking.PoolSlotId
                 }, cancellationToken);
             }
 

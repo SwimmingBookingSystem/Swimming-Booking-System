@@ -62,10 +62,18 @@
                                                 @if (waitlist.Status == "Waiting")
                                                 {
                                                     <span class="badge-ocean-warning text-nowrap">Đang chờ</span>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger cancel-waitlist-btn"
+                                                            data-waitlist-id="@waitlist.WaitlistEntryId">
+                                                        <i class="bi bi-x-circle me-1"></i>Hủy chờ
+                                                    </button>
                                                 }
                                                 else if (waitlist.Status == "Offered")
                                                 {
-                                                    <span class="badge-ocean-success text-nowrap">Đã có vé</span>
+                                                    <span class="badge-ocean-success text-nowrap">Đang chờ thanh toán</span>
+                                                }
+                                                else if (waitlist.Status == "Purchased")
+                                                {
+                                                    <span class="badge-ocean-success text-nowrap">Đã mua vé</span>
                                                 }
                                                 else if (waitlist.Status == "Cancelled")
                                                 {
@@ -87,4 +95,59 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.cancel-waitlist-btn').on('click', function () {
+                const button = $(this);
+                const waitlistEntryId = Number(button.data('waitlist-id'));
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Hủy tham gia hàng chờ?',
+                    text: 'Sau khi hủy, bạn sẽ mất vị trí hiện tại trong hàng chờ.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý hủy',
+                    cancelButtonText: 'Tiếp tục chờ',
+                    confirmButtonColor: '#dc3545'
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    button.prop('disabled', true);
+                    $.ajax({
+                        url: `${window.API_BASE_URL}/api/customer-bookings/waitlist/cancel`,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ waitlistEntryId }),
+                        xhrFields: { withCredentials: true }
+                    }).done(response => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đã hủy hàng chờ',
+                            text: response.message || 'Bạn đã rời khỏi hàng chờ thành công.',
+                            confirmButtonColor: '#0ea5e9'
+                        }).then(() => window.location.reload());
+                    }).fail(xhr => {
+                        const response = xhr.responseJSON || {};
+                        let message = response.message || 'Không thể hủy hàng chờ. Vui lòng thử lại.';
+                        if (response.errors) {
+                            message = Array.isArray(response.errors)
+                                ? response.errors.join('\n')
+                                : Object.values(response.errors).flat().join('\n');
+                        }
+
+                        button.prop('disabled', false);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Không thể hủy hàng chờ',
+                            text: message,
+                            confirmButtonColor: '#0ea5e9'
+                        });
+                    });
+                });
+            });
+        });
+    </script>
+}
 

@@ -117,6 +117,23 @@ $(document).ready(function () {
         }
     }
 
+    function updateTicketSelectionMode() {
+        const waitlistMode = isSelectedSlotFull || isSelectedSlotInWaitlist;
+
+        $('#ticket-selection-title, #tickets-container').toggleClass('d-none', waitlistMode);
+        $('#waitlist-single-ticket-info').toggleClass('d-none', !waitlistMode);
+        $('.qty-btn, .qty-input').prop('disabled', waitlistMode);
+
+        if (waitlistMode) {
+            $('.qty-input').val(0);
+            $('#summary-tickets').text('1 vé đơn');
+            $('#total-price').text('Chờ báo giá');
+        } else {
+            calculateTotal();
+        }
+    }
+
+
     /**
      * Kiểm tra điều kiện hợp lệ để bật/tắt (enable/disable) nút submit.
      */
@@ -126,7 +143,7 @@ $(document).ready(function () {
             count += parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
         });
 
-        if (selectedSlotId && (count > 0 || isSelectedSlotInWaitlist)) {
+        if (selectedSlotId && (count > 0 || isSelectedSlotFull || isSelectedSlotInWaitlist)) {
             $('#btn-submit-booking').prop('disabled', false);
         } else {
             $('#btn-submit-booking').prop('disabled', true);
@@ -179,6 +196,7 @@ $(document).ready(function () {
         updateSummaryTime();
         checkSubmitEnable();
         updateSubmitButtonUI();
+        updateTicketSelectionMode();
 
         $.ajax({
             url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
@@ -266,6 +284,7 @@ $(document).ready(function () {
                     updateSummaryTime();
                     checkSubmitEnable();
                     updateSubmitButtonUI();
+                    updateTicketSelectionMode();
                 });
             },
             error: function () {
@@ -536,13 +555,11 @@ $(document).ready(function () {
         const btn = $(this);
         
         let count = 0;
-        let totalSlots = 0;
         const tickets = [];
         ticketsData.forEach(ticket => {
             const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
             if (qty > 0) {
                 count += qty;
-                totalSlots += qty * (ticket.slotEquivalent || 1);
                 tickets.push({
                     poolTicketTypeId: ticket.poolTicketTypeId,
                     quantity: qty
@@ -580,10 +597,7 @@ $(document).ready(function () {
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const payload = {
-                        poolSlotId: selectedSlotId,
-                        quantity: totalSlots
-                    };
+                    const payload = { poolSlotId: selectedSlotId };
                     executeJoinWaitlist(payload, btn);
                 }
             });
