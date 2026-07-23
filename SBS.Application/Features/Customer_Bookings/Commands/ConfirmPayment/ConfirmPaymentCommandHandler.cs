@@ -1,6 +1,7 @@
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Exceptions;
@@ -72,12 +73,22 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
         }
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        var purchasedFromWaitlist = false;
         try
         {
             // Reload inside the transaction so webhook and return-url reconciliation
             // cannot create two successful payments for the same booking.
             booking = await _unitOfWork.Repository<Booking>().Query()
                 .FirstAsync(b => b.BookingId == request.BookingId, cancellationToken);
+
+            var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
+                .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
+            if (waitlistEntry?.Status == WaitlistStatus.Offered &&
+                waitlistEntry.Deadline.HasValue && waitlistEntry.Deadline <= DateTime.UtcNow)
+            {
+                throw new InvalidOperationException(
+                    "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");
+            }
 
             var existingPayment = await _unitOfWork.Repository<Payment>().Query()
                 .FirstOrDefaultAsync(
@@ -90,7 +101,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
                 return true;
             }
 
-            booking.Status = "Paid";
+            booking.Status = BookingStatus.Paid;
             booking.UpdatedAt = DateTime.UtcNow;
             booking.QrCodeData ??= $"{booking.BookingCode}-{Guid.NewGuid()}";
 
@@ -106,6 +117,12 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
                 Status = "Success"
             }, cancellationToken);
 
+            if (waitlistEntry?.Status == WaitlistStatus.Offered)
+            {
+                waitlistEntry.Status = WaitlistStatus.Purchased;
+                _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
+                purchasedFromWaitlist = true;
+            }
             _unitOfWork.Repository<Booking>().Update(booking);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
@@ -124,6 +141,14 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             QrCodeData = booking.QrCodeData!
         }, cancellationToken);
 
+
+        if (purchasedFromWaitlist)
+        {
+            await _publishEndpoint.Publish(new SlotCapacityFreedEvent
+            {
+                PoolSlotId = booking.PoolSlotId
+            }, cancellationToken);
+        }
         return true;
     }
 }

@@ -89,7 +89,7 @@ public class CustomerBookingsController : ControllerBase
     public async Task<IActionResult> CancelWaitlist([FromBody] SBS.Application.Features.Customer_Bookings.Commands.CancelWaitlist.CancelWaitlistCommand command)
     {
         await _mediator.Send(command);
-        return Ok(new { message = "Thành công" });
+        return Ok(new { message = "Bạn đã rời khỏi hàng chờ thành công." });
     }
 
     [HttpGet("history")]
