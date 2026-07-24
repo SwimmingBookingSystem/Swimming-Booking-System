@@ -284,7 +284,7 @@ public class AdminService : IAdminService
             return ResultDto.Failure(updateResult.Errors.Select(e => e.Description));
 
         // Handle pool assignment change
-        var currentAssignment = await _writeContext.PoolStaffAssignments
+        var currentAssignment = await _readContext.PoolStaffAssignments
             .FirstOrDefaultAsync(a => a.StaffId == userId, cancellationToken);
 
         if (dto.PoolId.HasValue)
@@ -518,7 +518,7 @@ public class AdminService : IAdminService
         if (string.IsNullOrEmpty(adminIdString) || !Guid.TryParse(adminIdString, out var adminId))
             return ResultDto.Failure(new[] { "Admin chưa đăng nhập hoặc không hợp lệ." });
 
-        var contact = await _writeContext.ContactRequests
+        var contact = await _readContext.ContactRequests
             .FirstOrDefaultAsync(c => c.ContactRequestId == contactRequestId, cancellationToken);
 
         if (contact is null)
