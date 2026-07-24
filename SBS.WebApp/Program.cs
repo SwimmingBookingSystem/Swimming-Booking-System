@@ -28,7 +28,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         // PayOS redirects the browser back from another site. Lax keeps CSRF
         // protection for unsafe cross-site requests while allowing this top-level GET.
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.ExpireTimeSpan = TimeSpan.FromHours(2); // Thời hạn cookie mã hóa
+        options.ExpireTimeSpan = TimeSpan.FromDays(7); // Thời hạn cookie mã hóa: 7 ngày
         options.SlidingExpiration = true;
     });
 

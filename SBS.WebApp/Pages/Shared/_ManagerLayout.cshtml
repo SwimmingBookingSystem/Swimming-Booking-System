@@ -161,13 +161,23 @@
         })();
     </script>
     <script>
-        // Removed Flatpickr time initialization to use native browser time picker
-    </script>
-    <script>
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
         window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
+
+        // --- HỖ TRỢ REFRESH TOKEN ---
+        let isRefreshing = false;
+        let refreshSubscribers = [];
+
+        function subscribeTokenRefresh(cb) {
+            refreshSubscribers.push(cb);
+        }
+
+        function onRefreshed(token) {
+            refreshSubscribers.forEach(cb => cb(token));
+            refreshSubscribers = [];
+        }
 
         // --- 3. CẤU HÌNH GỌI API (MANAGER API INTERCEPTOR) ---
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right", "timeOut": "3000" };
@@ -179,13 +189,6 @@
                     $('#global-loader').css('display', 'flex');
                     
                     const token = window.ACCESS_TOKEN;
-                    if (!token) {
-                        $('#global-loader').hide();
-                        window.location.href = '/Auth/Logout';
-                        reject(new Error("No active session available"));
-                        return;
-                    }
-
                     const headers = { 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
@@ -204,16 +207,61 @@
                             resolve(response); 
                         },
                         error: function(xhr) {
-                            $('#global-loader').hide();
-                            console.error("API Error: ", xhr);
                             const status = xhr.status;
                             let dataObj = {};
                             try { dataObj = JSON.parse(xhr.responseText); } catch(e) {}
                             
                             if (status === 401) {
-                                toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                                setTimeout(() => window.location.href = '/Auth/Logout', 1500);
-                            } else if (status === 403) {
+                                // BẮT ĐẦU REFRESH TOKEN LOGIC
+                                const retryRequest = new Promise((resolveRetry, rejectRetry) => {
+                                    subscribeTokenRefresh((newToken) => {
+                                        if (newToken) {
+                                            headers['Authorization'] = 'Bearer ' + newToken;
+                                            $.ajax({
+                                                url: api.baseURL + url,
+                                                type: method,
+                                                headers: headers,
+                                                xhrFields: { withCredentials: true },
+                                                data: data ? JSON.stringify(data) : null,
+                                                success: resolveRetry,
+                                                error: rejectRetry
+                                            });
+                                        } else {
+                                            rejectRetry(xhr);
+                                        }
+                                    });
+
+                                    if (!isRefreshing) {
+                                        isRefreshing = true;
+                                        $.ajax({
+                                            url: window.API_BASE_URL + '/api/Auth/refresh',
+                                            type: 'POST',
+                                            xhrFields: { withCredentials: true },
+                                            success: function(res) {
+                                                isRefreshing = false;
+                                                window.ACCESS_TOKEN = res.accessToken;
+                                                onRefreshed(res.accessToken);
+                                            },
+                                            error: function() {
+                                                isRefreshing = false;
+                                                onRefreshed(null);
+                                                $('#global-loader').hide();
+                                                toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                                                setTimeout(() => window.location.href = '/Auth/Logout', 1500);
+                                            }
+                                        });
+                                    }
+                                });
+
+                                retryRequest.then(resolve).catch(reject);
+                                return; // Kết thúc để chờ Promise retry xử lý
+                            }
+
+                            // XỬ LÝ CÁC LỖI KHÁC NẾU KHÔNG PHẢI 401 HOẶC REFRESH THẤT BẠI
+                            $('#global-loader').hide();
+                            console.error("API Error: ", xhr);
+
+                            if (status === 403) {
                                 toastr.error('Bạn không có quyền thực hiện thao tác này.');
                             } else if (status === 400 || status === 404 || status === 422) {
                                 const errs = dataObj.errors || dataObj.Errors;
@@ -254,36 +302,77 @@
                     $('#global-loader').css('display', 'flex');
                     const formData = new FormData();
                     formData.append('file', file);
-                    $.ajax({
-                        url: this.baseURL + url,
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        headers: {
-                            'Authorization': 'Bearer ' + (window.ACCESS_TOKEN || '')
-                        },
-                        xhrFields: { withCredentials: true },
-                        success: function(response) {
-                            $('#global-loader').hide();
-                            resolve(response);
-                        },
-                        error: function(xhr) {
-                            $('#global-loader').hide();
-                            console.error("Upload Error: ", xhr);
-                            let errorMsg = 'Lỗi khi tải ảnh lên. Vui lòng thử lại.';
-                            try {
-                                const dataObj = JSON.parse(xhr.responseText);
-                                if (dataObj.message) errorMsg = dataObj.message;
-                                else if (dataObj.Message) errorMsg = dataObj.Message;
-                                else if (typeof dataObj === 'string') errorMsg = dataObj;
-                            } catch(e) {
-                                if (xhr.responseText) errorMsg = xhr.responseText.substring(0, 100);
+
+                    const doUpload = (token) => {
+                        $.ajax({
+                            url: this.baseURL + url,
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            xhrFields: { withCredentials: true },
+                            success: function(response) {
+                                $('#global-loader').hide();
+                                resolve(response);
+                            },
+                            error: function(xhr) {
+                                if (xhr.status === 401) {
+                                    const retryUpload = new Promise((resolveRetry, rejectRetry) => {
+                                        subscribeTokenRefresh((newToken) => {
+                                            if (newToken) {
+                                                doUpload(newToken).then(resolveRetry).catch(rejectRetry);
+                                            } else {
+                                                rejectRetry(xhr);
+                                            }
+                                        });
+
+                                        if (!isRefreshing) {
+                                            isRefreshing = true;
+                                            $.ajax({
+                                                url: window.API_BASE_URL + '/api/auth/refresh',
+                                                type: 'POST',
+                                                xhrFields: { withCredentials: true },
+                                                success: function(res) {
+                                                    isRefreshing = false;
+                                                    window.ACCESS_TOKEN = res.accessToken;
+                                                    onRefreshed(res.accessToken);
+                                                },
+                                                error: function() {
+                                                    isRefreshing = false;
+                                                    onRefreshed(null);
+                                                    $('#global-loader').hide();
+                                                    toastr.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                                                    setTimeout(() => window.location.href = '/Auth/Logout', 1500);
+                                                }
+                                            });
+                                        }
+                                    });
+
+                                    retryUpload.then(resolve).catch(reject);
+                                    return;
+                                }
+
+                                $('#global-loader').hide();
+                                console.error("Upload Error: ", xhr);
+                                let errorMsg = 'Lỗi khi tải ảnh lên. Vui lòng thử lại.';
+                                try {
+                                    const dataObj = JSON.parse(xhr.responseText);
+                                    if (dataObj.message) errorMsg = dataObj.message;
+                                    else if (dataObj.Message) errorMsg = dataObj.Message;
+                                    else if (typeof dataObj === 'string') errorMsg = dataObj;
+                                } catch(e) {
+                                    if (xhr.responseText) errorMsg = xhr.responseText.substring(0, 100);
+                                }
+                                toastr.error(errorMsg);
+                                reject(xhr);
                             }
-                            toastr.error(errorMsg);
-                            reject(xhr);
-                        }
-                    });
+                        });
+                    };
+
+                    doUpload(window.ACCESS_TOKEN || '');
                 });
             }
         };

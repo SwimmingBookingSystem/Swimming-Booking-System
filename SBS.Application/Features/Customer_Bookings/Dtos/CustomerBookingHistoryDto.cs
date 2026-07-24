@@ -14,4 +14,12 @@ public class CustomerBookingHistoryDto
     public decimal TotalAmount { get; set; }
     public string? QrCodeData { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<CustomerBookingHistoryTicketDto> Tickets { get; set; } = new();
+}
+
+public class CustomerBookingHistoryTicketDto
+{
+    public string TicketName { get; set; } = null!;
+    public string Category { get; set; } = null!;
+    public int Quantity { get; set; }
 }

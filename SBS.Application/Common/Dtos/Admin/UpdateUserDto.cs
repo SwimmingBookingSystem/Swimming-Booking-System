@@ -10,4 +10,5 @@ public class UpdateUserDto
     public string? Gender { get; set; }
     public DateOnly? Dob { get; set; }
     public int? PoolId { get; set; }
+    public string? Password { get; set; }
 }

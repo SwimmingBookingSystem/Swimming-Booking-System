@@ -9,11 +9,21 @@ document.addEventListener("DOMContentLoaded", function () {
             const button = event.relatedTarget;
             const qrData = button.getAttribute('data-bs-qr');
             const bookingCode = button.getAttribute('data-bs-code');
+            const poolName = button.getAttribute('data-bs-pool');
+            const timeInfo = button.getAttribute('data-bs-time');
+            const ticketsInfo = button.getAttribute('data-bs-tickets');
 
             const modalTitle = qrModal.querySelector('.modal-title');
             const qrContainer = document.getElementById('qrcode-container');
+            const displayCode = document.getElementById('qr-booking-code-display');
 
-            modalTitle.textContent = 'Mã QR Check-in: ' + bookingCode;
+            modalTitle.textContent = 'Mã QR Check-in';
+            if (displayCode) displayCode.textContent = bookingCode;
+            
+            document.getElementById('qr-pool-name').textContent = poolName || '';
+            document.getElementById('qr-time').textContent = timeInfo || '';
+            document.getElementById('qr-tickets').textContent = ticketsInfo || '';
+
             qrContainer.innerHTML = '';
 
             if (qrData && typeof QRCode !== 'undefined') {

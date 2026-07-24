@@ -188,17 +188,47 @@
         // Cung cấp Role và Token giải mã từ Server xuống bộ nhớ tạm của Browser để phục vụ AJAX
         window.USER_ROLE = '@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")';
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
+        window.REFRESH_TOKEN = '@(User.FindFirst("RefreshToken")?.Value ?? "")';
         window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
-        // TỰ ĐỘNG cấu hình gửi kèm JWT Token cho tất cả các cuộc gọi AJAX (JQuery)
-        // Việc này giải quyết triệt để lỗi "Tải dữ liệu..." của các trang như Đặt vé, Profile, Lịch sử...
-        if (window.ACCESS_TOKEN) {
-            $.ajaxSetup({
-                beforeSend: function(xhr) {
+        // TỰ ĐỘNG cấu hình gửi kèm JWT Token và tự động Refresh Token khi AccessToken (15 phút) hết hạn
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                if (window.ACCESS_TOKEN) {
                     xhr.setRequestHeader('Authorization', 'Bearer ' + window.ACCESS_TOKEN);
                 }
-            });
-        }
+            },
+            statusCode: {
+                401: function() {
+                    if (window.REFRESH_TOKEN && !window.IS_REFRESHING) {
+                        window.IS_REFRESHING = true;
+                        $.ajax({
+                            url: window.API_BASE_URL + '/api/Auth/refresh',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                accessToken: window.ACCESS_TOKEN,
+                                refreshToken: window.REFRESH_TOKEN
+                            }),
+                            success: function(res) {
+                                window.IS_REFRESHING = false;
+                                if (res && res.accessToken) {
+                                    window.ACCESS_TOKEN = res.accessToken;
+                                    window.REFRESH_TOKEN = res.refreshToken || window.REFRESH_TOKEN;
+                                    location.reload();
+                                } else {
+                                    window.location.href = '/Auth/Login';
+                                }
+                            },
+                            error: function() {
+                                window.IS_REFRESHING = false;
+                                window.location.href = '/Auth/Login';
+                            }
+                        });
+                    }
+                }
+            }
+        });
     </script>
 
     @* Logout được xử lý trực tiếp qua đường dẫn /Auth/Logout trên server *@

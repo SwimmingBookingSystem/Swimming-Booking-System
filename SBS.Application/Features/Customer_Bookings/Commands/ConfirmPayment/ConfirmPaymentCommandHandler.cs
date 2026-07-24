@@ -84,7 +84,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
                 .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
             if (waitlistEntry?.Status == WaitlistStatus.Offered &&
-                waitlistEntry.Deadline.HasValue && waitlistEntry.Deadline <= DateTime.UtcNow)
+                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.UtcNow))
             {
                 throw new InvalidOperationException(
                     "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");

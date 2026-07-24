@@ -87,6 +87,24 @@ body {
     box-shadow: 0 4px 12px rgba(0, 194, 224, 0.2);
 }
 
+.ocean-btn-outline-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 2px solid #be123c;
+    color: #be123c;
+    font-weight: 600;
+    border-radius: 50rem;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.3s ease;
+}
+.ocean-btn-outline-danger:hover {
+    background: #be123c;
+    color: white;
+    box-shadow: 0 4px 12px rgba(190, 18, 60, 0.2);
+}
+
 /* Sidebar styling */
 .ocean-sidebar .list-group-item {
     border: none;
