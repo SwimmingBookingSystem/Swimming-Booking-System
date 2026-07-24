@@ -2,8 +2,10 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SBS.Application.Common.Interfaces;
+using SBS.Application.Common;
 using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Linq;
@@ -42,7 +44,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
     public async Task Consume(ConsumeContext<SlotCapacityFreedEvent> context)
     {
         var poolSlotId = context.Message.PoolSlotId;
-        _logger.LogInformation("Processing Waitlist for PoolSlotId {PoolSlotId}", poolSlotId);
+        _logger.LogInformation("Bắt đầu xử lý hàng chờ cho ca bơi {PoolSlotId}.", poolSlotId);
 
         // Open one global transaction to lock the slot and process waitlists
         await _unitOfWork.BeginTransactionAsync(context.CancellationToken);
@@ -50,22 +52,58 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         {
             var poolSlot = await _poolSlotBookingRepository.GetPoolSlotWithLockAsync(poolSlotId, context.CancellationToken);
 
-            if (poolSlot == null) 
+            if (poolSlot == null)
             {
                 await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
                 return;
             }
 
-            // We need Pool.PoolTicketTypes, which wasn't loaded by GetPoolSlotWithLockAsync
-            // So we explicit load it
-            await _unitOfWork.Repository<PoolSlot>().Query().Include(s => s.Pool).ThenInclude(p => p.PoolTicketTypes)
-                .Where(s => s.PoolSlotId == poolSlotId).FirstOrDefaultAsync(context.CancellationToken);
+            var utcNow = DateTime.UtcNow;
+            var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
+            if (BookingTimePolicy.IsBookingClosed(poolSlot.SlotDate, poolSlot.EndTime, currentDate, currentTime))
+            {
+                var waitingEntries = await _unitOfWork.Repository<WaitlistEntry>().Query()
+                    .Where(w => w.PoolSlotId == poolSlotId && w.Status == WaitlistStatus.Waiting)
+                    .ToListAsync(context.CancellationToken);
+
+                foreach (var waitingEntry in waitingEntries)
+                {
+                    waitingEntry.Status = WaitlistStatus.Expired;
+                    _unitOfWork.Repository<WaitlistEntry>().Update(waitingEntry);
+                }
+
+                await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+                await _unitOfWork.CommitTransactionAsync(context.CancellationToken);
+                _logger.LogInformation(
+                    "Đã đóng hàng chờ ca bơi {PoolSlotId} vì thời gian bơi còn lại không quá 30 phút.",
+                    poolSlotId);
+                return;
+            }
+
+            var bookingCutoffUtc = BookingTimePolicy.GetBookingCutoffUtc(poolSlot.SlotDate, poolSlot.EndTime);
+
+            var pool = await _unitOfWork.Repository<Pool>().Query()
+                .FirstOrDefaultAsync(p => p.PoolId == poolSlot.PoolId, context.CancellationToken);
+            if (pool == null)
+            {
+                throw new InvalidOperationException($"Kh\u00f4ng t\u00ecm th\u1ea5y b\u1ec3 b\u01a1i {poolSlot.PoolId} c\u1ee7a ca b\u01a1i {poolSlotId}.");
+            }
+
+            var hasActiveOffer = await _unitOfWork.Repository<WaitlistEntry>().Query()
+                .AnyAsync(w => w.PoolSlotId == poolSlotId && w.Status == WaitlistStatus.Offered &&
+                               w.Deadline.HasValue && w.Deadline > utcNow, context.CancellationToken);
+            if (hasActiveOffer)
+            {
+                _logger.LogInformation("Ca bơi {PoolSlotId} đang có một offer chờ thanh toán; giữ nguyên thứ tự FIFO.", poolSlotId);
+                await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
+                return;
+            }
 
             var availableCapacity = await _bookingCalculationService.GetAvailableCapacityAsync(poolSlotId, poolSlot.Capacity, context.CancellationToken);
 
             if (availableCapacity <= 0)
             {
-                _logger.LogInformation("PoolSlotId {PoolSlotId} is still full.", poolSlotId);
+                _logger.LogInformation("Ca bơi {PoolSlotId} vẫn đầy; chưa thể mời người trong hàng chờ.", poolSlotId);
                 await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
                 return;
             }
@@ -74,27 +112,39 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
             {
                 // Find the next person in waitlist who fits in the available capacity
                 var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
-                    .Where(w => w.PoolSlotId == poolSlotId && w.Status == "Waiting" && w.Quantity <= availableCapacity)
+                    .Where(w => w.PoolSlotId == poolSlotId && w.Status == WaitlistStatus.Waiting)
                     .OrderBy(w => w.Position)
                     .ThenBy(w => w.CreatedAt)
                     .FirstOrDefaultAsync(context.CancellationToken);
 
                 if (waitlistEntry == null)
                 {
-                    _logger.LogInformation("No suitable waitlist entry found for PoolSlotId {PoolSlotId} with capacity {Cap}.", poolSlotId, availableCapacity);
+                    _logger.LogInformation("Ca bơi {PoolSlotId} còn {Capacity} chỗ nhưng không còn người đang chờ.", poolSlotId, availableCapacity);
                     break; // break the loop, continue to commit transaction
                 }
 
-                var ticket = poolSlot.Pool?.PoolTicketTypes?.FirstOrDefault(t => t.Status == "Active" && t.TicketType?.Category == "Single");
+                var ticket = await _unitOfWork.Repository<PoolTicketType>().Query()
+                    .Include(t => t.TicketType)
+                    .Where(t => t.PoolId == poolSlot.PoolId && t.Status == "Active" &&
+                                t.TicketType.Status == "Active" && t.TicketType.Category == "Single")
+                    .OrderBy(t => t.PoolTicketTypeId).FirstOrDefaultAsync(context.CancellationToken);
                 if (ticket == null) 
                 {
-                    _logger.LogWarning("No active ticket types found for pool {PoolId}.", poolSlot.PoolId);
+                    _logger.LogWarning("Bể bơi {PoolId} không có vé đơn đang hoạt động; không thể tạo offer hàng chờ.", poolSlot.PoolId);
                     break;
                 }
 
+                var offerNow = DateTime.UtcNow;
+                var paymentDeadline = offerNow.AddMinutes(5) < bookingCutoffUtc
+                    ? offerNow.AddMinutes(5)
+                    : bookingCutoffUtc;
+                var paymentWindowMinutes = Math.Max(
+                    1, (int)Math.Ceiling((paymentDeadline - offerNow).TotalMinutes));
+
                 // Update Waitlist status
-                waitlistEntry.Status = "Offered";
-                waitlistEntry.NotifiedAt = DateTime.UtcNow;
+                waitlistEntry.Status = WaitlistStatus.Offered;
+                waitlistEntry.NotifiedAt = offerNow;
+                waitlistEntry.Deadline = paymentDeadline;
                 
                 var ticketPrice = ticket.Price ?? (ticket.TicketType != null ? ticket.TicketType.BasePrice * (1 - ticket.TicketType.DiscountPercent / 100m) : 0m);
 
@@ -105,9 +155,9 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     PoolSlotId = poolSlotId,
                     BookingCode = $"WL{DateTime.UtcNow:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
                     BookingDate = poolSlot.SlotDate,
-                    Status = "PendingPayment", // 5 minutes to pay
-                    PaymentDeadline = DateTime.UtcNow.AddMinutes(5),
-                    TotalAmount = ticketPrice * waitlistEntry.Quantity,
+                    Status = BookingStatus.PendingPayment,
+                    PaymentDeadline = paymentDeadline,
+                    TotalAmount = ticketPrice,
                     BookingType = "Online"
                 };
 
@@ -118,19 +168,18 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 {
                     BookingId = booking.BookingId,
                     PoolTicketTypeId = ticket.PoolTicketTypeId,
-                    Quantity = waitlistEntry.Quantity,
+                    Quantity = 1,
                     UnitPrice = ticketPrice,
-                    SubTotal = ticketPrice * waitlistEntry.Quantity
+                    SubTotal = ticketPrice
                 };
                 await _unitOfWork.Repository<BookingDetail>().AddAsync(bookingDetail, context.CancellationToken);
                 
+                waitlistEntry.BookingId = booking.BookingId;
                 _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-                _logger.LogInformation("Created Booking {BookingId} for WaitlistEntry {WaitlistId}", booking.BookingId, waitlistEntry.WaitlistEntryId);
+                _logger.LogInformation("Đã tạo booking {BookingId} cho lượt hàng chờ {WaitlistId}.", booking.BookingId, waitlistEntry.WaitlistEntryId);
                 
-                // Deduct assigned capacity so loop can continue
-                availableCapacity -= waitlistEntry.Quantity;
 
                 // Generate PayOS Link
                 var paymentUrl = await _payOSService.CreatePaymentLinkAsync(
@@ -141,16 +190,19 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
 
                 // Send Email
                 var userProfile = await _identityService.GetProfileAsync(waitlistEntry.UserId, context.CancellationToken);
-                if (userProfile != null)
+                if (userProfile == null || string.IsNullOrWhiteSpace(userProfile.Email))
                 {
+                    throw new InvalidOperationException($"Người dùng của lượt hàng chờ {waitlistEntry.WaitlistEntryId} không có email hợp lệ.");
+                }
+
                     var body = $"<h3>Xin chào {userProfile.FullName}!</h3>" +
-                               $"<p>Hồ bơi <b>{poolSlot.Pool?.PoolName}</b> ca bơi <b>{poolSlot.StartTime} - {poolSlot.EndTime}</b> vừa có chỗ trống.</p>" +
-                               $"<p>Hệ thống đã giữ {waitlistEntry.Quantity} vé cho bạn. Bạn có <b>5 phút</b> để hoàn tất thanh toán.</p>" +
+                               $"<p>Hồ bơi <b>{pool.PoolName}</b> ca bơi <b>{poolSlot.StartTime} - {poolSlot.EndTime}</b> vừa có chỗ trống.</p>" +
+                               $"<p>Hệ thống đã giữ <b>1 vé đơn</b> cho bạn. Bạn có <b>{paymentWindowMinutes} phút</b> để hoàn tất thanh toán.</p>" +
                                $"<p><a href='{paymentUrl}'>Bấm vào đây để thanh toán ngay</a></p>" +
-                               $"<p>Nếu không thanh toán trong 5 phút, vé sẽ được chuyển cho người tiếp theo.</p>";
+                               $"<p>Nếu không thanh toán trong {paymentWindowMinutes} phút, vé sẽ được chuyển cho người tiếp theo.</p>";
 
                     await _emailService.SendEmailWithQrCodeAsync(userProfile.Email, "THÔNG BÁO CÓ VÉ BƠI TỪ DANH SÁCH CHỜ", body, null, null);
-                }
+                break;
             }
 
             // Commit the global transaction
@@ -159,7 +211,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
-            _logger.LogError(ex, "Error processing waitlist entries for PoolSlotId {PoolSlotId}", poolSlotId);
+            _logger.LogError(ex, "Xử lý hàng chờ thất bại cho ca bơi {PoolSlotId}.", poolSlotId);
             throw; // Rethrow to allow MassTransit to retry
         }
     }

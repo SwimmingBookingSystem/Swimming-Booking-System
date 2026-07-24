@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SBS.Application.Features.Customer_Bookings.Commands.CancelBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
+using SBS.Application.Features.Customer_Bookings.Commands.ConfirmPayment;
 using SBS.Application.Features.Customer_Bookings.Commands.JoinWaitlist;
 using SBS.Application.Features.Customer_Bookings.Commands.ProcessPaymentWebhook;
 using SBS.Application.Features.Customer_Bookings.Dtos;
@@ -52,16 +53,9 @@ public class CustomerBookingsController : ControllerBase
     [HttpPost("{bookingId}/cancel")]
     public async Task<IActionResult> CancelBooking([FromRoute] int bookingId)
     {
-        try
-        {
-            var command = new CancelBookingCommand(bookingId);
-            await _mediator.Send(command);
-            return Ok(new { message = "Hủy vé thành công" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var command = new CancelBookingCommand(bookingId);
+        await _mediator.Send(command);
+        return Ok(new { message = "Hủy vé thành công" });
     }
 
     [HttpPost("payos-webhook")]
@@ -78,6 +72,12 @@ public class CustomerBookingsController : ControllerBase
         return Ok(new { message = "Webhook processed successfully" });
     }
 
+    [HttpPost("{bookingId}/confirm-payment")]
+    public async Task<IActionResult> ConfirmPayment([FromRoute] int bookingId)
+    {
+        await _mediator.Send(new ConfirmPaymentCommand(bookingId));
+        return Ok(new { message = "Payment confirmed successfully" });
+    }
     [HttpPost("waitlist/join")]
     public async Task<ActionResult<JoinWaitlistResultDto>> JoinWaitlist([FromBody] JoinWaitlistCommand command)
     {
@@ -88,15 +88,8 @@ public class CustomerBookingsController : ControllerBase
     [HttpPost("waitlist/cancel")]
     public async Task<IActionResult> CancelWaitlist([FromBody] SBS.Application.Features.Customer_Bookings.Commands.CancelWaitlist.CancelWaitlistCommand command)
     {
-        try
-        {
-            await _mediator.Send(command);
-            return Ok(new { message = "Thành công" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        await _mediator.Send(command);
+        return Ok(new { message = "Bạn đã rời khỏi hàng chờ thành công." });
     }
 
     [HttpGet("history")]

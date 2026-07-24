@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,8 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
     public async Task<List<AvailableSlotDto>> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
     {
         var userIdStr = _currentUserService.UserId;
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+
         Guid? currentUserId = !string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var id) ? id : null;
 
         // Fetch the raw slots with related entities
@@ -66,6 +69,7 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
                 AvailableCapacity = s.Capacity - (s.Bookings.SelectMany(b => b.BookingDetails).Sum(bd => (int?)bd.Quantity) ?? 0),
                 
                 // Waitlist specific fields
+                IsBookingClosed = BookingTimePolicy.IsBookingClosed(s.SlotDate, s.EndTime, today, timeNow),
                 TotalWaitlistCount = s.WaitlistEntries.Count,
                 IsInWaitlist = currentUserWaitlistEntry != null,
                 WaitlistPosition = waitlistPosition,

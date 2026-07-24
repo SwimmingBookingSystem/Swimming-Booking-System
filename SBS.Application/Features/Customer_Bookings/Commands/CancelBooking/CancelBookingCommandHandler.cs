@@ -1,6 +1,7 @@
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Events;
 using SBS.Application.Features.Customer_Bookings.Exceptions;
@@ -30,31 +31,31 @@ public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand,
             throw new BookingNotFoundException(request.BookingId);
         }
 
-        if (booking.Status == "PendingPayment")
+        if (booking.Status != BookingStatus.PendingPayment)
         {
-            booking.Status = "Cancelled";
-            _unitOfWork.Repository<Booking>().Update(booking);
-
-            // Nếu booking này thuộc về một Waitlist (do Consumer tạo ra), đánh dấu Waitlist là Cancelled
-            var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
-                .FirstOrDefaultAsync(w => w.UserId == booking.UserId && w.PoolSlotId == booking.PoolSlotId && w.Status == "Offered", cancellationToken);
-            if (waitlistEntry != null)
-            {
-                waitlistEntry.Status = "Cancelled";
-                _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
-            }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // Bắn event để Waitlist xử lý (kêu gọi người khác vào)
-            await _publishEndpoint.Publish(new SlotCapacityFreedEvent
-            {
-                PoolSlotId = booking.PoolSlotId
-            }, cancellationToken);
-
-            return true;
+            throw new System.InvalidOperationException("Chỉ có thể hủy vé khi ở trạng thái Chờ thanh toán.");
         }
 
-        return false;
+        booking.Status = BookingStatus.Cancelled;
+        _unitOfWork.Repository<Booking>().Update(booking);
+
+        // Nếu booking này thuộc về một Waitlist (do Consumer tạo ra), đánh dấu Waitlist là Cancelled
+        var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
+            .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId && w.Status == WaitlistStatus.Offered, cancellationToken);
+        if (waitlistEntry != null)
+        {
+            waitlistEntry.Status = WaitlistStatus.Cancelled;
+            _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Bắn event để Waitlist xử lý (kêu gọi người khác vào)
+        await _publishEndpoint.Publish(new SlotCapacityFreedEvent
+        {
+            PoolSlotId = booking.PoolSlotId
+        }, cancellationToken);
+
+        return true;
     }
 }

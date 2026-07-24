@@ -17,20 +17,20 @@
 <div class="row align-items-end mb-4">
     <div class="col-md-8 col-lg-6">
         <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Cơ sở / Bể bơi đang chọn</label>
-        <button class="btn w-100 text-start d-flex align-items-center justify-content-between shadow-sm bg-white hover-shadow transition-all" type="button" onclick="openPoolSelectModal()" style="padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1;">
+        <button class="btn w-100 text-start d-flex align-items-center justify-content-between shadow-sm bg-white hover-shadow transition-all pool-selector-button" type="button" onclick="openPoolSelectModal()" style="padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1;">
             <div class="d-flex align-items-center gap-3">
                 <img id="selectorAvatar" src="https://placehold.co/48x48?text=?" class="rounded-3 shadow-sm" style="width: 48px; height: 48px; object-fit: cover; border: 2px solid #fff;" alt="">
-                <div>
+                <div class="pricing-pool-copy">
                     <h6 class="mb-1 fw-bold text-dark" id="selectorPoolName">Đang tải...</h6>
                     <div class="text-muted" id="selectorPoolInfo" style="font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Vui lòng đợi</div>
                 </div>
             </div>
-            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary transition-all hover-bg-primary hover-text-white" style="width: 36px; height: 36px;">
+            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary transition-all hover-bg-primary hover-text-white pool-selector-action" style="width: 36px; height: 36px;">
                 <i class="fa-solid fa-pen"></i>
             </div>
         </button>
     </div>
-    <div class="col-md-4 col-lg-6 d-flex justify-content-md-end align-items-end gap-2 mt-3 mt-md-0">
+    <div class="col-md-4 col-lg-6 d-flex justify-content-md-end align-items-end gap-2 mt-3 mt-md-0 pricing-controls">
         <div>
             <label class="form-label fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">Lọc loại vé</label>
             <select class="form-select shadow-sm" id="categoryFilter" onchange="applyFilter()" style="border-radius: 10px; border: 1px solid #cbd5e1; height: 44px; min-width: 150px;">
@@ -72,7 +72,7 @@
 
 <!-- Pool Selection Modal -->
 <div class="modal fade" id="poolSelectModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold"><i class="fa-solid fa-building me-2 text-primary"></i> Chọn Cơ Sở / Bể Bơi</h5>
@@ -92,7 +92,7 @@
 </div>
 
 <!-- Pricing Table -->
-<div class="pricing-table-wrapper" id="pricingTableWrapper">
+<div class="pricing-table-wrapper" id="pricingTableWrapper" role="region" aria-label="Bảng giá vé theo bể bơi" tabindex="0">
     <table class="pricing-table">
         <thead>
             <tr>

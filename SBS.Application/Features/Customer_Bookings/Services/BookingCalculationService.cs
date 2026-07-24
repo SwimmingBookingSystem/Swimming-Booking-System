@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Interfaces;
@@ -13,11 +14,11 @@ namespace SBS.Application.Features.Customer_Bookings.Services;
 
 public class BookingCalculationService : IBookingCalculationService
 {
-    private readonly IReadOnlyUnitOfWork _readOnlyUnitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public BookingCalculationService(IReadOnlyUnitOfWork readOnlyUnitOfWork)
+    public BookingCalculationService(IUnitOfWork unitOfWork)
     {
-        _readOnlyUnitOfWork = readOnlyUnitOfWork;
+        _unitOfWork = unitOfWork;
     }
 
     public int CalculateSlotEquivalent(TicketType ticketType)
@@ -36,15 +37,14 @@ public class BookingCalculationService : IBookingCalculationService
 
     public async Task<int> GetBookedCapacityAsync(int poolSlotId, CancellationToken cancellationToken = default)
     {
-        var currentBookedDetails = await _readOnlyUnitOfWork.Repository<BookingDetail>().Query()
-            .AsNoTracking()
+        var currentBookedDetails = await _unitOfWork.Repository<BookingDetail>().Query()
             .Include(bd => bd.PoolTicketType)
                 .ThenInclude(pt => pt.TicketType)
                     .ThenInclude(tt => tt.ComboItems)
-            .Where(bd => bd.Booking.PoolSlotId == poolSlotId && 
-                         bd.Booking.Status != "Cancelled" && 
-                         bd.Booking.Status != "Failed" && 
-                         bd.Booking.Status != "Refunded")
+            .Where(bd => bd.Booking.PoolSlotId == poolSlotId &&
+                         (bd.Booking.Status == BookingStatus.PendingPayment ||
+                          bd.Booking.Status == BookingStatus.Paid ||
+                          bd.Booking.Status == BookingStatus.CheckIn))
             .ToListAsync(cancellationToken);
 
         int bookedCapacity = currentBookedDetails.Sum(bd => 

@@ -816,6 +816,9 @@ namespace SBS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WaitlistEntryId"));
 
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -834,7 +837,9 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -847,6 +852,10 @@ namespace SBS.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("WaitlistEntryId");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique()
+                        .HasFilter("[BookingId] IS NOT NULL");
 
                     b.HasIndex("PoolSlotId");
 
@@ -1244,6 +1253,11 @@ namespace SBS.Infrastructure.Migrations
 
             modelBuilder.Entity("SBS.Domain.Entities.WaitlistEntry", b =>
                 {
+                    b.HasOne("SBS.Domain.Entities.Booking", null)
+                        .WithOne()
+                        .HasForeignKey("SBS.Domain.Entities.WaitlistEntry", "BookingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SBS.Domain.Entities.PoolSlot", "PoolSlot")
                         .WithMany("WaitlistEntries")
                         .HasForeignKey("PoolSlotId")

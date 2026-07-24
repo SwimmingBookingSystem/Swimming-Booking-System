@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
+using SBS.Application.Features.Customer_Bookings.Policies;
 using SBS.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -22,14 +23,13 @@ public class GetFullSlotsForWaitlistQueryHandler : IRequestHandler<GetFullSlotsF
 
     public async Task<List<AvailableSlotDto>> Handle(GetFullSlotsForWaitlistQuery request, CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
-        var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(7)).ToTimeSpan();
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
 
         var slots = await _readOnlyUnitOfWork.Repository<PoolSlot>().Query()
             .AsNoTracking()
             .Include(s => s.Pool)
             .Where(s => s.PoolId == request.PoolId && s.Capacity > 0 && s.Status == "Open")
-            .Where(s => s.SlotDate > today || (s.SlotDate == today && s.StartTime > timeNow)) // Waitlist only for future
+            .Where(s => s.SlotDate >= today)
             .OrderBy(s => s.SlotDate)
             .ThenBy(s => s.StartTime)
             .Select(s => new AvailableSlotDto
@@ -50,7 +50,15 @@ public class GetFullSlotsForWaitlistQueryHandler : IRequestHandler<GetFullSlotsF
             .ToListAsync(cancellationToken);
 
         // Lọc những slot có AvailableCapacity <= 0 (đã full)
-        var fullSlots = slots.Where(s => s.AvailableCapacity <= 0).ToList();
+        foreach (var slot in slots)
+        {
+            slot.IsBookingClosed = BookingTimePolicy.IsBookingClosed(
+                slot.SlotDate, slot.EndTime, today, timeNow);
+        }
+
+        var fullSlots = slots
+            .Where(s => !s.IsBookingClosed && s.AvailableCapacity <= 0)
+            .ToList();
 
         return fullSlots;
     }

@@ -13,6 +13,5 @@ namespace SBS.Application.Features.Customer_Bookings.Commands.JoinWaitlist;
 public record JoinWaitlistCommand : IRequest<JoinWaitlistResultDto>
 {
     public int PoolSlotId { get; init; }
-    public int Quantity { get; init; } = 1;
 }
 

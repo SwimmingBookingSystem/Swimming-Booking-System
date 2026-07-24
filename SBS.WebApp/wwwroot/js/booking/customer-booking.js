@@ -1,47 +1,182 @@
+/**
+ * ============================================================================
+ * SBS - CUSTOMER BOOKING MODULE (CUSTOMER-BOOKING.JS)
+ * ============================================================================
+ * Quản lý luồng đặt lịch bơi, tham gia hàng chờ (Waitlist) và hủy hàng chờ
+ * dành cho khách hàng (Customer).
+ */
+
 $(document).ready(function () {
+
+    // =========================================================================
+    // 1. STATE & GLOBAL VARIABLES (BIẾN TRẠNG THÁI)
+    // =========================================================================
     let selectedSlotId = null;
     let selectedSlotTime = null;
     let isSelectedSlotFull = false;
     let isSelectedSlotLate = false;
+    let isSelectedSlotInWaitlist = false;
+    let selectedWaitlistEntryId = null;
     let ticketsData = [];
 
-    // Lấy cookie
-    function getCookie(name) {
-        let value = "; " + document.cookie;
-        let parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
-        return null;
-    }
-
+    // =========================================================================
+    // 2. AUTHENTICATION CHECK (KIỂM TRA QUYỀN HẠN TÀI KHOẢN)
+    // =========================================================================
     const role = window.USER_ROLE || "";
     if (!role || role.toLowerCase() !== 'customer') {
-        // Redirect to login if not customer
         window.location.href = '/Auth/Login';
         return;
     }
 
-    // 1. Khởi tạo: Load Tickets
-    loadTickets();
+    // =========================================================================
+    // 3. UTILITY HELPER FUNCTIONS (CÁC HÀM BỔ TRỢ HỆ THỐNG)
+    // =========================================================================
 
-    // Lắng nghe đổi ngày -> Fetch slots
-    $('#booking-date').on('change', function () {
-        loadAvailableSlots($(this).val());
-        updateSummaryDate($(this).val());
-    });
+    /**
+     * Lấy giá trị của Cookie theo tên.
+     * @param {string} name - Tên cookie cần lấy
+     * @returns {string|null} Giá trị cookie hoặc null
+     */
+    function getCookie(name) {
+        const value = "; " + document.cookie;
+        const parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return null;
+    }
 
-    // Mặc định load slots cho ngày hôm nay
-    loadAvailableSlots($('#booking-date').val());
-    updateSummaryDate($('#booking-date').val());
+    /**
+     * Bóc tách thông điệp lỗi chi tiết từ phản hồi HTTP Error của Backend API.
+     * Hỗ trợ đọc cả exception đơn lẻ (message/Message) lẫn danh sách lỗi (errors/Errors).
+     * @param {object} xhr - Đối tượng XMLHttpRequest từ AJAX error callback
+     * @param {string} fallbackMsg - Thông báo mặc định nếu không parse được lỗi
+     * @returns {string} Thông điệp lỗi định dạng chuỗi hoàn chỉnh
+     */
+    function extractErrorMessage(xhr, fallbackMsg) {
+        if (!xhr || !xhr.responseJSON) {
+            return (xhr && xhr.responseText && xhr.responseText.length < 200) ? xhr.responseText : fallbackMsg;
+        }
+        const res = xhr.responseJSON;
+        if (res.message) return res.message;
+        if (res.Message) return res.Message;
+        if (res.errors) {
+            if (Array.isArray(res.errors)) return res.errors.join('\n');
+            if (typeof res.errors === 'object') return Object.values(res.errors).flat().join('\n');
+            return res.errors.toString();
+        }
+        if (res.Errors) {
+            if (Array.isArray(res.Errors)) return res.Errors.join('\n');
+            if (typeof res.Errors === 'object') return Object.values(res.Errors).flat().join('\n');
+            return res.Errors.toString();
+        }
+        if (res.title) return res.title;
+        return fallbackMsg;
+    }
 
-    // ----------------- FUNCTIONS -----------------
+    // =========================================================================
+    // 4. UI HELPER FUNCTIONS (CÁC HÀM CẬP NHẬT GIAO DIỆN & TÍNH TOÁN)
+    // =========================================================================
 
+    /**
+     * Cập nhật hiển thị ngày đặt lịch lên khung tổng quan (định dạng dd/mm/yyyy).
+     * @param {string} dateStr - Chuỗi ngày định dạng yyyy-mm-dd
+     */
     function updateSummaryDate(dateStr) {
+        if (!dateStr) return;
         const parts = dateStr.split('-');
         if (parts.length === 3) {
             $('#summary-date').text(`${parts[2]}/${parts[1]}/${parts[0]}`);
         }
     }
 
+    /**
+     * Cập nhật thời gian khung giờ (Slot) được chọn lên phần tổng quan.
+     */
+    function updateSummaryTime() {
+        if (selectedSlotTime) {
+            $('#summary-time').text(selectedSlotTime).removeClass('text-muted').addClass('text-dark');
+        } else {
+            $('#summary-time').text('Chưa chọn').removeClass('text-dark').addClass('text-muted');
+        }
+    }
+
+    /**
+     * Thay đổi màu sắc, kiểu dáng và văn bản trên nút bấm Đặt Lịch (Submit) 
+     * tùy theo trạng thái ca bơi (Ca thường / Hết chỗ / Đã vào hàng chờ).
+     */
+    function updateSubmitButtonUI() {
+        const btn = $('#btn-submit-booking');
+        if (isSelectedSlotInWaitlist) {
+            btn.removeClass('btn-primary btn-warning').addClass('btn-danger');
+            btn.html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
+        } else if (isSelectedSlotFull) {
+            btn.removeClass('btn-primary btn-danger').addClass('btn-warning');
+            btn.html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+        } else {
+            btn.removeClass('btn-warning btn-danger').addClass('btn-primary');
+            btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+        }
+    }
+
+    function updateTicketSelectionMode() {
+        const waitlistMode = isSelectedSlotFull || isSelectedSlotInWaitlist;
+
+        $('#ticket-selection-title, #tickets-container').toggleClass('d-none', waitlistMode);
+        $('#waitlist-single-ticket-info').toggleClass('d-none', !waitlistMode);
+        $('.qty-btn, .qty-input').prop('disabled', waitlistMode);
+
+        if (waitlistMode) {
+            $('.qty-input').val(0);
+            $('#summary-tickets').text('1 vé đơn');
+            $('#total-price').text('Chờ báo giá');
+        } else {
+            calculateTotal();
+        }
+    }
+
+
+    /**
+     * Kiểm tra điều kiện hợp lệ để bật/tắt (enable/disable) nút submit.
+     */
+    function checkSubmitEnable() {
+        let count = 0;
+        ticketsData.forEach(ticket => {
+            count += parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
+        });
+
+        if (selectedSlotId && (count > 0 || isSelectedSlotFull || isSelectedSlotInWaitlist)) {
+            $('#btn-submit-booking').prop('disabled', false);
+        } else {
+            $('#btn-submit-booking').prop('disabled', true);
+        }
+    }
+
+    /**
+     * Tính tổng số tiền và tổng số lượng vé đã chọn, đồng thời cập nhật UI tổng quan.
+     */
+    function calculateTotal() {
+        let total = 0;
+        let count = 0;
+        ticketsData.forEach(ticket => {
+            const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
+            if (qty > 0) {
+                total += (ticket.price * qty);
+                count += qty;
+            }
+        });
+
+        $('#total-price').text(total.toLocaleString('vi-VN') + 'đ');
+        $('#summary-tickets').text(`${count} vé`);
+        checkSubmitEnable();
+    }
+
+    // =========================================================================
+    // 5. API DATA FETCHING & RENDERING (FETCH VÀ HIỂN THỊ DỮ LIỆU TỪ API)
+    // =========================================================================
+
+    /**
+     * Tải danh sách ca bơi (Slots) trống theo bể bơi và ngày được chọn.
+     * @param {string} date - Ngày cần kiểm tra (yyyy-mm-dd)
+     */
     function loadAvailableSlots(date) {
         if (!date) return;
         
@@ -50,16 +185,18 @@ $(document).ready(function () {
         $('#slots-container').empty();
         $('#slots-loader').removeClass('d-none');
         
-        // Reset selected slot
+        // Reset trạng thái ca bơi được chọn
         selectedSlotId = null;
         selectedSlotTime = null;
         isSelectedSlotFull = false;
         isSelectedSlotLate = false;
         isSelectedSlotInWaitlist = false;
         selectedWaitlistEntryId = null;
+        
         updateSummaryTime();
         checkSubmitEnable();
         updateSubmitButtonUI();
+        updateTicketSelectionMode();
 
         $.ajax({
             url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
@@ -79,22 +216,18 @@ $(document).ready(function () {
                 const now = new Date();
 
                 slots.forEach(slot => {
-                    const slotDateTimeStr = `${date}T${slot.startTime}`;
-                    const slotStartDateTime = new Date(slotDateTimeStr);
-                    
-                    // Allow late booking up to 30 mins
-                    const lateLimitDateTime = new Date(slotStartDateTime.getTime() + 30 * 60000);
-                    
-                    const isLate = slotStartDateTime <= now && now <= lateLimitDateTime;
-                    const isPassed = now > lateLimitDateTime;
-                    const isFull = slot.availableCapacity <= 0;
+                    const slotStartDateTime = new Date(`${date}T${slot.startTime}`);
+                    const slotEndDateTime = new Date(`${date}T${slot.endTime}`);
+                    const bookingCutoffDateTime = new Date(slotEndDateTime.getTime() - 30 * 60000);
 
-                    // Chỉ vô hiệu hóa nếu đã qua (kể cả quá 30p)
-                    let isDisabled = isPassed ? 'disabled' : '';
+                    const isPassed = slot.isBookingClosed === true || now >= bookingCutoffDateTime;
+                    const isLate = slotStartDateTime <= now && !isPassed;
+                    const isFull = slot.availableCapacity <= 0;
+                    const isDisabled = isPassed ? 'disabled' : '';
                     
                     let statusText = `(Còn ${slot.availableCapacity} / ${slot.capacity})`;
                     if (isPassed) {
-                        statusText = '(Đã qua)';
+                        statusText = '(Đã đóng đặt vé - thời gian bơi còn lại không quá 30 phút)';
                     } else if (slot.isInWaitlist) {
                         statusText = `<span class="text-primary fw-bold">Đã vào hàng chờ (Vị trí: ${slot.waitlistPosition} / ${slot.totalWaitlistCount})</span>`;
                     } else if (isFull) {
@@ -103,7 +236,6 @@ $(document).ready(function () {
                         statusText = `<span class="text-warning fw-bold">(Còn ${slot.availableCapacity} - Vào trễ)</span>`;
                     }
                     
-                    // Thêm class đặc biệt nếu full hoặc late
                     let extraClass = '';
                     if (slot.isInWaitlist) extraClass = 'border-primary';
                     else if (isFull && !isPassed) extraClass = 'border-warning';
@@ -111,7 +243,13 @@ $(document).ready(function () {
 
                     html += `
                         <div class="col-6 col-sm-4">
-                            <button type="button" class="slot-btn ${extraClass}" data-id="${slot.poolSlotId}" data-time="${slot.startTime.substring(0,5)} - ${slot.endTime.substring(0,5)}" data-full="${isFull}" data-late="${isLate}" data-inwaitlist="${slot.isInWaitlist}" data-waitlistid="${slot.waitlistEntryId || ''}" ${isDisabled}>
+                            <button type="button" class="slot-btn ${extraClass}" 
+                                data-id="${slot.poolSlotId}" 
+                                data-time="${slot.startTime.substring(0,5)} - ${slot.endTime.substring(0,5)}" 
+                                data-full="${isFull}" 
+                                data-late="${isLate}" 
+                                data-inwaitlist="${slot.isInWaitlist}" 
+                                data-waitlistid="${slot.waitlistEntryId || ''}" ${isDisabled}>
                                 <div class="fs-5 fw-bold">${slot.startTime.substring(0,5)}</div>
                                 <div class="small">${slot.endTime.substring(0,5)}</div>
                                 <div class="small text-muted mt-1" style="font-size: 0.75rem;">${statusText}</div>
@@ -122,10 +260,11 @@ $(document).ready(function () {
                 
                 $('#slots-container').html(html);
 
-                // Gắn sự kiện click
+                // Gắn sự kiện click chọn ca bơi
                 $('.slot-btn:not(:disabled)').on('click', function () {
                     $('.slot-btn').removeClass('selected');
                     $(this).addClass('selected');
+                    
                     selectedSlotId = $(this).data('id');
                     selectedSlotTime = $(this).data('time');
                     isSelectedSlotFull = $(this).data('full');
@@ -145,6 +284,7 @@ $(document).ready(function () {
                     updateSummaryTime();
                     checkSubmitEnable();
                     updateSubmitButtonUI();
+                    updateTicketSelectionMode();
                 });
             },
             error: function () {
@@ -154,20 +294,9 @@ $(document).ready(function () {
         });
     }
 
-    function updateSubmitButtonUI() {
-        const btn = $('#btn-submit-booking');
-        if (isSelectedSlotInWaitlist) {
-            btn.removeClass('btn-primary btn-warning').addClass('btn-danger');
-            btn.html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
-        } else if (isSelectedSlotFull) {
-            btn.removeClass('btn-primary btn-danger').addClass('btn-warning');
-            btn.html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
-        } else {
-            btn.removeClass('btn-warning btn-danger').addClass('btn-primary');
-            btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
-        }
-    }
-
+    /**
+     * Tải danh sách các loại vé (Vé Đơn / Combo) áp dụng cho bể bơi hiện tại.
+     */
     function loadTickets() {
         $.ajax({
             url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/tickets`,
@@ -236,7 +365,7 @@ $(document).ready(function () {
                     $('#combo-tickets-container').html(comboHtml);
                 }
 
-                // Gắn sự kiện tăng giảm
+                // Gắn sự kiện nút Giảm số lượng
                 $('.qty-minus').on('click', function () {
                     const id = $(this).data('id');
                     const input = $(`#qty-${id}`);
@@ -247,13 +376,13 @@ $(document).ready(function () {
                     }
                 });
 
+                // Gắn sự kiện nút Tăng số lượng (Kiểm tra giới hạn 20 suất bơi)
                 $('.qty-plus').on('click', function () {
                     const id = $(this).data('id');
                     const slotEq = parseInt($(this).data('sloteq') || 1);
                     const input = $(`#qty-${id}`);
                     let val = parseInt(input.val());
                     
-                    // Check total slots globally
                     let currentTotalSlots = 0;
                     ticketsData.forEach(t => {
                         currentTotalSlots += parseInt($(`#qty-${t.poolTicketTypeId}`).val() || 0) * (t.slotEquivalent || 1);
@@ -282,55 +411,155 @@ $(document).ready(function () {
         });
     }
 
-    function calculateTotal() {
-        let total = 0;
-        let count = 0;
-        ticketsData.forEach(ticket => {
-            const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
-            if (qty > 0) {
-                total += (ticket.price * qty);
-                count += qty;
+    // =========================================================================
+    // 6. ACTION EXECUTION HANDLERS (GỬI REQUEST ĐẾN API)
+    // =========================================================================
+
+    /**
+     * Thực thi gọi API Tạo Đặt Lịch (Create Booking) và chuyển hướng thanh toán PayOS.
+     * @param {object} payload - Dữ liệu đặt lịch bơi
+     * @param {object} btn - Đối tượng jQuery nút bấm submit
+     */
+    function executeCreateBooking(payload, btn) {
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+        $.ajax({
+            url: `${window.API_BASE_URL}/api/customer-bookings/create`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function (response) {
+                if (response.paymentLink) {
+                    window.location.href = response.paymentLink;
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Cảnh báo',
+                        text: "Đặt lịch thành công nhưng không tìm thấy link thanh toán.",
+                        confirmButtonColor: '#0ea5e9'
+                    });
+                    btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+                }
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
+                const msg = extractErrorMessage(xhr, "Đã xảy ra lỗi khi tạo đặt lịch. Vui lòng thử lại.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thông báo',
+                    text: msg,
+                    confirmButtonColor: '#0ea5e9'
+                });
             }
         });
-
-        $('#total-price').text(total.toLocaleString('vi-VN') + 'đ');
-        $('#summary-tickets').text(`${count} vé`);
-        checkSubmitEnable();
     }
 
-    function updateSummaryTime() {
-        if (selectedSlotTime) {
-            $('#summary-time').text(selectedSlotTime).removeClass('text-muted').addClass('text-dark');
-        } else {
-            $('#summary-time').text('Chưa chọn').removeClass('text-dark').addClass('text-muted');
-        }
-    }
+    /**
+     * Thực thi gọi API Tham Gia Hàng Chờ (Join Waitlist).
+     * @param {object} payload - Dữ liệu ca bơi và tổng suất bơi cần chờ
+     * @param {object} btn - Đối tượng jQuery nút bấm submit
+     */
+    function executeJoinWaitlist(payload, btn) {
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
 
-    function checkSubmitEnable() {
-        let count = 0;
-        ticketsData.forEach(ticket => {
-            count += parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
+        $.ajax({
+            url: `${window.API_BASE_URL}/api/customer-bookings/waitlist/join`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function (response) {
+                if (response.succeeded === false) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Thông báo',
+                        text: response.message || "Đã xảy ra lỗi khi tham gia danh sách chờ.",
+                        confirmButtonColor: '#0ea5e9'
+                    });
+                    btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+                    return;
+                }
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: response.message || "Tham gia danh sách chờ thành công! Vui lòng kiểm tra email của bạn khi có chỗ trống.",
+                    confirmButtonColor: '#0ea5e9'
+                }).then(() => {
+                    window.location.reload();
+                });
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
+                const msg = extractErrorMessage(xhr, "Đã xảy ra lỗi khi tham gia danh sách chờ.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thông báo',
+                    text: msg,
+                    confirmButtonColor: '#0ea5e9'
+                });
+            }
         });
-
-        if (selectedSlotId && (count > 0 || isSelectedSlotInWaitlist)) {
-            $('#btn-submit-booking').prop('disabled', false);
-        } else {
-            $('#btn-submit-booking').prop('disabled', true);
-        }
     }
 
-    // Gửi yêu cầu đặt lịch
+    /**
+     * Thực thi gọi API Hủy Tham Gia Hàng Chờ (Cancel Waitlist).
+     * @param {number} waitlistEntryId - Mã ID đăng ký hàng chờ
+     * @param {object} btn - Đối tượng jQuery nút bấm submit
+     */
+    function executeCancelWaitlist(waitlistEntryId, btn) {
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+
+        $.ajax({
+            url: `${window.API_BASE_URL}/api/customer-bookings/waitlist/cancel`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ waitlistEntryId: waitlistEntryId }),
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    text: 'Đã hủy tham gia danh sách chờ thành công.',
+                    confirmButtonColor: '#0ea5e9'
+                }).then(() => {
+                    window.location.reload();
+                });
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
+                const msg = extractErrorMessage(xhr, "Đã xảy ra lỗi khi hủy danh sách chờ.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thông báo',
+                    text: msg,
+                    confirmButtonColor: '#0ea5e9'
+                });
+            }
+        });
+    }
+
+    // =========================================================================
+    // 7. MAIN SUBMISSION DISPATCHER & EVENTS (SỰ KIỆN NÚT BẤM VÀ ĐIỀU HƯỚNG)
+    // =========================================================================
+
+    // Đăng ký sự kiện click nút bấm Submit chính
     $('#btn-submit-booking').on('click', function () {
         const btn = $(this);
         
         let count = 0;
-        let totalSlots = 0;
         const tickets = [];
         ticketsData.forEach(ticket => {
             const qty = parseInt($(`#qty-${ticket.poolTicketTypeId}`).val() || 0);
             if (qty > 0) {
                 count += qty;
-                totalSlots += qty * (ticket.slotEquivalent || 1);
                 tickets.push({
                     poolTicketTypeId: ticket.poolTicketTypeId,
                     quantity: qty
@@ -338,8 +567,8 @@ $(document).ready(function () {
             }
         });
 
+        // 1. Trường hợp: Hủy đăng ký hàng chờ
         if (isSelectedSlotInWaitlist) {
-            // Cancel Waitlist Logic
             Swal.fire({
                 title: 'Hủy đăng ký hàng chờ?',
                 text: "Bạn có chắc chắn muốn hủy bỏ tham gia hàng chờ cho ca bơi này?",
@@ -351,44 +580,12 @@ $(document).ready(function () {
                 cancelButtonText: 'Không'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
-
-                    $.ajax({
-                        url: `${API_BASE_URL}/api/customer-bookings/waitlist/cancel`,
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ waitlistEntryId: selectedWaitlistEntryId }),
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        success: function (response) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Thành công',
-                                text: 'Đã hủy tham gia danh sách chờ thành công.',
-                                confirmButtonColor: '#0ea5e9'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        },
-                        error: function (xhr) {
-                            btn.prop('disabled', false).html('Hủy Hàng Chờ <i class="bi bi-x-circle ms-1"></i>');
-                            let msg = "Đã xảy ra lỗi khi hủy danh sách chờ.";
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                msg = xhr.responseJSON.message;
-                            }
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Lỗi',
-                                text: msg,
-                                confirmButtonColor: '#0ea5e9'
-                            });
-                        }
-                    });
+                    executeCancelWaitlist(selectedWaitlistEntryId, btn);
                 }
             });
-        } else if (isSelectedSlotFull) {
-            // Join Waitlist logic
+        } 
+        // 2. Trường hợp: Ca bơi đầy -> Đăng ký hàng chờ
+        else if (isSelectedSlotFull) {
             Swal.fire({
                 title: 'Ca bơi đã đầy',
                 text: "Bạn có muốn tham gia danh sách chờ? Nếu có người hủy vé, chúng tôi sẽ thông báo cho bạn qua Email.",
@@ -400,107 +597,32 @@ $(document).ready(function () {
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const payload = {
-                        poolSlotId: selectedSlotId,
-                        quantity: totalSlots
-                    };
-
-                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
-
-                    $.ajax({
-                        url: `${window.API_BASE_URL}/api/customer-bookings/waitlist/join`,
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(payload),
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        success: function (response) {
-                            if (response.succeeded === false) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Lỗi',
-                                    text: response.message || "Đã xảy ra lỗi khi tham gia danh sách chờ.",
-                                    confirmButtonColor: '#0ea5e9'
-                                });
-                                btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
-                                return;
-                            }
-                            
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Thành công!',
-                                text: response.message || "Tham gia danh sách chờ thành công! Vui lòng kiểm tra email của bạn khi có chỗ trống.",
-                                confirmButtonColor: '#0ea5e9'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        },
-                        error: function (xhr) {
-                            btn.prop('disabled', false).html('Tham gia danh sách chờ <i class="bi bi-clock-history ms-1"></i>');
-                            let msg = "Đã xảy ra lỗi khi tham gia danh sách chờ.";
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                msg = xhr.responseJSON.message;
-                            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                                msg = Object.values(xhr.responseJSON.errors).join('\n');
-                            }
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Lỗi',
-                                text: msg,
-                                confirmButtonColor: '#0ea5e9'
-                            });
-                        }
-                    });
+                    const payload = { poolSlotId: selectedSlotId };
+                    executeJoinWaitlist(payload, btn);
                 }
             });
-        } else {
-            // Normal Booking logic
+        } 
+        // 3. Trường hợp: Đặt lịch thông thường
+        else {
             const payload = {
                 poolSlotId: selectedSlotId,
                 tickets: tickets
             };
-
-            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
-
-            $.ajax({
-                url: `${window.API_BASE_URL}/api/customer-bookings/create`,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(payload),
-                xhrFields: {
-                    withCredentials: true
-                },
-                success: function (response) {
-                    if (response.paymentLink) {
-                        window.location.href = response.paymentLink;
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Cảnh báo',
-                            text: "Đặt lịch thành công nhưng không tìm thấy link thanh toán.",
-                            confirmButtonColor: '#0ea5e9'
-                        });
-                        btn.html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
-                    }
-                },
-                error: function (xhr) {
-                    btn.prop('disabled', false).html('Đặt lịch ngay <i class="bi bi-arrow-right-circle ms-1"></i>');
-                    let msg = "Đã xảy ra lỗi khi tạo đặt lịch. Vui lòng thử lại.";
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        msg = Object.values(xhr.responseJSON.errors).join('\n');
-                    }
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Lỗi',
-                        text: msg,
-                        confirmButtonColor: '#0ea5e9'
-                    });
-                }
-            });
+            executeCreateBooking(payload, btn);
         }
     });
+
+    // Lắng nghe sự kiện thay đổi ngày chọn đặt lịch
+    $('#booking-date').on('change', function () {
+        loadAvailableSlots($(this).val());
+        updateSummaryDate($(this).val());
+    });
+
+    // =========================================================================
+    // 8. INITIALIZATION ON LOAD (KHỞI TẠO DỮ LIỆU BAN ĐẦU)
+    // =========================================================================
+    loadTickets();
+    loadAvailableSlots($('#booking-date').val());
+    updateSummaryDate($('#booking-date').val());
 
 });

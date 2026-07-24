@@ -1,4 +1,5 @@
 using MediatR;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Domain.Entities;
 using System;
@@ -31,20 +32,20 @@ public class CancelWaitlistCommandHandler : IRequestHandler<CancelWaitlistComman
 
         if (entry == null)
         {
-            throw new Exception($"Không tìm thấy WaitlistEntry với ID {request.WaitlistEntryId}");
+            throw new InvalidOperationException("Không tìm thấy lượt hàng chờ cần hủy.");
         }
 
         if (entry.UserId != currentUserId)
         {
-            throw new UnauthorizedAccessException("Bạn không có quyền hủy đăng ký hàng chờ này.");
+            throw new System.UnauthorizedAccessException("Bạn không có quyền hủy đăng ký hàng chờ này.");
         }
 
-        if (entry.Status != "Waiting")
+        if (entry.Status != WaitlistStatus.Waiting)
         {
-            throw new Exception($"Không thể hủy hàng chờ ở trạng thái {entry.Status}.");
+            throw new InvalidOperationException($"Không thể hủy lượt hàng chờ vì trạng thái hiện tại là '{WaitlistStatus.ToDisplayName(entry.Status)}'.");
         }
 
-        entry.Status = "Cancelled";
+        entry.Status = WaitlistStatus.Cancelled;
         waitlistRepo.Update(entry);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

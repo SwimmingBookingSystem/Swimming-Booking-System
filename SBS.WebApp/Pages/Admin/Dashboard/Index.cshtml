@@ -144,11 +144,11 @@
                 const st = statusMap[b.status] || { label: b.status, cls: 'bg-secondary bg-opacity-10 text-secondary' };
                 const time = new Date(b.createdAt).toLocaleString('vi-VN');
                 html += `<tr>
-                    <td class="fw-medium">${b.bookingCode}</td>
-                    <td>${b.customerName}</td>
-                    <td class="fw-medium">${money(b.totalAmount)}</td>
-                    <td><span class="booking-status ${st.cls}">${st.label}</span></td>
-                    <td class="text-muted small">${time}</td>
+                    <td data-label="Mã đặt chỗ" class="fw-medium">${b.bookingCode}</td>
+                    <td data-label="Khách hàng">${b.customerName}</td>
+                    <td data-label="Số tiền" class="fw-medium">${money(b.totalAmount)}</td>
+                    <td data-label="Trạng thái"><span class="booking-status ${st.cls}">${st.label}</span></td>
+                    <td data-label="Ngày tạo" class="text-muted small">${time}</td>
                 </tr>`;
             });
             $('#recentTableBody').html(html);

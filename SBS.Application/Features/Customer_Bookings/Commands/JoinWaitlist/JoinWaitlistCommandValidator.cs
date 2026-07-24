@@ -7,10 +7,6 @@ public class JoinWaitlistCommandValidator : AbstractValidator<JoinWaitlistComman
     public JoinWaitlistCommandValidator()
     {
         RuleFor(v => v.PoolSlotId)
-            .GreaterThan(0).WithMessage("PoolSlotId không hợp lệ.");
-
-        RuleFor(v => v.Quantity)
-            .GreaterThan(0).WithMessage("Số lượng vé phải lớn hơn 0.")
-            .LessThanOrEqualTo(10).WithMessage("Không thể đặt quá 10 vé trong hàng đợi.");
+            .GreaterThan(0).WithMessage("Ca bơi được chọn không hợp lệ.");
     }
 }

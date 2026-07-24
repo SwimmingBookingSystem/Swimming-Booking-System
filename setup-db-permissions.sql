@@ -1,80 +1,69 @@
--- =============================================================
--- BƯỚC 0: Tạo Database SwimmingBookingDB (nếu chưa có)
--- =============================================================
-USE [master]
+USE [master];
 GO
 
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'SwimmingBookingDB')
+IF DB_ID(N'SwimmingBookingDB') IS NULL
 BEGIN
     CREATE DATABASE [SwimmingBookingDB];
-    PRINT 'Database SwimmingBookingDB created.'
-END
-ELSE
-BEGIN
-    PRINT 'Database SwimmingBookingDB already exists. Skip.'
+    PRINT 'Database SwimmingBookingDB created.';
 END
 GO
 
--- =============================================================
--- BƯỚC 1: Tạo 2 Login ở cấp Server (nếu chưa có)
--- =============================================================
-USE [master]
+-- Writer Login (Dynamic variable binding)
+IF NOT EXISTS (SELECT name FROM sys.server_principals WHERE name = N'$(DB_WRITER_USER)')
+BEGIN
+    CREATE LOGIN [$(DB_WRITER_USER)] WITH PASSWORD = N'$(DB_WRITER_PASSWORD)', DEFAULT_DATABASE = [SwimmingBookingDB];
+    PRINT 'Login writer created.';
+END
+ELSE
+BEGIN
+    ALTER LOGIN [$(DB_WRITER_USER)] WITH PASSWORD = N'$(DB_WRITER_PASSWORD)';
+    PRINT 'Login writer password updated.';
+END
+
+-- Reader Login (Dynamic variable binding)
+IF NOT EXISTS (SELECT name FROM sys.server_principals WHERE name = N'$(DB_READER_USER)')
+BEGIN
+    CREATE LOGIN [$(DB_READER_USER)] WITH PASSWORD = N'$(DB_READER_PASSWORD)', DEFAULT_DATABASE = [SwimmingBookingDB];
+    PRINT 'Login reader created.';
+END
+ELSE
+BEGIN
+    ALTER LOGIN [$(DB_READER_USER)] WITH PASSWORD = N'$(DB_READER_PASSWORD)';
+    PRINT 'Login reader password updated.';
+END
 GO
 
-IF NOT EXISTS (SELECT name FROM sys.server_principals WHERE name = N'sbs_writer')
-BEGIN
-    CREATE LOGIN [sbs_writer] WITH PASSWORD = N'Writer@123', DEFAULT_DATABASE = [SwimmingBookingDB];
-    PRINT 'Login sbs_writer created.'
-END
-ELSE
-BEGIN
-    PRINT 'Login sbs_writer already exists. Skip.'
-END
-
-IF NOT EXISTS (SELECT name FROM sys.server_principals WHERE name = N'sbs_reader')
-BEGIN
-    CREATE LOGIN [sbs_reader] WITH PASSWORD = N'Reader@123', DEFAULT_DATABASE = [SwimmingBookingDB];
-    PRINT 'Login sbs_reader created.'
-END
-ELSE
-BEGIN
-    PRINT 'Login sbs_reader already exists. Skip.'
-END
+USE [SwimmingBookingDB];
 GO
 
--- =============================================================
--- BƯỚC 2: Tạo User + gán quyền trong Database
--- =============================================================
-USE [SwimmingBookingDB]
-GO
-
--- Writer: đọc + ghi + quản lý schema (cần thiết cho EF Migrations)
-IF NOT EXISTS (SELECT name FROM sys.database_principals WHERE name = N'sbs_writer')
+-- Writer User & Roles Idempotent (Least Privilege DML only)
+IF NOT EXISTS (SELECT name FROM sys.database_principals WHERE name = N'$(DB_WRITER_USER)')
 BEGIN
-    CREATE USER [sbs_writer] FOR LOGIN [sbs_writer];
-    ALTER ROLE [db_owner] ADD MEMBER [sbs_writer];
-    PRINT 'User sbs_writer created and added to db_owner.'
-END
-ELSE
-BEGIN
-    PRINT 'User sbs_writer already exists. Skip.'
+    CREATE USER [$(DB_WRITER_USER)] FOR LOGIN [$(DB_WRITER_USER)];
+    PRINT 'User writer created.';
 END
 
--- Reader: chỉ đọc
-IF NOT EXISTS (SELECT name FROM sys.database_principals WHERE name = N'sbs_reader')
+IF ISNULL(IS_ROLEMEMBER('db_datareader', N'$(DB_WRITER_USER)'), 0) = 0
+    ALTER ROLE [db_datareader] ADD MEMBER [$(DB_WRITER_USER)];
+
+IF ISNULL(IS_ROLEMEMBER('db_datawriter', N'$(DB_WRITER_USER)'), 0) = 0
+    ALTER ROLE [db_datawriter] ADD MEMBER [$(DB_WRITER_USER)];
+
+GRANT EXECUTE TO [$(DB_WRITER_USER)];
+
+-- Reader User & Roles Idempotent (Read-Only)
+IF NOT EXISTS (SELECT name FROM sys.database_principals WHERE name = N'$(DB_READER_USER)')
 BEGIN
-    CREATE USER [sbs_reader] FOR LOGIN [sbs_reader];
-    ALTER ROLE [db_datareader] ADD MEMBER [sbs_reader];
-    PRINT 'User sbs_reader created and added to db_datareader.'
+    CREATE USER [$(DB_READER_USER)] FOR LOGIN [$(DB_READER_USER)];
+    PRINT 'User reader created.';
 END
-ELSE
-BEGIN
-    PRINT 'User sbs_reader already exists. Skip.'
-END
+
+IF ISNULL(IS_ROLEMEMBER('db_datareader', N'$(DB_READER_USER)'), 0) = 0
+    ALTER ROLE [db_datareader] ADD MEMBER [$(DB_READER_USER)];
 GO
 
 PRINT '======================================='
-PRINT 'Phân quyền CQRS hoàn thành!'
-PRINT 'sbs_writer → db_owner  (read + write + migrations)'
-PRINT 'sbs_reader → db_datareader (read-only)'
+PRINT 'Phân quyền CQRS Idempotent hoàn thành!'
+PRINT 'Writer → db_datareader + db_datawriter + EXECUTE'
+PRINT 'Reader → db_datareader (read-only)'
 PRINT '======================================='

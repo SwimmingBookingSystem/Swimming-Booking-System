@@ -53,33 +53,36 @@
                         @{
                             var userName = User.Identity?.Name;
                             var userFullName = User.FindFirst("FullName")?.Value ?? userName;
+                            var userAvatarUrl = User.FindFirst("AvatarUrl")?.Value;
                             var isAuth = User.Identity?.IsAuthenticated ?? false;
+                            var defaultAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(userFullName ?? "User")}&background=00C2E0&color=fff&rounded=true&size=128";
+                            var avatarSrc = !string.IsNullOrEmpty(userAvatarUrl) ? userAvatarUrl : defaultAvatar;
                         }
                         @if (isAuth && !string.IsNullOrEmpty(userName))
                         {
                             <div class="d-flex align-items-center gap-3">
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <a class="btn d-flex align-items-center gap-2 px-3 py-2" href="/Admin/Dashboard" style="background: linear-gradient(135deg, #4DD4E9, #00C2E0); border: none; color: #fff; font-weight: 600; border-radius: 50rem; box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);">
-                                        <i class="fa-solid fa-shield-halved"></i> Dashboard Admin
+                                    <a href="/Admin/Dashboard" title="Về trang Quản trị Admin (@userFullName)">
+                                        <img id="header-user-avatar" src="@avatarSrc" alt="Avatar Admin" class="header-avatar-btn" />
                                     </a>
                                 }
                                 else if (User.IsInRole("Manager"))
                                 {
-                                    <a class="btn d-flex align-items-center gap-2 px-3 py-2" href="/Manager/Dashboard" style="background: linear-gradient(135deg, #4DD4E9, #00C2E0); border: none; color: #fff; font-weight: 600; border-radius: 50rem; box-shadow: 0 4px 12px rgba(0, 194, 224, 0.3);">
-                                        <i class="fa-solid fa-chart-pie"></i> Dashboard Manager
+                                    <a href="/Manager/Dashboard" title="Về trang Quản lý Manager (@userFullName)">
+                                        <img id="header-user-avatar" src="@avatarSrc" alt="Avatar Manager" class="header-avatar-btn" />
                                     </a>
                                 }
                                 else if (User.IsInRole("Staff"))
                                 {
-                                    <a href="/Staff/CheckIn" title="Về trang quản lý Staff">
-                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(userFullName)&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
+                                    <a href="/Staff/CheckIn" title="Về trang làm việc Staff (@userFullName)">
+                                        <img id="header-user-avatar" src="@avatarSrc" alt="Avatar Staff" class="header-avatar-btn" />
                                     </a>
                                 }
                                 else
                                 {
                                     <a asp-area="" asp-page="/Customer/Profile/Index" title="Trang cá nhân của @userFullName">
-                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(userFullName)&background=00C2E0&color=fff&rounded=true&size=128" alt="Avatar" class="header-avatar-btn" />
+                                        <img id="header-user-avatar" src="@avatarSrc" alt="Avatar" class="header-avatar-btn" />
                                     </a>
                                 }
                                 <a class="btn ocean-btn-outline" href="/Auth/Logout">
@@ -185,7 +188,7 @@
         // Cung cấp Role và Token giải mã từ Server xuống bộ nhớ tạm của Browser để phục vụ AJAX
         window.USER_ROLE = '@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")';
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
-        window.API_BASE_URL = '@(Configuration["ApiBaseUrl"] ?? "https://localhost:7179")';
+        window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
         // TỰ ĐỘNG cấu hình gửi kèm JWT Token cho tất cả các cuộc gọi AJAX (JQuery)
         // Việc này giải quyết triệt để lỗi "Tải dữ liệu..." của các trang như Đặt vé, Profile, Lịch sử...
