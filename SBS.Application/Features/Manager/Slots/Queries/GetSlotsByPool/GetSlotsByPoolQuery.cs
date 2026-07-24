@@ -52,7 +52,7 @@ public class GetSlotsByPoolQueryHandler : IRequestHandler<GetSlotsByPoolQuery, P
                      EndTime    = s.EndTime.ToString(@"hh\:mm"),
                      SlotDate   = s.SlotDate.ToString("yyyy-MM-dd"),
                      Capacity   = s.Capacity,
-                     AvailableCapacity = s.Capacity - s.Bookings.Where(b => b.Status != "Cancelled" && b.Status != "Failed").SelectMany(b => b.BookingDetails).Sum(bd => bd.Quantity),
+                     AvailableCapacity = s.Capacity - s.Bookings.Where(b => b.Status == "PendingPayment" || b.Status == "Paid" || b.Status == "CheckIn").SelectMany(b => b.BookingDetails).Sum(bd => bd.Quantity),
                      Status     = s.Status,
                      CreatedAt  = s.CreatedAt
                  }), ct);
