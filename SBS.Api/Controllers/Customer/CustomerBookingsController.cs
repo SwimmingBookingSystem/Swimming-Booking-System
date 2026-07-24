@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SBS.Application.Common.Dtos;
 using SBS.Application.Features.Customer_Bookings.Commands.CancelBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.CreateBooking;
 using SBS.Application.Features.Customer_Bookings.Commands.ConfirmPayment;
@@ -100,9 +101,11 @@ public class CustomerBookingsController : ControllerBase
     }
 
     [HttpGet("waitlist/my-waitlists")]
-    public async Task<ActionResult<List<CustomerWaitlistDto>>> GetMyWaitlists()
+    public async Task<ActionResult<PagedResultDto<CustomerWaitlistDto>>> GetMyWaitlists(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var result = await _mediator.Send(new GetCustomerWaitlistsQuery());
+        var result = await _mediator.Send(new GetCustomerWaitlistsQuery(pageNumber, pageSize));
         return Ok(result);
     }
 }

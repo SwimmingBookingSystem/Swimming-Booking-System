@@ -1,7 +1,8 @@
 using MediatR;
+using SBS.Application.Common.Dtos;
 using SBS.Application.Features.Customer_Bookings.Dtos;
-using System.Collections.Generic;
 
 namespace SBS.Application.Features.Customer_Bookings.Queries.GetCustomerWaitlists;
 
-public record GetCustomerWaitlistsQuery : IRequest<List<CustomerWaitlistDto>>;
+public record GetCustomerWaitlistsQuery(int PageNumber = 1, int PageSize = 10)
+    : IRequest<PagedResultDto<CustomerWaitlistDto>>;

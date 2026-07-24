@@ -1,4 +1,6 @@
+using System;
 using MediatR;
+using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SBS.Application.Features.Customer_Bookings.Queries.GetCustomerWaitlists;
 
-public class GetCustomerWaitlistsQueryHandler : IRequestHandler<GetCustomerWaitlistsQuery, List<CustomerWaitlistDto>>
+public class GetCustomerWaitlistsQueryHandler : IRequestHandler<GetCustomerWaitlistsQuery, PagedResultDto<CustomerWaitlistDto>>
 {
     private readonly IReadOnlyUnitOfWork _readOnlyUnitOfWork;
     private readonly ICurrentUserService _currentUserService;
@@ -20,25 +22,32 @@ public class GetCustomerWaitlistsQueryHandler : IRequestHandler<GetCustomerWaitl
         _currentUserService = currentUserService;
     }
 
-    public async Task<List<CustomerWaitlistDto>> Handle(GetCustomerWaitlistsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<CustomerWaitlistDto>> Handle(GetCustomerWaitlistsQuery request, CancellationToken cancellationToken)
     {
+        var pageNumber = Math.Max(1, request.PageNumber);
+        var pageSize = Math.Clamp(request.PageSize, 1, 50);
         var currentUserId = _currentUserService.UserId;
         if (string.IsNullOrEmpty(currentUserId))
         {
-            return new List<CustomerWaitlistDto>();
+            return new PagedResultDto<CustomerWaitlistDto> { Page = pageNumber, PageSize = pageSize };
         }
 
         if (!Guid.TryParse(currentUserId, out Guid userIdGuid))
         {
-            return new List<CustomerWaitlistDto>();
+            return new PagedResultDto<CustomerWaitlistDto> { Page = pageNumber, PageSize = pageSize };
         }
 
-        var waitlists = await _readOnlyUnitOfWork.Repository<SBS.Domain.Entities.WaitlistEntry>()
+        var waitlistsQuery = _readOnlyUnitOfWork.Repository<SBS.Domain.Entities.WaitlistEntry>()
             .Query()
             .Include(w => w.PoolSlot)
                 .ThenInclude(ps => ps.Pool)
-            .Where(w => w.UserId == userIdGuid)
+            .Where(w => w.UserId == userIdGuid);
+
+        var totalCount = await waitlistsQuery.CountAsync(cancellationToken);
+        var waitlists = await waitlistsQuery
             .OrderByDescending(w => w.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(w => new CustomerWaitlistDto
             {
                 WaitlistEntryId = w.WaitlistEntryId,
@@ -61,6 +70,12 @@ public class GetCustomerWaitlistsQueryHandler : IRequestHandler<GetCustomerWaitl
             })
             .ToListAsync(cancellationToken);
 
-        return waitlists;
+        return new PagedResultDto<CustomerWaitlistDto>
+        {
+            Items = waitlists,
+            TotalCount = totalCount,
+            Page = pageNumber,
+            PageSize = pageSize
+        };
     }
 }
