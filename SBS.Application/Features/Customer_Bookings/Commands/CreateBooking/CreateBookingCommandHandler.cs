@@ -38,7 +38,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
     public async Task<CreateBookingResponseDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
     {
-        var utcNow = DateTime.UtcNow;
+        var utcNow = DateTime.Now;
         var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
 
         var userIdString = _currentUserService.UserId;
@@ -122,7 +122,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             // 6. Create Booking
             var booking = new Booking
             {
-                BookingCode = $"BK-{DateTime.UtcNow:yyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
+                BookingCode = $"BK-{DateTime.Now:yyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
                 UserId = userId,
                 PoolSlotId = slot.PoolSlotId,
                 BookingDate = slot.SlotDate,

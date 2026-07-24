@@ -84,7 +84,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
                 .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
             if (waitlistEntry?.Status == WaitlistStatus.Offered &&
-                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.UtcNow))
+                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.Now))
             {
                 throw new InvalidOperationException(
                     "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");
@@ -102,7 +102,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             }
 
             booking.Status = BookingStatus.Paid;
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = DateTime.Now;
             booking.QrCodeData ??= $"{booking.BookingCode}-{Guid.NewGuid()}";
 
             await _unitOfWork.Repository<Payment>().AddAsync(new Payment
@@ -113,7 +113,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
                     ? $"payos-order-{paymentInformation.OrderCode}"
                     : paymentInformation.TransactionReference,
                 Amount = booking.TotalAmount,
-                PaymentDate = DateTime.UtcNow,
+                PaymentDate = DateTime.Now,
                 Status = "Success"
             }, cancellationToken);
 

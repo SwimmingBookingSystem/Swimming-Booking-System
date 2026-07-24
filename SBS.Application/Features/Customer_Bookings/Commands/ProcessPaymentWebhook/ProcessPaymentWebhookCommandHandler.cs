@@ -71,7 +71,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                 .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
 
             if (waitlistEntry?.Status == WaitlistStatus.Offered &&
-                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.UtcNow))
+                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.Now))
             {
                 throw new InvalidOperationException(
                     "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");
@@ -85,7 +85,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
 
             // 3. Update Booking and create Payment record
             booking.Status = BookingStatus.Paid;
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = DateTime.Now;
             
             // Generate simple QrCodeData token for Check-in module
             booking.QrCodeData = $"{booking.BookingCode}-{Guid.NewGuid()}";
@@ -96,7 +96,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                 PaymentMethod = "PayOS",
                 TransactionId = transactionId,
                 Amount = booking.TotalAmount,
-                PaymentDate = DateTime.UtcNow,
+                PaymentDate = DateTime.Now,
                 Status = "Success"
             };
 
