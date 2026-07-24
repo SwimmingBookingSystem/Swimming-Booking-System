@@ -162,6 +162,44 @@ public class PoolManagementService : IPoolManagementService
             }
         }
 
+        int updatedCapacitySlotsCount = 0;
+        int newStandardCapacity = (int)(request.Area / 2.5);
+        if (pool.StandardCapacity != newStandardCapacity)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            
+            var futureSlots = await _uow.ToListAsync(
+                _uow.Repository<PoolSlot>().Query()
+                    .Include(s => s.Bookings).ThenInclude(b => b.BookingDetails)
+                    .Where(s => s.PoolId == request.PoolId && s.SlotDate >= today && s.Status != "Cancelled" && s.Capacity == pool.StandardCapacity),
+                ct);
+
+            if (futureSlots.Any())
+            {
+                if (newStandardCapacity < pool.StandardCapacity)
+                {
+                    foreach (var slot in futureSlots)
+                    {
+                        int bookedTickets = slot.Bookings
+                            .Where(b => b.Status != "Cancelled" && b.Status != "Failed" && b.Status != "Refunded" && b.Status != "Completed")
+                            .SelectMany(b => b.BookingDetails)
+                            .Sum(bd => bd.Quantity);
+
+                        if (newStandardCapacity < bookedTickets)
+                        {
+                            throw new BadRequestException($"Không thể giảm diện tích bể bơi xuống mức này vì sức chứa mới ({newStandardCapacity} người) đang nhỏ hơn số vé đã bán ({bookedTickets} vé) tại ca bơi lúc {slot.StartTime:hh\\:mm} ngày {slot.SlotDate:dd/MM/yyyy}. Vui lòng xử lý hoàn tiền hoặc huỷ ca bơi trước khi thay đổi.");
+                        }
+                    }
+                }
+
+                foreach (var slot in futureSlots)
+                {
+                    slot.Capacity = newStandardCapacity;
+                    _uow.Repository<PoolSlot>().Update(slot);
+                    updatedCapacitySlotsCount++;
+                }
+            }
+        }
 
         pool.PoolName    = request.PoolName;
         pool.Address     = request.Address;
@@ -225,9 +263,19 @@ public class PoolManagementService : IPoolManagementService
             }).ToList()
         };
 
+        var messages = new System.Collections.Generic.List<string>();
         if (cancelledSlotsCount > 0)
         {
-            resultDto.Message = $"Đã cập nhật giờ hoạt động thành công. Hệ thống đã tự động huỷ {cancelledSlotsCount} ca bơi nằm ngoài khung giờ mới.";
+            messages.Add($"hệ thống đã tự động huỷ {cancelledSlotsCount} ca bơi nằm ngoài khung giờ mới");
+        }
+        if (updatedCapacitySlotsCount > 0)
+        {
+            messages.Add($"hệ thống đã điều chỉnh sức chứa của {updatedCapacitySlotsCount} ca bơi trong tương lai theo diện tích mới");
+        }
+
+        if (messages.Any())
+        {
+            resultDto.Message = "Cập nhật thành công. Ngoài ra, " + string.Join(" và ", messages) + ".";
         }
 
         return resultDto;
