@@ -234,7 +234,7 @@
                                     if (!isRefreshing) {
                                         isRefreshing = true;
                                         $.ajax({
-                                            url: window.API_BASE_URL + '/api/auth/refresh',
+                                            url: window.API_BASE_URL + '/api/Auth/refresh',
                                             type: 'POST',
                                             xhrFields: { withCredentials: true },
                                             success: function(res) {
