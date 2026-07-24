@@ -27,7 +27,7 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
     public async Task<List<AvailableSlotDto>> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
     {
         var userIdStr = _currentUserService.UserId;
-        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
 
         Guid? currentUserId = !string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out var id) ? id : null;
 

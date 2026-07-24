@@ -58,7 +58,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 return;
             }
 
-            var utcNow = DateTime.UtcNow;
+            var utcNow = DateTime.Now;
             var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
             if (BookingTimePolicy.IsBookingClosed(poolSlot.SlotDate, poolSlot.EndTime, currentDate, currentTime))
             {
@@ -134,7 +134,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     break;
                 }
 
-                var offerNow = DateTime.UtcNow;
+                var offerNow = DateTime.Now;
                 var paymentDeadline = offerNow.AddMinutes(5) < bookingCutoffUtc
                     ? offerNow.AddMinutes(5)
                     : bookingCutoffUtc;
@@ -153,7 +153,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 {
                     UserId = waitlistEntry.UserId,
                     PoolSlotId = poolSlotId,
-                    BookingCode = $"WL{DateTime.UtcNow:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
+                    BookingCode = $"WL{DateTime.Now:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
                     BookingDate = poolSlot.SlotDate,
                     Status = BookingStatus.PendingPayment,
                     PaymentDeadline = paymentDeadline,

@@ -50,7 +50,7 @@ public class PendingBookingExpirationWorker : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         // Find all bookings that are PendingPayment and deadline passed
         var expiredBookings = await context.Bookings
@@ -94,7 +94,7 @@ public class PendingBookingExpirationWorker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
 
         // Fetch potential expired waitlists (Waiting status and SlotDate <= today)
         var potentialExpiredWaitlists = await context.WaitlistEntries

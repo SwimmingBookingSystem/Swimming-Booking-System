@@ -23,7 +23,7 @@ public class GetFullSlotsForWaitlistQueryHandler : IRequestHandler<GetFullSlotsF
 
     public async Task<List<AvailableSlotDto>> Handle(GetFullSlotsForWaitlistQuery request, CancellationToken cancellationToken)
     {
-        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
 
         var slots = await _readOnlyUnitOfWork.Repository<PoolSlot>().Query()
             .AsNoTracking()
