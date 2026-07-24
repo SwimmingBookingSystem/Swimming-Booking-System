@@ -29,7 +29,7 @@
             </p>
 
             <div class="hero-buttons">
-                <a asp-area="" asp-page="/Auth/Login" class="btn ocean-btn-primary" id="hero-book-btn">
+                <a href="/CustomerViewPoolIst/CustomerViewPoolIst" class="btn ocean-btn-primary" id="hero-book-btn">
                     <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
                 </a>
                 <a href="#how-it-works" class="btn btn-outline-light">
@@ -45,10 +45,6 @@
                 <div class="hero-stat-item">
                     <span class="hero-stat-number" id="hero-stat-customers">--</span>
                     <span class="hero-stat-label">Khách hàng</span>
-                </div>
-                <div class="hero-stat-item">
-                    <span class="hero-stat-number" id="hero-stat-satisfaction">--</span>
-                    <span class="hero-stat-label">Hài lòng</span>
                 </div>
             </div>
         </div>
@@ -111,32 +107,25 @@
 <section class="section stats-section">
     <div class="container">
         <div class="row g-4">
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-4">
                 <div class="stat-item">
                     <div class="stat-icon"><i class="fa-solid fa-water"></i></div>
                     <span class="stat-number" id="stat-pools">--</span>
                     <span class="stat-label">Bể bơi đối tác</span>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-4">
                 <div class="stat-item">
                     <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                     <span class="stat-number" id="stat-customers">--</span>
                     <span class="stat-label">Khách hàng</span>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-4">
                 <div class="stat-item">
                     <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
                     <span class="stat-number" id="stat-bookings">--</span>
                     <span class="stat-label">Lượt đặt lịch</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
-                    <span class="stat-number" id="stat-rating">--</span>
-                    <span class="stat-label">Đánh giá trung bình</span>
                 </div>
             </div>
         </div>
@@ -171,8 +160,6 @@
 
         function checkLoginState() {
             if (isUserAuthenticated && isUserCustomer) {
-                // Nếu là Customer đã đăng nhập, chuyển hướng nút sang trang danh sách bể bơi
-                $('#hero-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay');
                 $('#cta-book-btn').attr('href', '/CustomerViewPoolIst/CustomerViewPoolIst').html('<i class="bi bi-swimming me-2"></i>Xem danh sách bể bơi');
             }
         }
@@ -190,19 +177,14 @@
                     var totalPools = response.stats.totalPools;
                     var totalCustomers = response.stats.totalCustomers;
                     var totalBookings = response.stats.totalBookings;
-                    var avgRating = response.stats.averageRating;
-                    var satisfaction = Math.round(avgRating / 5 * 100);
-
                     // Update hero stats
                     $('#hero-stat-pools').text(totalPools + '+');
                     $('#hero-stat-customers').text(totalCustomers.toLocaleString('vi-VN') + '+');
-                    $('#hero-stat-satisfaction').text(satisfaction + '%');
 
                     // Update stats section
                     $('#stat-pools').text(totalPools + '+');
                     $('#stat-customers').text(totalCustomers.toLocaleString('vi-VN') + '+');
                     $('#stat-bookings').text(totalBookings.toLocaleString('vi-VN') + '+');
-                    $('#stat-rating').text(avgRating.toFixed(1));
 
                     // Render pools
                     if (response.pools && response.pools.length > 0) {
@@ -253,7 +235,6 @@
                     $('#stat-pools').text('--');
                     $('#stat-customers').text('--');
                     $('#stat-bookings').text('--');
-                    $('#stat-rating').text('--');
                     $('#pool-loading').html('<p class="text-muted">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>');
                 }
             });
