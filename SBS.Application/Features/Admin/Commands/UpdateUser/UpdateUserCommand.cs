@@ -19,6 +19,7 @@ public record UpdateUserCommand : IRequest<ResultDto>
     public string? Gender { get; init; }
     public DateOnly? Dob { get; init; }
     public int? PoolId { get; init; }
+    public string? Password { get; init; }
 }
 
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ResultDto>
@@ -41,7 +42,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
             Address = request.Address,
             Gender = request.Gender,
             Dob = request.Dob,
-            PoolId = request.PoolId
+            PoolId = request.PoolId,
+            Password = request.Password
         };
 
         return await _adminService.UpdateUserAsync(request.UserId, dto, cancellationToken);

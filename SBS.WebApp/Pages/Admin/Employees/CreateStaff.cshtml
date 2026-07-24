@@ -36,7 +36,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-medium small text-muted">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-medium small text-muted">Giới tính</label>
@@ -113,6 +118,18 @@
                     $btn.prop('disabled', false).html('<i class="fa-solid fa-check me-2"></i>Tạo nhân viên');
                 }
             });
+        });
+
+        $('#togglePassword').click(function() {
+            const input = $('#password');
+            const icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
         });
     </script>
 }
