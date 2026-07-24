@@ -6,17 +6,23 @@
     ViewData["Breadcrumb"] = "Quản trị / Liên hệ khách hàng";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
         <h4 class="fw-bold text-dark mb-1" style="font-size: 22px;">Yêu cầu liên hệ</h4>
         <p class="text-muted small mb-0">Quản lý và phản hồi các yêu cầu hỗ trợ từ khách hàng</p>
     </div>
-    <div>
-        <select id="statusFilter" class="form-select shadow-sm" style="width: 180px;">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Pending">Chờ xử lý</option>
-            <option value="Resolved">Đã xử lý</option>
-        </select>
+</div>
+
+<div class="filter-box mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold text-muted mb-1">Trạng thái</label>
+            <select id="statusFilter" class="form-select form-select-sm shadow-sm">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Pending">Chờ xử lý</option>
+                <option value="Resolved">Đã xử lý</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -142,16 +148,16 @@
 
                     html += `
                         <tr>
-                            <td class="ps-4 fw-medium">${c.fullName}</td>
-                            <td>
+                            <td data-label="Khách hàng" class="ps-4 fw-medium">${c.fullName}</td>
+                            <td data-label="Email / SĐT">
                                 <div class="small">${c.email}</div>
                                 <div class="small text-muted">${phone}</div>
                             </td>
-                            <td><span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1">${c.category}</span></td>
-                            <td><span class="text-muted small" title="${c.message.replace(/"/g, '&quot;')}">${msgShort}</span></td>
-                            <td class="text-center">${statusBadge}</td>
-                            <td class="text-center text-muted small">${time}</td>
-                            <td class="text-end pe-4">${actionBtn}</td>
+                            <td data-label="Phân loại"><span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1">${c.category}</span></td>
+                            <td data-label="Nội dung"><span class="text-muted small" title="${c.message.replace(/"/g, '&quot;')}">${msgShort}</span></td>
+                            <td data-label="Trạng thái" class="text-center">${statusBadge}</td>
+                            <td data-label="Ngày gửi" class="text-center text-muted small">${time}</td>
+                            <td data-label="Hành động" class="text-end pe-4">${actionBtn}</td>
                         </tr>
                     `;
                 });

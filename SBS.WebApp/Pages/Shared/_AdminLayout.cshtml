@@ -43,10 +43,17 @@
         </div>
     </nav>
 
+    <div id="sidebar-overlay"></div>
+
     <div id="content">
         <div class="topbar">
-            <div class="breadcrumb mb-0 fw-medium text-muted">
-                @ViewData["Breadcrumb"]
+            <div class="d-flex align-items-center gap-2">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="breadcrumb mb-0 fw-medium text-muted">
+                    @ViewData["Breadcrumb"]
+                </div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 @{
@@ -91,6 +98,30 @@
         window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
     </script>
     <script src="~/js/admin/admin-api.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            var $sidebar = $('#sidebar');
+            var $overlay = $('#sidebar-overlay');
+
+            $('#sidebarToggle').on('click', function () {
+                $sidebar.toggleClass('open');
+                $overlay.toggleClass('open');
+            });
+
+            $overlay.on('click', function () {
+                $sidebar.removeClass('open');
+                $overlay.removeClass('open');
+            });
+
+            $(window).on('resize', function () {
+                if ($(window).width() > 767) {
+                    $sidebar.removeClass('open');
+                    $overlay.removeClass('open');
+                }
+            });
+        });
+    </script>
 
     @RenderSection("Scripts", required: false)
 </body>
