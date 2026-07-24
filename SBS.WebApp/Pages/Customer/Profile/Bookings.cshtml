@@ -86,7 +86,10 @@
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#qrModal" 
                                                             data-bs-qr="@booking.QrCodeData"
-                                                            data-bs-code="@booking.BookingCode">
+                                                            data-bs-code="@booking.BookingCode"
+                                                            data-bs-pool="@booking.PoolName"
+                                                            data-bs-time='@($"{booking.StartTime:hh\\:mm} - {booking.EndTime:hh\\:mm} | {booking.SlotDate:dd/MM/yyyy}")'
+                                                            data-bs-tickets='@string.Join(", ", booking.Tickets.Select(t => $"{t.Quantity}x {t.TicketName} ({(t.Category == "Single" ? "Vé đơn" : "Combo")})"))'>
                                                         <i class="bi bi-qr-code"></i> Xem QR
                                                     </button>
                                                 }
@@ -118,10 +121,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center p-4">
-                <p class="text-muted small mb-4">Vui lòng đưa mã này cho nhân viên tại cổng kiểm soát để check-in.</p>
-                <div id="qrcode-container" class="d-flex justify-content-center bg-white p-3 border rounded-3 shadow-sm mx-auto" style="width: 200px; height: 200px;">
+                <p class="text-muted small mb-3">Vui lòng đưa mã này cho nhân viên tại cổng kiểm soát để check-in.</p>
+                
+                <div class="mb-3 text-start bg-light p-3 rounded text-dark small text-break">
+                    <div class="fw-bold text-ocean mb-1 fs-6" id="qr-pool-name"></div>
+                    <div class="mb-1"><i class="bi bi-clock me-1 text-muted"></i><span id="qr-time"></span></div>
+                    <div><i class="bi bi-ticket-perforated me-1 text-muted"></i><span id="qr-tickets"></span></div>
+                </div>
+
+                <div id="qrcode-container" class="d-flex justify-content-center bg-white p-3 border rounded-3 shadow-sm mx-auto mb-2" style="width: 200px; height: 200px;">
                     <!-- Javascript qrcode.js sẽ vẽ ảnh QR vào đây -->
                 </div>
+                <div class="fw-bold text-dark mt-2" id="qr-booking-code-display"></div>
             </div>
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn ocean-btn-outline px-4" data-bs-dismiss="modal">Đóng</button>

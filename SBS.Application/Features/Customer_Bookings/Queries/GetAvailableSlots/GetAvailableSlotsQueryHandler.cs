@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Policies;
@@ -35,8 +36,17 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
             .AsNoTracking()
             .Include(s => s.Pool)
             .Include(s => s.WaitlistEntries.Where(w => w.Status == "Waiting"))
-            .Include(s => s.Bookings.Where(b => b.Status != "Cancelled" && b.Status != "Failed" && b.Status != "Refunded"))
+            // Keep this status filter aligned with BookingCalculationService. A completed
+            // check-out no longer occupies capacity and must therefore be visible as a
+            // returned slot on the customer booking screen.
+            .Include(s => s.Bookings.Where(b =>
+                b.Status == BookingStatus.PendingPayment ||
+                b.Status == BookingStatus.Paid ||
+                b.Status == BookingStatus.CheckIn))
                 .ThenInclude(b => b.BookingDetails)
+                    .ThenInclude(bd => bd.PoolTicketType)
+                        .ThenInclude(pt => pt.TicketType)
+                            .ThenInclude(tt => tt.ComboItems)
             .Where(s => s.PoolId == request.PoolId && s.SlotDate == request.Date && s.Capacity > 0 && s.Status == "Open")
             .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
@@ -66,7 +76,7 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
                 EndTime = s.EndTime,
                 SlotDate = s.SlotDate,
                 Capacity = s.Capacity,
-                AvailableCapacity = s.Capacity - (s.Bookings.SelectMany(b => b.BookingDetails).Sum(bd => (int?)bd.Quantity) ?? 0),
+                AvailableCapacity = Math.Max(0, s.Capacity - CalculateBookedCapacity(s)),
                 
                 // Waitlist specific fields
                 IsBookingClosed = BookingTimePolicy.IsBookingClosed(s.SlotDate, s.EndTime, today, timeNow),
@@ -79,4 +89,16 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
 
         return slots;
     }
+
+    private static int CalculateBookedCapacity(PoolSlot slot) => slot.Bookings
+        .SelectMany(booking => booking.BookingDetails)
+        .Sum(detail =>
+        {
+            var ticketType = detail.PoolTicketType.TicketType;
+            var slotEquivalent = string.Equals(ticketType.Category, "Combo", StringComparison.OrdinalIgnoreCase)
+                ? ticketType.ComboItems.Sum(item => item.Quantity)
+                : 1;
+
+            return detail.Quantity * Math.Max(1, slotEquivalent);
+        });
 }
