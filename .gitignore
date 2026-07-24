@@ -13,6 +13,7 @@
 .env*
 .env.example
 !.env.example
+update_production.txt
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -442,6 +443,7 @@ TestApi.cs
 demo_booking_flow.md
 PayOSTest/
 .agents/
+.code-review-graph/
 local_test_seeder_guide.md
 .prompts
 # Ignore appsettings development/local secret files
