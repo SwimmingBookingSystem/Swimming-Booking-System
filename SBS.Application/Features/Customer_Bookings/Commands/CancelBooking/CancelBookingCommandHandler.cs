@@ -15,20 +15,30 @@ public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CancelBookingCommandHandler(IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
+    public CancelBookingCommandHandler(IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _publishEndpoint = publishEndpoint;
+        _currentUserService = currentUserService;
     }
 
     public async Task<bool> Handle(CancelBookingCommand request, CancellationToken cancellationToken)
     {
+        if (!Guid.TryParse(_currentUserService.UserId, out var currentUserId))
+        {
+            throw new UnauthorizedAccessException("Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
+        }
         var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId);
         
         if (booking == null)
         {
             throw new BookingNotFoundException(request.BookingId);
+        }
+        if (booking.UserId != currentUserId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền hủy booking này.");
         }
 
         if (booking.Status != BookingStatus.PendingPayment)

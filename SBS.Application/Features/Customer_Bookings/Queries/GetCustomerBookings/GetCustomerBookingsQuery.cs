@@ -51,7 +51,13 @@ public class GetCustomerBookingsQueryHandler : IRequestHandler<GetCustomerBookin
                 Status = b.Status,
                 TotalAmount = b.TotalAmount,
                 QrCodeData = b.QrCodeData,
-                CreatedAt = b.CreatedAt
+                CreatedAt = b.CreatedAt,
+                Tickets = b.BookingDetails.Select(bd => new CustomerBookingHistoryTicketDto
+                {
+                    TicketName = bd.PoolTicketType.TicketType.TicketName,
+                    Category = bd.PoolTicketType.TicketType.Category,
+                    Quantity = bd.Quantity
+                }).ToList()
             })
             .ToListAsync(cancellationToken);
 

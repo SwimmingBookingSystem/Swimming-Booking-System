@@ -18,6 +18,8 @@ $(document).ready(function () {
     let isSelectedSlotInWaitlist = false;
     let selectedWaitlistEntryId = null;
     let ticketsData = [];
+    const SLOT_REFRESH_INTERVAL_MS = 10000;
+    let slotRefreshTimer = null;
 
     // =========================================================================
     // 2. AUTHENTICATION CHECK (KIỂM TRA QUYỀN HẠN TÀI KHOẢN)
@@ -177,26 +179,26 @@ $(document).ready(function () {
      * Tải danh sách ca bơi (Slots) trống theo bể bơi và ngày được chọn.
      * @param {string} date - Ngày cần kiểm tra (yyyy-mm-dd)
      */
-    function loadAvailableSlots(date) {
+    function loadAvailableSlots(date, preserveSelectedSlot = false) {
         if (!date) return;
+        const previouslySelectedSlotId = preserveSelectedSlot ? selectedSlotId : null;
         
         $('#slots-empty-msg').addClass('d-none');
         $('#slots-error').addClass('d-none');
-        $('#slots-container').empty();
+        if (!preserveSelectedSlot) {
+            $('#slots-container').empty();
+            selectedSlotId = null;
+            selectedSlotTime = null;
+            isSelectedSlotFull = false;
+            isSelectedSlotLate = false;
+            isSelectedSlotInWaitlist = false;
+            selectedWaitlistEntryId = null;
+            updateSummaryTime();
+            checkSubmitEnable();
+            updateSubmitButtonUI();
+            updateTicketSelectionMode();
+        }
         $('#slots-loader').removeClass('d-none');
-        
-        // Reset trạng thái ca bơi được chọn
-        selectedSlotId = null;
-        selectedSlotTime = null;
-        isSelectedSlotFull = false;
-        isSelectedSlotLate = false;
-        isSelectedSlotInWaitlist = false;
-        selectedWaitlistEntryId = null;
-        
-        updateSummaryTime();
-        checkSubmitEnable();
-        updateSubmitButtonUI();
-        updateTicketSelectionMode();
 
         $.ajax({
             url: `${window.API_BASE_URL}/api/customer-bookings/pools/${POOL_ID}/available-slots?date=${date}`,
@@ -286,6 +288,37 @@ $(document).ready(function () {
                     updateSubmitButtonUI();
                     updateTicketSelectionMode();
                 });
+
+                if (previouslySelectedSlotId) {
+                    const previouslySelectedButton = $(`.slot-btn[data-id="${previouslySelectedSlotId}"]:not(:disabled)`);
+                    if (previouslySelectedButton.length) {
+                        previouslySelectedButton.addClass('selected');
+                        selectedSlotId = previouslySelectedButton.data('id');
+                        selectedSlotTime = previouslySelectedButton.data('time');
+                        isSelectedSlotFull = previouslySelectedButton.data('full');
+                        isSelectedSlotLate = previouslySelectedButton.data('late');
+                        isSelectedSlotInWaitlist = previouslySelectedButton.data('inwaitlist') === true;
+                        selectedWaitlistEntryId = previouslySelectedButton.data('waitlistid');
+                        updateSummaryTime();
+                        checkSubmitEnable();
+                        updateSubmitButtonUI();
+                        updateTicketSelectionMode();
+                    } else {
+                        selectedSlotId = null;
+                        selectedSlotTime = null;
+                        isSelectedSlotFull = false;
+                        isSelectedSlotLate = false;
+                        isSelectedSlotInWaitlist = false;
+                        selectedWaitlistEntryId = null;
+                        updateSummaryTime();
+                        checkSubmitEnable();
+                        updateSubmitButtonUI();
+                        updateTicketSelectionMode();
+                    }
+                }
+
+                const updatedAt = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                $('#slots-live-status').html(`<i class="bi bi-broadcast-pin me-1"></i>Cập nhật ${updatedAt}`);
             },
             error: function () {
                 $('#slots-loader').addClass('d-none');
@@ -624,5 +657,21 @@ $(document).ready(function () {
     loadTickets();
     loadAvailableSlots($('#booking-date').val());
     updateSummaryDate($('#booking-date').val());
+
+    slotRefreshTimer = window.setInterval(function () {
+        if (document.visibilityState === 'visible') {
+            loadAvailableSlots($('#booking-date').val(), true);
+        }
+    }, SLOT_REFRESH_INTERVAL_MS);
+
+    $(window).on('beforeunload', function () {
+        window.clearInterval(slotRefreshTimer);
+    });
+
+    $(document).on('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+            loadAvailableSlots($('#booking-date').val(), true);
+        }
+    });
 
 });
