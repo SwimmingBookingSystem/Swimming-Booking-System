@@ -13,6 +13,7 @@
     <title>Đăng ký tài khoản - Swimming Booking System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.min.css" rel="stylesheet" />
     <!-- Nhập font chữ Inter đồng bộ với Trang chủ -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -557,6 +558,7 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
     <script>
         $(document).ready(function() {
             const apiBaseUrl = '@Configuration["PublicApiBaseUrl"]';
@@ -759,8 +761,8 @@
                         setLoadingState(false);
                         registeredEmail = email;
                         
-                        // Chuyển sang Bước 2: Nhập OTP
-                        showSuccess("Đăng ký thành công! Vui lòng nhập mã OTP được gửi vào email của bạn.");
+                        // Ẩn alert và chuyển thẳng sang Bước 2: Nhập OTP mượt mà
+                        hideAlert();
                         transitionToOtpStep();
                     },
                     error: function(xhr) {
@@ -862,12 +864,18 @@
                     data: JSON.stringify(payload),
                     success: function(response) {
                         setOtpLoadingState(false);
-                        showSuccess("Xác minh thành công! Đang chuyển hướng bạn sang trang đăng nhập...");
                         
-                        // Chuyển hướng về trang đăng nhập sau 2.5 giây
-                        setTimeout(function() {
+                        // Popup SweetAlert2 Đăng ký thành công
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đăng ký thành công!',
+                            text: 'Tài khoản của bạn đã được khởi tạo. Đang chuyển hướng đến trang đăng nhập...',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        }).then(() => {
                             window.location.href = '/Auth/Login';
-                        }, 2500);
+                        });
                     },
                     error: function(xhr) {
                         setOtpLoadingState(false);
@@ -904,6 +912,15 @@
                     contentType: 'application/json',
                     data: JSON.stringify({ email: registeredEmail }),
                     success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Đã gửi lại OTP',
+                            text: 'Mã OTP mới đã được gửi vào Email của bạn.',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
                         showSuccess("Mã OTP mới đã được gửi vào Email của bạn.");
                         startCountdown();
                     },
