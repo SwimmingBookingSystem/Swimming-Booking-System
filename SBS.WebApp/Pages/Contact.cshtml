@@ -85,7 +85,8 @@
                 const response = await fetch(`${apiBaseUrl}/api/contacts`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...(window.ACCESS_TOKEN ? { 'Authorization': `Bearer ${window.ACCESS_TOKEN}` } : {})
                     },
                     credentials: 'include',
                     body: JSON.stringify(requestData)
@@ -99,7 +100,8 @@
                         text: result.message || 'Yêu cầu liên hệ của bạn đã được gửi thành công.',
                         confirmButtonText: 'Đóng'
                     });
-                    document.getElementById('contactForm').reset();
+                    document.getElementById('category').selectedIndex = 0;
+                    document.getElementById('message').value = '';
                 } else {
                     Swal.fire({
                         icon: 'error',

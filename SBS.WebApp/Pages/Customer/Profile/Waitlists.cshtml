@@ -18,7 +18,7 @@
                 <div class="card-body p-4">
                     <h4 class="card-title fw-bold text-teal mb-4 border-bottom pb-3">Danh sách chờ của tôi</h4>
                     
-                    @if (Model.Waitlists == null || !Model.Waitlists.Any())
+                    @if (Model.WaitlistPage.Items.Count == 0)
                     {
                         <div class="alert bg-light border-0 text-center py-5 rounded-4">
                             <i class="bi bi-hourglass-split fs-1 text-muted d-block mb-3"></i>
@@ -28,7 +28,7 @@
                     else
                     {
                         <div class="d-flex flex-column gap-3">
-                            @foreach (var waitlist in Model.Waitlists)
+                            @foreach (var waitlist in Model.WaitlistPage.Items)
                             {
                                 <div class="ocean-card p-4 border border-light">
                                     <div class="row align-items-center">
@@ -89,6 +89,30 @@
                                 </div>
                             }
                         </div>
+
+                        @if (Model.WaitlistPage.TotalPages > 1)
+                        {
+                            <nav class="mt-4" aria-label="Phân trang danh sách chờ">
+                                <ul class="pagination justify-content-center mb-0">
+                                    <li class="page-item @(Model.WaitlistPage.Page <= 1 ? "disabled" : "")">
+                                        <a class="page-link" asp-page="./Waitlists" asp-route-pageNumber="@(Model.WaitlistPage.Page - 1)" aria-label="Trang trước">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    @for (var pageIndex = 1; pageIndex <= Model.WaitlistPage.TotalPages; pageIndex++)
+                                    {
+                                        <li class="page-item @(pageIndex == Model.WaitlistPage.Page ? "active" : "")">
+                                            <a class="page-link" asp-page="./Waitlists" asp-route-pageNumber="@pageIndex">@pageIndex</a>
+                                        </li>
+                                    }
+                                    <li class="page-item @(Model.WaitlistPage.Page >= Model.WaitlistPage.TotalPages ? "disabled" : "")">
+                                        <a class="page-link" asp-page="./Waitlists" asp-route-pageNumber="@(Model.WaitlistPage.Page + 1)" aria-label="Trang sau">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        }
                     }
                 </div>
             </div>
