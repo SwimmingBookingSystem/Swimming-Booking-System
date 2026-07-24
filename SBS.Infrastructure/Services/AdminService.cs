@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Dtos.Admin;
@@ -95,10 +95,10 @@ public class AdminService : IAdminService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            return ResultDto.Failure(new[] { "NgÆ°á»i dĂ¹ng khĂ´ng tá»“n táº¡i." });
+            return ResultDto.Failure(new[] { "Người dùng không tồn tại." });
 
         if (user.Status == "Locked")
-            return ResultDto.Failure(new[] { "TĂ i khoáº£n Ä‘Ă£ bá»‹ khĂ³a." });
+            return ResultDto.Failure(new[] { "Tài khoản đã bị khóa." });
 
         user.Status = "Locked";
         user.UpdatedAt = DateTime.UtcNow;
@@ -117,10 +117,10 @@ public class AdminService : IAdminService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            return ResultDto.Failure(new[] { "NgÆ°á»i dĂ¹ng khĂ´ng tá»“n táº¡i." });
+            return ResultDto.Failure(new[] { "Người dùng không tồn tại." });
 
         if (user.Status == "Active")
-            return ResultDto.Failure(new[] { "TĂ i khoáº£n Ä‘ang hoáº¡t Ä‘á»™ng." });
+            return ResultDto.Failure(new[] { "Tài khoản đang hoạt động." });
 
         var roles = await _userManager.GetRolesAsync(user);
         if (roles.Contains("Manager"))
@@ -149,7 +149,7 @@ public class AdminService : IAdminService
                 .AnyAsync(x => x.RoleName == "Manager" && x.u.Status == "Active" && x.u.Id != userId, cancellationToken);
 
             if (activeManagerExists)
-                return ResultDto.Failure(new[] { "ÄĂ£ cĂ³ manager Ä‘ang hoáº¡t Ä‘á»™ng. Vui lĂ²ng khĂ³a manager hiá»‡n táº¡i trÆ°á»›c khi má»Ÿ khĂ³a manager nĂ y." });
+                return ResultDto.Failure(new[] { "Đã có manager đang hoạt động. Vui lòng khóa manager hiện tại trước khi mở khóa manager này." });
         }
 
         user.Status = "Active";
@@ -191,12 +191,12 @@ public class AdminService : IAdminService
         {
             var poolExists = await _readContext.Pools.AnyAsync(p => p.PoolId == poolId.Value, cancellationToken);
             if (!poolExists)
-                return ResultDto.Failure(new[] { "Bá»ƒ bÆ¡i khĂ´ng tá»“n táº¡i." });
+                return ResultDto.Failure(new[] { "Bể bơi không tồn tại." });
 
             var alreadyAssigned = await _readContext.PoolStaffAssignments
                 .AnyAsync(a => a.PoolId == poolId.Value, cancellationToken);
             if (alreadyAssigned)
-                return ResultDto.Failure(new[] { "Bá»ƒ bÆ¡i nĂ y Ä‘Ă£ cĂ³ nhĂ¢n viĂªn phá»¥ trĂ¡ch." });
+                return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên phụ trách." });
 
             var assignment = new PoolStaffAssignment
             {
@@ -238,7 +238,7 @@ public class AdminService : IAdminService
             .FirstOrDefaultAsync(x => x.RoleName == "Manager" && x.u.Status == "Active", cancellationToken);
 
         if (existingActiveManager != null)
-            return ResultDto.Failure(new[] { "Manager hiá»‡n táº¡i Ä‘ang hoáº¡t Ä‘á»™ng. Vui lĂ²ng khĂ³a manager cÅ© trÆ°á»›c khi táº¡o má»›i." });
+            return ResultDto.Failure(new[] { "Manager hiện tại đang hoạt động. Vui lòng khóa manager cũ trước khi tạo mới." });
 
         var user = new AppUser
         {
@@ -268,7 +268,7 @@ public class AdminService : IAdminService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            return ResultDto.Failure(new[] { "NgÆ°á»i dĂ¹ng khĂ´ng tá»“n táº¡i." });
+            return ResultDto.Failure(new[] { "Người dùng không tồn tại." });
 
         user.UserName = dto.UserName;
         user.Email = dto.Email;
@@ -299,7 +299,7 @@ public class AdminService : IAdminService
         {
             var poolExists = await _readContext.Pools.AnyAsync(p => p.PoolId == dto.PoolId.Value, cancellationToken);
             if (!poolExists)
-                return ResultDto.Failure(new[] { "Bá»ƒ bÆ¡i khĂ´ng tá»“n táº¡i." });
+                return ResultDto.Failure(new[] { "Bể bơi không tồn tại." });
 
             if (currentAssignment != null)
             {
@@ -308,7 +308,7 @@ public class AdminService : IAdminService
                     var alreadyAssigned = await _readContext.PoolStaffAssignments
                         .AnyAsync(a => a.PoolId == dto.PoolId.Value && a.StaffId != userId, cancellationToken);
                     if (alreadyAssigned)
-                        return ResultDto.Failure(new[] { "Bá»ƒ bÆ¡i nĂ y Ä‘Ă£ cĂ³ nhĂ¢n viĂªn khĂ¡c phá»¥ trĂ¡ch." });
+                        return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên khác phụ trách." });
 
                     currentAssignment.PoolId = dto.PoolId.Value;
                     await _writeContext.SaveChangesAsync(cancellationToken);
@@ -319,7 +319,7 @@ public class AdminService : IAdminService
                 var alreadyAssigned = await _readContext.PoolStaffAssignments
                     .AnyAsync(a => a.PoolId == dto.PoolId.Value, cancellationToken);
                 if (alreadyAssigned)
-                    return ResultDto.Failure(new[] { "Bá»ƒ bÆ¡i nĂ y Ä‘Ă£ cĂ³ nhĂ¢n viĂªn phá»¥ trĂ¡ch." });
+                    return ResultDto.Failure(new[] { "Bể bơi này đã có nhân viên phụ trách." });
 
                 var assignment = new PoolStaffAssignment
                 {
@@ -538,16 +538,16 @@ public class AdminService : IAdminService
     {
         var adminIdString = _currentUserService.UserId;
         if (string.IsNullOrEmpty(adminIdString) || !Guid.TryParse(adminIdString, out var adminId))
-            return ResultDto.Failure(new[] { "Admin chÆ°a Ä‘Äƒng nháº­p hoáº·c khĂ´ng há»£p lá»‡." });
+            return ResultDto.Failure(new[] { "Admin chưa đăng nhập hoặc không hợp lệ." });
 
         var contact = await _writeContext.ContactRequests
             .FirstOrDefaultAsync(c => c.ContactRequestId == contactRequestId, cancellationToken);
 
         if (contact is null)
-            return ResultDto.Failure(new[] { "KhĂ´ng tĂ¬m tháº¥y yĂªu cáº§u há»— trá»£." });
+            return ResultDto.Failure(new[] { "Không tìm thấy yêu cầu hỗ trợ." });
 
         if (contact.Status != "Pending")
-            return ResultDto.Failure(new[] { $"YĂªu cáº§u há»— trá»£ nĂ y Ä‘Ă£ Ä‘Æ°á»£c xá»­ lĂ½ (Tráº¡ng thĂ¡i: {contact.Status})." });
+            return ResultDto.Failure(new[] { $"Yêu cầu hỗ trợ này đã được xử lý (Trạng thái: {contact.Status})." });
 
         contact.Status = "Resolved";
         contact.HandledByUserId = adminId;
@@ -557,15 +557,15 @@ public class AdminService : IAdminService
 
         try
         {
-            var emailSubject = $"Pháº£n há»“i yĂªu cáº§u há»— trá»£: {contact.Category}";
+            var emailSubject = $"Phản hồi yêu cầu hỗ trợ: {contact.Category}";
             var emailBody = $@"
-                    <p>ChĂ o {contact.FullName},</p>
-                    <p>Ban quáº£n lĂ½ SBS Ä‘Ă£ pháº£n há»“i yĂªu cáº§u há»— trá»£ cá»§a báº¡n nhÆ° sau:</p>
+                    <p>Chào {contact.FullName},</p>
+                    <p>Ban quản lý SBS đã phản hồi yêu cầu hỗ trợ của bạn như sau:</p>
                     <hr/>
                     <p>{responseMessage}</p>
                     <hr/>
-                    <p>Náº¿u báº¡n cĂ²n tháº¯c máº¯c, vui lĂ²ng liĂªn há»‡ láº¡i vá»›i chĂºng tĂ´i qua email nĂ y.</p>
-                    <p>TrĂ¢n trá»ng,<br>Ban quáº£n lĂ½ SBS</p>";
+                    <p>Nếu bạn còn thắc mắc, vui lòng liên hệ lại với chúng tôi qua email này.</p>
+                    <p>Trân trọng,<br>Ban quản lý SBS</p>";
 
             await _emailService.SendEmailAsync(contact.Email, emailSubject, emailBody);
         }
@@ -648,4 +648,3 @@ public class AdminService : IAdminService
         };
     }
 }
-
