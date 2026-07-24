@@ -35,7 +35,10 @@ public class EmailService : IEmailService
         {
             From = new MailAddress(username!),
             Subject = subject,
+            SubjectEncoding = System.Text.Encoding.UTF8,
             Body = body,
+            BodyEncoding = System.Text.Encoding.UTF8,
+            HeadersEncoding = System.Text.Encoding.UTF8,
             IsBodyHtml = true
         };
         mailMessage.To.Add(toEmail);

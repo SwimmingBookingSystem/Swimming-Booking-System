@@ -14,12 +14,6 @@ const api = {
             $('#global-loader').css('display', 'flex');
             
             const token = window.ACCESS_TOKEN;
-            if (!token) {
-                $('#global-loader').hide();
-                window.location.href = '/Auth/Logout';
-                reject(new Error("No active session available"));
-                return;
-            }
 
             const headers = {
                 'Content-Type': 'application/json',

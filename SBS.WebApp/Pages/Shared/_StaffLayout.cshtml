@@ -116,6 +116,18 @@
         window.REFRESH_TOKEN = '@(User.FindFirst("RefreshToken")?.Value ?? "")';
         window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
 
+        function isTokenExpired(token) {
+            if (!token) return true;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(atob(base64));
+                return (Date.now() / 1000) >= payload.exp;
+            } catch (e) {
+                return true;
+            }
+        }
+
         // TỰ ĐỘNG cấu hình gửi kèm JWT Token và tự động Refresh Token cho Staff khi AccessToken (15 phút) hết hạn
         $.ajaxSetup({
             beforeSend: function(xhr) {
@@ -125,7 +137,7 @@
             },
             statusCode: {
                 401: function() {
-                    if (window.REFRESH_TOKEN && !window.IS_REFRESHING) {
+                    if (isTokenExpired(window.ACCESS_TOKEN) && window.REFRESH_TOKEN && !window.IS_REFRESHING) {
                         window.IS_REFRESHING = true;
                         $.ajax({
                             url: window.API_BASE_URL + '/api/Auth/refresh',
@@ -150,6 +162,9 @@
                                 window.location.href = '/Auth/Login';
                             }
                         });
+                    } else if (!isTokenExpired(window.ACCESS_TOKEN)) {
+                        // Token chưa hết hạn mà nhận lỗi 401 thì chuyển hướng sang Logout luôn
+                        window.location.href = '/Auth/Logout';
                     }
                 }
             }

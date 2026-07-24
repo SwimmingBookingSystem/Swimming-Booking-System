@@ -212,6 +212,27 @@
                             try { dataObj = JSON.parse(xhr.responseText); } catch(e) {}
                             
                             if (status === 401) {
+                                function isTokenExpired(token) {
+                                    if (!token) return true;
+                                    try {
+                                        const base64Url = token.split('.')[1];
+                                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                                        const payload = JSON.parse(atob(base64));
+                                        return (Date.now() / 1000) >= payload.exp;
+                                    } catch (e) {
+                                        return true;
+                                    }
+                                }
+
+                                if (!isTokenExpired(window.ACCESS_TOKEN)) {
+                                    // Token chưa hết hạn mà nhận lỗi 401 thì không có quyền truy cập thực sự -> Cho Logout luôn
+                                    $('#global-loader').hide();
+                                    toastr.error('Bạn không có quyền thực hiện thao tác này.');
+                                    setTimeout(() => window.location.href = '/Auth/Logout', 1500);
+                                    reject(xhr);
+                                    return;
+                                }
+
                                 // BẮT ĐẦU REFRESH TOKEN LOGIC
                                 const retryRequest = new Promise((resolveRetry, rejectRetry) => {
                                     subscribeTokenRefresh((newToken) => {
