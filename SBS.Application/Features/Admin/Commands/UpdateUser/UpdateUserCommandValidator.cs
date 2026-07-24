@@ -33,5 +33,10 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
         RuleFor(x => x.PoolId)
             .GreaterThan(0).WithMessage("Bể bơi không hợp lệ.")
             .When(x => x.PoolId.HasValue);
+
+        RuleFor(x => x.Password)
+            .MinimumLength(6).WithMessage("Mật khẩu phải có ít nhất 6 ký tự.")
+            .MaximumLength(100).WithMessage("Mật khẩu không được vượt quá 100 ký tự.")
+            .When(x => !string.IsNullOrEmpty(x.Password));
     }
 }

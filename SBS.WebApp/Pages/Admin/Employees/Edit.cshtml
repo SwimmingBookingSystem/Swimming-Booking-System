@@ -52,6 +52,15 @@
                             <input type="text" class="form-control" id="address">
                         </div>
                         <div class="col-12">
+                            <label class="form-label fw-medium small text-muted">Mật khẩu</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" placeholder="Để trống nếu không đổi">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12">
                             <label class="form-label fw-medium small text-muted">Phân công bể bơi</label>
                             <select class="form-select" id="poolId">
                                 <option value="">--- Không phân công ---</option>
@@ -126,7 +135,8 @@
                     gender: $('#gender').val() || null,
                     dob: $('#dob').val() || null,
                     address: $('#address').val().trim() || null,
-                    poolId: $('#poolId').val() ? parseInt($('#poolId').val()) : null
+                    poolId: $('#poolId').val() ? parseInt($('#poolId').val()) : null,
+                    password: $('#password').val() || null
                 };
 
                 try {
@@ -137,6 +147,18 @@
                     $btn.prop('disabled', false).html('<i class="fa-solid fa-save me-2"></i>Lưu thay đổi');
                 }
             });
+        });
+
+        $('#togglePassword').click(function() {
+            const input = $('#password');
+            const icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
         });
     </script>
 }
