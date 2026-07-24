@@ -113,7 +113,47 @@
         // Lấy token được giải mã ở server và nhúng vào biến JS
         // Cookie gốc đã được trình duyệt ẩn đi và mã hóa qua .AspNetCore.Cookies (HttpOnly)
         window.ACCESS_TOKEN = '@(User.FindFirst("AccessToken")?.Value ?? "")';
+        window.REFRESH_TOKEN = '@(User.FindFirst("RefreshToken")?.Value ?? "")';
         window.API_BASE_URL = '@Configuration["PublicApiBaseUrl"]' || window.location.origin;
+
+        // TỰ ĐỘNG cấu hình gửi kèm JWT Token và tự động Refresh Token cho Staff khi AccessToken (15 phút) hết hạn
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                if (window.ACCESS_TOKEN) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + window.ACCESS_TOKEN);
+                }
+            },
+            statusCode: {
+                401: function() {
+                    if (window.REFRESH_TOKEN && !window.IS_REFRESHING) {
+                        window.IS_REFRESHING = true;
+                        $.ajax({
+                            url: window.API_BASE_URL + '/api/Auth/refresh',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                accessToken: window.ACCESS_TOKEN,
+                                refreshToken: window.REFRESH_TOKEN
+                            }),
+                            success: function(res) {
+                                window.IS_REFRESHING = false;
+                                if (res && res.accessToken) {
+                                    window.ACCESS_TOKEN = res.accessToken;
+                                    window.REFRESH_TOKEN = res.refreshToken || window.REFRESH_TOKEN;
+                                    location.reload();
+                                } else {
+                                    window.location.href = '/Auth/Login';
+                                }
+                            },
+                            error: function() {
+                                window.IS_REFRESHING = false;
+                                window.location.href = '/Auth/Login';
+                            }
+                        });
+                    }
+                }
+            }
+        });
 
         $(document).ready(function() {
             var poolName = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(staffPoolName))';

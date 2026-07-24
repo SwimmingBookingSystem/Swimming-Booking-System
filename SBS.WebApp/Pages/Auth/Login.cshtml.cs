@@ -93,7 +93,7 @@ public class LoginModel : PageModel
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
-                ExpiresUtc = apiResult.ExpiryDate > DateTime.UtcNow ? apiResult.ExpiryDate : DateTime.UtcNow.AddMinutes(30)
+                ExpiresUtc = apiResult.ExpiryDate > DateTime.UtcNow ? apiResult.ExpiryDate : DateTime.UtcNow.AddDays(7)
             };
 
             // Tiến hành ghi Cookie mã hóa (.AspNetCore.Cookies) xuống Browser của người dùng
