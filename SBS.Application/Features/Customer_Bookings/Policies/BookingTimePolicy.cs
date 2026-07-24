@@ -7,13 +7,10 @@ public static class BookingTimePolicy
     private static readonly TimeZoneInfo VietnamTimeZone =
         TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
-    public static (DateOnly Date, TimeSpan Time) GetVietnamDateAndTime(DateTime utcNow)
+    public static (DateOnly Date, TimeSpan Time) GetVietnamDateAndTime(DateTime dateTimeNow)
     {
-        var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(
-            DateTime.SpecifyKind(utcNow, DateTimeKind.Utc),
-            VietnamTimeZone);
-
-        return (DateOnly.FromDateTime(vietnamNow), vietnamNow.TimeOfDay);
+        // Trả về trực tiếp thời gian local thay vì convert từ UTC
+        return (DateOnly.FromDateTime(dateTimeNow), dateTimeNow.TimeOfDay);
     }
 
     public static bool IsBookingClosed(
@@ -42,6 +39,7 @@ public static class BookingTimePolicy
             TimeOnly.FromTimeSpan(slotEndTime - TimeSpan.FromMinutes(MinimumRemainingSwimmingMinutes)),
             DateTimeKind.Unspecified);
 
-        return TimeZoneInfo.ConvertTimeToUtc(localCutoff, VietnamTimeZone);
+        // Đã đổi sang dùng Local Time thay vì UTC nên trả về thẳng localCutoff
+        return localCutoff;
     }
 }

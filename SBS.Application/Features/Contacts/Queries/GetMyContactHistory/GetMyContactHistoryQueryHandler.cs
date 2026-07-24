@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Interfaces;
@@ -20,6 +21,8 @@ public class GetMyContactHistoryQueryHandler : IRequestHandler<GetMyContactHisto
 
     public async Task<PagedResultDto<ContactHistoryDto>> Handle(GetMyContactHistoryQuery request, CancellationToken cancellationToken)
     {
+        var pageNumber = Math.Max(1, request.PageNumber);
+        var pageSize = Math.Clamp(request.PageSize, 1, 50);
         var repository = _readOnlyUow.Repository<ContactRequest>();
         var query = repository.Query()
             .Where(x => x.UserId == request.UserId);
@@ -28,8 +31,8 @@ public class GetMyContactHistoryQueryHandler : IRequestHandler<GetMyContactHisto
 
         var paginatedQuery = query
             .OrderByDescending(x => x.CreatedAt)
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize);
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize);
 
         var entities = await _readOnlyUow.ToListAsync(paginatedQuery, cancellationToken);
 
@@ -49,8 +52,8 @@ public class GetMyContactHistoryQueryHandler : IRequestHandler<GetMyContactHisto
         {
             Items = items,
             TotalCount = totalCount,
-            Page = request.PageNumber,
-            PageSize = request.PageSize
+            Page = pageNumber,
+            PageSize = pageSize
         };
     }
 }

@@ -53,7 +53,7 @@ public class JoinWaitlistCommandHandler : IRequestHandler<JoinWaitlistCommand, J
         if (slot.Status != "Open")
             return new JoinWaitlistResultDto { Succeeded = false, Message = "Ca bơi này hiện không mở để tham gia hàng đợi." };
 
-        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
         if (BookingTimePolicy.IsBookingClosed(slot.SlotDate, slot.EndTime, today, timeNow))
         {
             return new JoinWaitlistResultDto
@@ -91,7 +91,7 @@ public class JoinWaitlistCommandHandler : IRequestHandler<JoinWaitlistCommand, J
             Quantity = 1,
             Position = maxPosition + 1,
             Status = WaitlistStatus.Waiting,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         await waitlistRepo.AddAsync(newEntry, cancellationToken);
