@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -56,10 +57,7 @@ public class AuthService : IAuthService
             return AuthResultDto.Failure(new[] { "Tài khoản đang bị khóa hoặc ngừng hoạt động." });
         }
 
-        if (!user.EmailConfirmed)
-        {
-            return AuthResultDto.Failure(new[] { "Tài khoản chưa được xác thực email. Vui lòng xác thực bằng mã OTP trước khi đăng nhập." });
-        }
+
 
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
@@ -281,75 +279,65 @@ public class AuthService : IAuthService
         string? address,
         CancellationToken cancellationToken = default)
     {
-        // Check duplicate Email
+        // Kiểm tra Email đã tồn tại trong DB
         var existingUserByEmail = await _userManager.FindByEmailAsync(email);
         if (existingUserByEmail != null)
         {
-            // If the existing user has NOT confirmed their email, we can delete it and let the registration recreate it
-            if (!existingUserByEmail.EmailConfirmed)
-            {
-                await _userManager.DeleteAsync(existingUserByEmail);
-            }
-            else
-            {
-                return ResultDto.Failure(new[] { "Email đã được sử dụng." });
-            }
+            return ResultDto.Failure(new[] { "Email đã được sử dụng." });
         }
 
-        // Check duplicate PhoneNumber
+        // Kiểm tra trùng UserName trong DB
+        var existingUserByName = await _userManager.FindByNameAsync(userName);
+        if (existingUserByName != null)
+        {
+            return ResultDto.Failure(new[] { "Tên đăng nhập đã được sử dụng." });
+        }
+
+        // Kiểm tra trùng PhoneNumber trong DB
         if (!string.IsNullOrEmpty(phoneNumber))
         {
-            var existingUserByPhone = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
+            var existingUserByPhone = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
             if (existingUserByPhone != null)
             {
-                // If the existing user has NOT confirmed their email, we can delete it and let the registration recreate it
-                if (!existingUserByPhone.EmailConfirmed)
-                {
-                    await _userManager.DeleteAsync(existingUserByPhone);
-                }
-                else
-                {
-                    return ResultDto.Failure(new[] { "Số điện thoại đã được sử dụng." });
-                }
+                return ResultDto.Failure(new[] { "Số điện thoại đã được sử dụng." });
             }
         }
 
-        // Create the user object
-        var user = new AppUser
+        // Kiểm tra mật khẩu chỉ cần ít nhất 6 ký tự
+        if (string.IsNullOrEmpty(password) || password.Length < 6)
         {
-            Id = Guid.NewGuid(),
+            return ResultDto.Failure(new[] { "Mật khẩu phải có ít nhất 6 ký tự." });
+        }
+
+        // Sinh mã OTP 6 chữ số ngẫu nhiên
+        var otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        // Lưu tạm thông tin đăng ký vào Cache (đợi xác thực OTP mới lưu DB)
+        // Thời gian lưu 24h để người dùng thoải mái xác thực hoặc gửi lại OTP
+        var tempData = new TempRegistrationDto
+        {
             UserName = userName,
             Email = email,
+            Password = password,
             FullName = fullName,
             PhoneNumber = phoneNumber,
-            Address = address,
             Dob = dob,
-            Gender = null,
-            Status = "Active",
-            EmailConfirmed = false, // Must verify OTP to set to true
-            CreatedAt = DateTime.UtcNow
+            Address = address,
+            Otp = otp
         };
 
-        // This will run all default Identity validations (e.g. Password Policy) immediately at registration!
-        var result = await _userManager.CreateAsync(user, password);
-        if (!result.Succeeded)
+        var cacheKey = $"temp_reg:{email}";
+        var cacheOptions = new DistributedCacheEntryOptions
         {
-            var errors = result.Errors.Select(e => e.Description);
-            return ResultDto.Failure(errors);
-        }
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+        };
+        await _cache.SetStringAsync(cacheKey, JsonConvert.SerializeObject(tempData), cacheOptions, cancellationToken);
 
-        var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
-        if (!roleResult.Succeeded)
-        {
-            var errors = roleResult.Errors.Select(e => e.Description);
-            return ResultDto.Failure(errors);
-        }
-
-        // Generate OTP
+        // Gửi email OTP
         try
         {
-            var otp = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "EmailConfirmation");
-            await _emailService.SendEmailAsync(email, "Xác thực tài khoản - Swimming Booking System", 
+            await _emailService.SendEmailAsync(email, "Xác thực tài khoản - Swimming Booking System",
                 $"Chào {fullName},<br/><br/>Cảm ơn bạn đã đăng ký tài khoản tại Swimming Booking System. " +
                 $"Mã OTP xác thực tài khoản của bạn là: <strong>{otp}</strong>. Mã này có hiệu lực trong vòng 5 phút.<br/><br/>" +
                 $"Nếu bạn không yêu cầu đăng ký này, vui lòng bỏ qua email này.");
@@ -364,58 +352,91 @@ public class AuthService : IAuthService
 
     public async Task<ResultDto> VerifyOtpAsync(string email, string otp, CancellationToken cancellationToken = default)
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+        // Lấy thông tin đăng ký tạm từ Cache
+        var cacheKey = $"temp_reg:{email}";
+        var cachedData = await _cache.GetStringAsync(cacheKey, cancellationToken);
+
+        if (string.IsNullOrEmpty(cachedData))
         {
-            return ResultDto.Failure(new[] { "Không tìm thấy thông tin tài khoản." });
+            return ResultDto.Failure(new[] { "Mã OTP không đúng hoặc đã hết hạn. Vui lòng đăng ký lại." });
         }
 
-        if (user.EmailConfirmed)
+        var tempData = JsonConvert.DeserializeObject<TempRegistrationDto>(cachedData);
+        if (tempData == null)
         {
-            return ResultDto.Failure(new[] { "Email đã được xác thực trước đó." });
+            return ResultDto.Failure(new[] { "Dữ liệu đăng ký không hợp lệ." });
         }
 
-        var isValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "EmailConfirmation", otp);
-        if (!isValid)
+        // So sánh OTP người dùng nhập
+        if (tempData.Otp != otp)
         {
-            return ResultDto.Failure(new[] { "Mã OTP không đúng hoặc đã hết hạn." });
+            return ResultDto.Failure(new[] { "Mã OTP không chính xác." });
         }
 
-        user.EmailConfirmed = true;
-        user.Status = "Active";
-        var updateResult = await _userManager.UpdateAsync(user);
-        if (!updateResult.Succeeded)
+        // OTP hợp lệ → Tạo tài khoản trong Database
+        var user = new AppUser
         {
-            var errors = updateResult.Errors.Select(e => e.Description);
-            return ResultDto.Failure(errors);
+            Id = Guid.NewGuid(),
+            UserName = tempData.UserName,
+            Email = tempData.Email,
+            FullName = tempData.FullName,
+            PhoneNumber = tempData.PhoneNumber,
+            Address = tempData.Address,
+            Dob = tempData.Dob,
+            Gender = null,
+            Status = "Active",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, tempData.Password);
+        if (!result.Succeeded)
+        {
+            return ResultDto.Failure(result.Errors.Select(e => e.Description));
         }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
+        if (!roleResult.Succeeded)
+        {
+            return ResultDto.Failure(roleResult.Errors.Select(e => e.Description));
+        }
+
+        // Xóa dữ liệu tạm khỏi Cache
+        await _cache.RemoveAsync(cacheKey, cancellationToken);
 
         return ResultDto.Success();
     }
 
     public async Task<ResultDto> ResendOtpAsync(string email, CancellationToken cancellationToken = default)
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+        // Lấy dữ liệu đăng ký tạm từ Cache
+        var cacheKey = $"temp_reg:{email}";
+        var cachedData = await _cache.GetStringAsync(cacheKey, cancellationToken);
+
+        if (string.IsNullOrEmpty(cachedData))
         {
-            return ResultDto.Failure(new[] { "Không tìm thấy thông tin tài khoản." });
+            return ResultDto.Failure(new[] { "Không tìm thấy thông tin đăng ký. Vui lòng đăng ký lại." });
         }
 
-        if (user.EmailConfirmed)
+        var tempData = JsonConvert.DeserializeObject<TempRegistrationDto>(cachedData);
+        if (tempData == null)
         {
-            return ResultDto.Failure(new[] { "Email đã được xác thực trước đó." });
+            return ResultDto.Failure(new[] { "Dữ liệu đăng ký không hợp lệ." });
         }
 
-        // Invalidate any older tokens for security
-        await _userManager.UpdateSecurityStampAsync(user);
+        // Sinh OTP mới và cập nhật lại Cache
+        tempData.Otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+        };
+        await _cache.SetStringAsync(cacheKey, JsonConvert.SerializeObject(tempData), cacheOptions, cancellationToken);
 
-        var otp = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, "EmailConfirmation");
-        
         try
         {
-            await _emailService.SendEmailAsync(email, "Gửi lại mã OTP - Swimming Booking System", 
-                $"Chào {user.FullName},<br/><br/>Yêu cầu gửi lại mã OTP xác thực tài khoản của bạn đã được thực hiện. " +
-                $"Mã OTP mới là: <strong>{otp}</strong>. Mã này có hiệu lực trong vòng 5 phút.<br/><br/>" +
+            await _emailService.SendEmailAsync(email, "Gửi lại mã OTP - Swimming Booking System",
+                $"Chào {tempData.FullName},<br/><br/>Yêu cầu gửi lại mã OTP xác thực tài khoản của bạn đã được thực hiện. " +
+                $"Mã OTP mới là: <strong>{tempData.Otp}</strong>. Mã này có hiệu lực trong vòng 5 phút.<br/><br/>" +
                 $"Nếu bạn không yêu cầu mã này, vui lòng bảo mật tài khoản của mình.");
         }
         catch (Exception)
