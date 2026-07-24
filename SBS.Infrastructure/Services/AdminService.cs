@@ -518,7 +518,7 @@ public class AdminService : IAdminService
         if (string.IsNullOrEmpty(adminIdString) || !Guid.TryParse(adminIdString, out var adminId))
             return ResultDto.Failure(new[] { "Admin chưa đăng nhập hoặc không hợp lệ." });
 
-        var contact = await _readContext.ContactRequests
+        var contact = await _writeContext.ContactRequests
             .FirstOrDefaultAsync(c => c.ContactRequestId == contactRequestId, cancellationToken);
 
         if (contact is null)
