@@ -145,19 +145,19 @@
                     const bookingDate = b.bookingDate;
 
                     html += `<tr>
-                        <td class="ps-4 fw-medium">${b.bookingCode}</td>
-                        <td>
+                        <td data-label="Mã đặt chỗ" class="ps-4 fw-medium">${b.bookingCode}</td>
+                        <td data-label="Khách hàng">
                             <div class="fw-medium">${b.customerName}</div>
                             <div class="small text-muted">${b.customerEmail || ''}</div>
                         </td>
-                        <td>
+                        <td data-label="Bể bơi / Giờ">
                             <div>${b.poolName}</div>
                             <div class="small text-muted">${b.slotName || ''} ${b.slotTime}</div>
                         </td>
-                        <td class="fw-medium">${money(b.totalAmount)}</td>
-                        <td class="text-center"><span class="booking-status ${st.cls}">${st.label}</span></td>
-                        <td class="text-center text-muted small">${bookingDate}</td>
-                        <td class="text-end pe-4 text-muted small">${date}</td>
+                        <td data-label="Số tiền" class="fw-medium">${money(b.totalAmount)}</td>
+                        <td data-label="Trạng thái" class="text-center"><span class="booking-status ${st.cls}">${st.label}</span></td>
+                        <td data-label="Ngày đặt" class="text-center text-muted small">${bookingDate}</td>
+                        <td data-label="Ngày tạo" class="text-end pe-4 text-muted small">${date}</td>
                     </tr>`;
                 });
             }

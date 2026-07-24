@@ -6,18 +6,28 @@
     ViewData["Breadcrumb"] = "Quản trị / Người dùng";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="d-flex gap-3 align-items-center">
-        <div class="input-group shadow-sm" style="width: 300px;">
-            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-            <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên, email, tài khoản...">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold text-dark mb-1" style="font-size: 22px;">Quản lý Người dùng</h4>
+        <p class="text-muted small mb-0">Quản lý tài khoản khách hàng trong hệ thống</p>
+    </div>
+</div>
+
+<div class="filter-box mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted mb-1">Tìm kiếm</label>
+            <input type="text" id="searchInput" class="form-control form-control-sm shadow-sm" placeholder="Tìm tên, email, tài khoản...">
         </div>
         <input type="hidden" id="roleFilter" value="Customer">
-        <select id="statusFilter" class="form-select shadow-sm" style="width: 160px;">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Active">Hoạt động</option>
-            <option value="Locked">Khóa</option>
-        </select>
+        <div class="col-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Trạng thái</label>
+            <select id="statusFilter" class="form-select form-select-sm shadow-sm">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Active">Hoạt động</option>
+                <option value="Locked">Khóa</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -151,7 +161,7 @@
                     const roleMap = { Customer: 'Khách hàng', Staff: 'Nhân viên', Manager: 'Quản lý', Admin: 'Quản trị viên' };
                     html += `
                         <tr>
-                            <td class="ps-4">
+                            <td data-label="Người dùng" class="ps-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <img src="${avatarUrl}" alt="${u.fullName}" class="rounded-circle object-fit-cover shadow-sm" width="40" height="40">
                                     <div>
@@ -160,11 +170,11 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="text-muted small">${u.email}</span></td>
-                            <td class="text-center text-muted small">${u.phoneNumber || '---'}</td>
-                            <td class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${roleMap[u.role] || u.role}</span></td>
-                            <td class="text-center">${statusBadge}</td>
-                            <td class="text-end pe-4">${lockBtn}</td>
+                            <td data-label="Email"><span class="text-muted small">${u.email}</span></td>
+                            <td data-label="Số điện thoại" class="text-center text-muted small">${u.phoneNumber || '---'}</td>
+                            <td data-label="Vai trò" class="text-center"><span class="badge bg-${roleBadge} bg-opacity-10 text-${roleBadge} rounded-pill px-3 py-2 fw-bold">${roleMap[u.role] || u.role}</span></td>
+                            <td data-label="Trạng thái" class="text-center">${statusBadge}</td>
+                            <td data-label="Hành động" class="text-end pe-4">${lockBtn}</td>
                         </tr>
                     `;
                 });
