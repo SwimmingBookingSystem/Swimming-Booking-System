@@ -1,3 +1,5 @@
+using System;
+
 namespace SBS.Application.Features.Customer_Bookings.Policies;
 
 public static class BookingTimePolicy
@@ -7,10 +9,14 @@ public static class BookingTimePolicy
     private static readonly TimeZoneInfo VietnamTimeZone =
         TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
-    public static (DateOnly Date, TimeSpan Time) GetVietnamDateAndTime(DateTime dateTimeNow)
+    public static (DateOnly Date, TimeSpan Time) GetVietnamDateAndTime(DateTime utcNow)
     {
-        // Trả về trực tiếp thời gian local thay vì convert từ UTC
-        return (DateOnly.FromDateTime(dateTimeNow), dateTimeNow.TimeOfDay);
+        var normalizedUtcNow = utcNow.Kind == DateTimeKind.Utc
+            ? utcNow
+            : utcNow.ToUniversalTime();
+        var vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(normalizedUtcNow, VietnamTimeZone);
+
+        return (DateOnly.FromDateTime(vietnamNow), vietnamNow.TimeOfDay);
     }
 
     public static bool IsBookingClosed(
@@ -33,13 +39,23 @@ public static class BookingTimePolicy
         return currentTime >= bookingCutoff;
     }
 
+    public static bool HasSlotEnded(
+        DateOnly slotDate,
+        TimeSpan slotEndTime,
+        DateOnly currentDate,
+        TimeSpan currentTime)
+    {
+        return slotDate < currentDate ||
+               (slotDate == currentDate && currentTime >= slotEndTime);
+    }
+
     public static DateTime GetBookingCutoffUtc(DateOnly slotDate, TimeSpan slotEndTime)
     {
-        var localCutoff = slotDate.ToDateTime(
-            TimeOnly.FromTimeSpan(slotEndTime - TimeSpan.FromMinutes(MinimumRemainingSwimmingMinutes)),
+        var vietnamCutoff = DateTime.SpecifyKind(
+            slotDate.ToDateTime(
+                TimeOnly.FromTimeSpan(slotEndTime - TimeSpan.FromMinutes(MinimumRemainingSwimmingMinutes))),
             DateTimeKind.Unspecified);
 
-        // Đã đổi sang dùng Local Time thay vì UTC nên trả về thẳng localCutoff
-        return localCutoff;
+        return TimeZoneInfo.ConvertTimeToUtc(vietnamCutoff, VietnamTimeZone);
     }
 }

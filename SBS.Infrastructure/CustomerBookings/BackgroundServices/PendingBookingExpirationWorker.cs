@@ -32,6 +32,7 @@ public class PendingBookingExpirationWorker : BackgroundService
             try
             {
                 await ProcessExpiredBookingsAsync(stoppingToken);
+                await ProcessExpiredPaidBookingsAsync(stoppingToken);
                 await ProcessExpiredWaitlistsAsync(stoppingToken);
             }
             catch (Exception ex)
@@ -50,7 +51,7 @@ public class PendingBookingExpirationWorker : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         // Find all bookings that are PendingPayment and deadline passed
         var expiredBookings = await context.Bookings
@@ -94,7 +95,7 @@ public class PendingBookingExpirationWorker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
+        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
 
         // Fetch potential expired waitlists (Waiting status and SlotDate <= today)
         var potentialExpiredWaitlists = await context.WaitlistEntries
@@ -114,6 +115,42 @@ public class PendingBookingExpirationWorker : BackgroundService
         {
             waitlist.Status = WaitlistStatus.Expired;
             _logger.LogInformation("Đã đóng lượt hàng chờ {WaitlistEntryId} của ca {PoolSlotId} vì thời gian bơi còn lại không quá 30 phút.", waitlist.WaitlistEntryId, waitlist.PoolSlotId);
+        }
+
+        await context.SaveChangesAsync(stoppingToken);
+    }
+
+    private async Task ProcessExpiredPaidBookingsAsync(CancellationToken stoppingToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var now = DateTime.UtcNow;
+        var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(now);
+
+        var potentialNoShows = await context.Bookings
+            .Include(b => b.PoolSlot)
+            .Where(b => b.Status == BookingStatus.Paid && b.CheckIn == null && b.PoolSlot.SlotDate <= currentDate)
+            .ToListAsync(stoppingToken);
+
+        var expiredPaidBookings = potentialNoShows
+            .Where(b => BookingTimePolicy.HasSlotEnded(
+                b.PoolSlot.SlotDate,
+                b.PoolSlot.EndTime,
+                currentDate,
+                currentTime))
+            .ToList();
+
+        if (!expiredPaidBookings.Any()) return;
+
+        foreach (var booking in expiredPaidBookings)
+        {
+            booking.Status = BookingStatus.Expired;
+            booking.UpdatedAt = now;
+            _logger.LogInformation(
+                "Đã chuyển booking {BookingId} sang hết hạn vì khách không check-in trước khi ca {PoolSlotId} kết thúc.",
+                booking.BookingId,
+                booking.PoolSlotId);
         }
 
         await context.SaveChangesAsync(stoppingToken);

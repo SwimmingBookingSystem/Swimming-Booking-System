@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SBS.Application.Common;
 using SBS.Application.Common.Interfaces;
 using SBS.Application.Features.Customer_Bookings.Dtos;
 using SBS.Application.Features.Customer_Bookings.Policies;
@@ -23,43 +24,50 @@ public class GetFullSlotsForWaitlistQueryHandler : IRequestHandler<GetFullSlotsF
 
     public async Task<List<AvailableSlotDto>> Handle(GetFullSlotsForWaitlistQuery request, CancellationToken cancellationToken)
     {
-        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.Now);
-
+        var (today, timeNow) = BookingTimePolicy.GetVietnamDateAndTime(DateTime.UtcNow);
         var slots = await _readOnlyUnitOfWork.Repository<PoolSlot>().Query()
             .AsNoTracking()
             .Include(s => s.Pool)
-            .Where(s => s.PoolId == request.PoolId && s.Capacity > 0 && s.Status == "Open")
-            .Where(s => s.SlotDate >= today)
+            .Include(s => s.Bookings.Where(b =>
+                b.Status == BookingStatus.PendingPayment ||
+                b.Status == BookingStatus.Paid ||
+                b.Status == BookingStatus.CheckIn))
+                .ThenInclude(b => b.BookingDetails)
+                    .ThenInclude(bd => bd.PoolTicketType)
+                        .ThenInclude(pt => pt.TicketType)
+                            .ThenInclude(tt => tt.ComboItems)
+            .Where(s => s.PoolId == request.PoolId && s.Capacity > 0 && s.Status == "Open" && s.SlotDate >= today)
             .OrderBy(s => s.SlotDate)
             .ThenBy(s => s.StartTime)
-            .Select(s => new AvailableSlotDto
-            {
-                PoolSlotId = s.PoolSlotId,
-                PoolId = s.PoolId,
-                PoolName = s.Pool.PoolName,
-                SlotName = s.SlotName,
-                StartTime = s.StartTime,
-                EndTime = s.EndTime,
-                SlotDate = s.SlotDate,
-                Capacity = s.Capacity,
-                AvailableCapacity = s.Capacity - (s.Bookings
-                    .Where(b => b.Status != "Cancelled" && b.Status != "Failed" && b.Status != "Refunded")
-                    .SelectMany(b => b.BookingDetails)
-                    .Sum(bd => (int?)bd.Quantity) ?? 0)
-            })
             .ToListAsync(cancellationToken);
 
-        // Lọc những slot có AvailableCapacity <= 0 (đã full)
-        foreach (var slot in slots)
-        {
-            slot.IsBookingClosed = BookingTimePolicy.IsBookingClosed(
-                slot.SlotDate, slot.EndTime, today, timeNow);
-        }
-
-        var fullSlots = slots
-            .Where(s => !s.IsBookingClosed && s.AvailableCapacity <= 0)
+        return slots
+            .Select(slot => new AvailableSlotDto
+            {
+                PoolSlotId = slot.PoolSlotId,
+                PoolId = slot.PoolId,
+                PoolName = slot.Pool.PoolName,
+                SlotName = slot.SlotName,
+                StartTime = slot.StartTime,
+                EndTime = slot.EndTime,
+                SlotDate = slot.SlotDate,
+                Capacity = slot.Capacity,
+                AvailableCapacity = Math.Max(0, slot.Capacity - CalculateBookedCapacity(slot)),
+                IsBookingClosed = BookingTimePolicy.IsBookingClosed(slot.SlotDate, slot.EndTime, today, timeNow)
+            })
+            .Where(slot => !slot.IsBookingClosed && slot.AvailableCapacity <= 0)
             .ToList();
-
-        return fullSlots;
     }
+
+    private static int CalculateBookedCapacity(PoolSlot slot) => slot.Bookings
+        .SelectMany(booking => booking.BookingDetails)
+        .Sum(detail =>
+        {
+            var ticketType = detail.PoolTicketType.TicketType;
+            var slotEquivalent = string.Equals(ticketType.Category, "Combo", StringComparison.OrdinalIgnoreCase)
+                ? ticketType.ComboItems.Sum(item => item.Quantity)
+                : 1;
+
+            return detail.Quantity * Math.Max(1, slotEquivalent);
+        });
 }
