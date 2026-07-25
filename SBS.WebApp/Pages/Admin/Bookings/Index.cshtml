@@ -141,8 +141,9 @@
                 const money = n => n.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
                 bookings.forEach(b => {
                     const st = statusMap[b.status] || { label: b.status, cls: 'bg-secondary bg-opacity-10 text-secondary' };
-                    const date = new Date(b.createdAt).toLocaleString('vi-VN');
-                    const bookingDate = b.bookingDate;
+                    const date = new Date(b.createdAt).toLocaleDateString('vi-VN');
+                    const [y, m, d] = b.bookingDate.split('-');
+                    const bookingDate = `${d}/${m}/${y}`;
 
                     html += `<tr>
                         <td data-label="Mã đặt chỗ" class="ps-4 fw-medium">${b.bookingCode}</td>

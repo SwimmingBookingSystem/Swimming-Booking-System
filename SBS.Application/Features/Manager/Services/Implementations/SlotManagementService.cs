@@ -61,6 +61,10 @@ public class SlotManagementService : ISlotManagementService
         if (request.Capacity < 1 || request.Capacity > pool.StandardCapacity)
             throw new BadRequestException($"Sức chứa ca bơi phải lớn hơn 0 và không vượt quá giới hạn an toàn của bể bơi ({pool.StandardCapacity} người).");
 
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (request.SlotDate < today || (request.SlotDate == today && request.StartTime <= DateTime.Now.TimeOfDay))
+            throw new BadRequestException("Không thể tạo ca bơi cho thời gian trong quá khứ.");
+
         bool hasOverlap = await _uow.AnyAsync(
             _uow.Repository<PoolSlot>().Query()
                 .Where(s => s.PoolId    == request.PoolId
@@ -116,9 +120,13 @@ public class SlotManagementService : ISlotManagementService
                      && s.SlotDate <= request.EndDate), ct);
 
         var slotsToInsert = new List<PoolSlot>();
-        
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var nowTime = DateTime.Now.TimeOfDay;
+
         for (var date = request.StartDate; date <= request.EndDate; date = date.AddDays(1))
         {
+            if (date < today) continue;
+
             var currentTime = pool.OpeningTime;
             
             while (currentTime.Add(TimeSpan.FromMinutes(request.DurationMinutes)) <= pool.ClosingTime)
@@ -130,7 +138,9 @@ public class SlotManagementService : ISlotManagementService
                     && s.StartTime < endTime 
                     && s.EndTime > currentTime);
 
-                if (!overlap)
+                bool isPastSlot = (date == today && currentTime <= nowTime);
+
+                if (!overlap && !isPastSlot)
                 {
                     slotsToInsert.Add(new PoolSlot
                     {
@@ -161,7 +171,9 @@ public class SlotManagementService : ISlotManagementService
                         && s.StartTime < endTime 
                         && s.EndTime > currentTime);
 
-                    if (!overlap)
+                    bool isPastSlot = (date == today && currentTime <= nowTime);
+
+                    if (!overlap && !isPastSlot)
                     {
                         slotsToInsert.Add(new PoolSlot
                         {
@@ -181,7 +193,7 @@ public class SlotManagementService : ISlotManagementService
 
         if (slotsToInsert.Count == 0)
         {
-            throw new BadRequestException("Không có ca bơi nào được tạo. Toàn bộ các khung giờ trong khoảng thời gian này đã bị trùng lịch với các ca bơi hiện có.");
+            throw new BadRequestException("Không có ca bơi nào được tạo. Các khung giờ trong khoảng thời gian này đã bị trùng lịch hoặc đã trôi qua so với thời điểm hiện tại.");
         }
 
         await _uow.Repository<PoolSlot>().AddRangeAsync(slotsToInsert, ct);

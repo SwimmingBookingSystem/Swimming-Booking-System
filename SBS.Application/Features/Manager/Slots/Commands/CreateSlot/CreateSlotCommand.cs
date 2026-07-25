@@ -54,8 +54,11 @@ public class CreateSlotCommandValidator : AbstractValidator<CreateSlotCommand>
             .WithMessage("Giờ kết thúc phải lớn hơn giờ bắt đầu.");
 
         RuleFor(x => x.SlotDate) 
-            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Now))
             .WithMessage("Ngày slot không được là ngày trong quá khứ.");
+
+        RuleFor(x => x)
+            .Must(x => !(x.SlotDate == DateOnly.FromDateTime(DateTime.Now) && x.StartTime <= DateTime.Now.TimeOfDay))
+            .WithMessage("Thời gian bắt đầu ca bơi của ngày hôm nay phải sau thời điểm hiện tại.");
     }
 }
-
