@@ -45,7 +45,6 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
         var utcNow = DateTime.UtcNow;
 
         // 2. Open Transaction for Idempotency and Updates
-        var purchasedFromWaitlist = false;
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -107,7 +106,6 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
             {
                 waitlistEntry.Status = WaitlistStatus.Purchased;
                 _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
-                purchasedFromWaitlist = true;
             }
             _unitOfWork.Repository<Booking>().Update(booking);
 
@@ -124,14 +122,6 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                     BookingCode = booking.BookingCode,
                     UserEmail = userProfile.Email,
                     QrCodeData = booking.QrCodeData
-                }, cancellationToken);
-            }
-
-            if (purchasedFromWaitlist)
-            {
-                await _publishEndpoint.Publish(new SlotCapacityFreedEvent
-                {
-                    PoolSlotId = booking.PoolSlotId
                 }, cancellationToken);
             }
 
