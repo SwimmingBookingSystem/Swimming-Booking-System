@@ -48,13 +48,19 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             throw new UnauthorizedAccessException("Bạn không có quyền xác nhận thanh toán cho đơn đặt vé này.");
         }
 
-        if (booking.Status == "Paid")
+        if (booking.Status == BookingStatus.Paid)
         {
             return true;
         }
 
-        // PayOS is the payment source of truth. This also recovers a booking that
-        // the expiration worker canceled while a local webhook was unreachable.
+        var utcNow = DateTime.UtcNow;
+        if (booking.Status != BookingStatus.PendingPayment ||
+            !booking.PaymentDeadline.HasValue ||
+            booking.PaymentDeadline <= utcNow)
+        {
+            throw new InvalidOperationException("Booking không còn ở trạng thái chờ thanh toán hợp lệ.");
+        }
+        // PayOS is the payment source of truth for a still-valid pending booking.
         var paymentInformation = await _payOSService.GetPaymentInformationAsync(request.BookingId);
         var expectedAmount = decimal.Truncate(booking.TotalAmount);
 
@@ -81,10 +87,18 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             booking = await _unitOfWork.Repository<Booking>().Query()
                 .FirstAsync(b => b.BookingId == request.BookingId, cancellationToken);
 
+            utcNow = DateTime.UtcNow;
+            if (booking.Status != BookingStatus.PendingPayment ||
+                !booking.PaymentDeadline.HasValue ||
+                booking.PaymentDeadline <= utcNow)
+            {
+                throw new InvalidOperationException("Booking không còn ở trạng thái chờ thanh toán hợp lệ.");
+            }
+
             var waitlistEntry = await _unitOfWork.Repository<WaitlistEntry>().Query()
                 .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
             if (waitlistEntry?.Status == WaitlistStatus.Offered &&
-                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.Now))
+                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= utcNow))
             {
                 throw new InvalidOperationException(
                     "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");
@@ -102,7 +116,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             }
 
             booking.Status = BookingStatus.Paid;
-            booking.UpdatedAt = DateTime.Now;
+            booking.UpdatedAt = utcNow;
             booking.QrCodeData ??= $"{booking.BookingCode}-{Guid.NewGuid()}";
 
             await _unitOfWork.Repository<Payment>().AddAsync(new Payment
@@ -113,7 +127,7 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
                     ? $"payos-order-{paymentInformation.OrderCode}"
                     : paymentInformation.TransactionReference,
                 Amount = booking.TotalAmount,
-                PaymentDate = DateTime.Now,
+                PaymentDate = utcNow,
                 Status = "Success"
             }, cancellationToken);
 
