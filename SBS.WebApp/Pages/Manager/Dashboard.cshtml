@@ -333,6 +333,23 @@
         let revenueChartInstance = null;
         let ticketChartInstance = null;
 
+        function formatCurrencyVND(amount) {
+            if (amount == null || isNaN(amount)) return '0 ₫';
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function formatCompactVND(amount) {
+            if (amount == null || isNaN(amount)) return '0';
+            if (amount >= 1000000000) {
+                return (amount / 1000000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' Tỷ';
+            } else if (amount >= 1000000) {
+                return (amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' Tr';
+            } else if (amount >= 1000) {
+                return (amount / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' K';
+            }
+            return amount.toLocaleString('vi-VN');
+        }
+
         $(document).ready(function() {
             // Set current date
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -362,9 +379,8 @@
                 $('#kpi-active-pools').text(stats.activePools);
                 $('#kpi-active-tickets').text(stats.activeTickets);
                 
-                // Format revenue to Triệu VNĐ (Millions)
-                const revenueInMillions = (stats.periodRevenue / 1000000).toFixed(1);
-                $('#kpi-revenue').text(revenueInMillions + 'M ₫');
+                // Hiển thị chuẩn tiền tệ VNĐ (ví dụ: 150.000 ₫ hoặc 1.500.000 ₫)
+                $('#kpi-revenue').text(formatCurrencyVND(stats.periodRevenue));
                 
                 // Initialize Charts with REAL DATA
                 initCharts(stats);
@@ -426,7 +442,7 @@
                 data: {
                     labels: stats.chartLabels, // Ngày thực tế từ API
                     datasets: [{
-                        label: 'Doanh thu (Triệu VNĐ)',
+                        label: 'Doanh thu (VNĐ)',
                         data: stats.chartData, // Doanh thu thực tế từ API
                         borderColor: '#0ea5e9',
                         backgroundColor: gradient,
@@ -443,9 +459,31 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = 'Doanh thu: ';
+                                    if (context.parsed.y !== null) {
+                                        label += formatCurrencyVND(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#e2e8f0' }, border: { display: false } },
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { borderDash: [5, 5], color: '#e2e8f0' }, 
+                            border: { display: false },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCompactVND(value);
+                                }
+                            }
+                        },
                         x: { grid: { display: false }, border: { display: false } }
                     }
                 }
