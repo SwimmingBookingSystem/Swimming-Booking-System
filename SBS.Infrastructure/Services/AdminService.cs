@@ -375,11 +375,7 @@ public class AdminService : IAdminService
             .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var totalUsers = await _readContext.Users.CountAsync(cancellationToken);
-        var totalBookings = await _readContext.Bookings.CountAsync(cancellationToken);
         var totalPools = await _readContext.Pools.CountAsync(cancellationToken);
-
-        var todayBookings = await _readContext.Bookings
-            .CountAsync(b => b.BookingDate == today, cancellationToken);
 
         var thisMonthRevenue = await _readContext.Bookings
             .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt >= startOfMonth)
@@ -463,9 +459,7 @@ public class AdminService : IAdminService
             {
                 TotalRevenue = totalRevenue,
                 TotalUsers = totalUsers,
-                TotalBookings = totalBookings,
                 TotalPools = totalPools,
-                TodayBookings = todayBookings,
                 ThisMonthRevenue = thisMonthRevenue,
                 NewUsersThisMonth = newUsersThisMonth
             },
