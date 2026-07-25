@@ -16,9 +16,7 @@ public class OverviewDto
 {
     public decimal TotalRevenue { get; set; }
     public int TotalUsers { get; set; }
-    public int TotalBookings { get; set; }
     public int TotalPools { get; set; }
-    public int TodayBookings { get; set; }
     public decimal ThisMonthRevenue { get; set; }
     public int NewUsersThisMonth { get; set; }
 }

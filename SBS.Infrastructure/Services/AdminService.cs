@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SBS.Application.Common.Dtos;
 using SBS.Application.Common.Dtos.Admin;
@@ -279,14 +279,6 @@ public class AdminService : IAdminService
         user.Dob = dto.Dob;
         user.UpdatedAt = DateTime.UtcNow;
 
-        if (!string.IsNullOrEmpty(dto.Password))
-        {
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var passwordResult = await _userManager.ResetPasswordAsync(user, token, dto.Password);
-            if (!passwordResult.Succeeded)
-                return ResultDto.Failure(passwordResult.Errors.Select(e => e.Description));
-        }
-
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
             return ResultDto.Failure(updateResult.Errors.Select(e => e.Description));
@@ -383,25 +375,7 @@ public class AdminService : IAdminService
             .SumAsync(b => (decimal?)b.TotalAmount, cancellationToken) ?? 0;
 
         var totalUsers = await _readContext.Users.CountAsync(cancellationToken);
-        var totalBookingsCount = await _readContext.Bookings.CountAsync(cancellationToken);
-        var totalPeopleBooked = await _readContext.BookingDetails.SumAsync(bd => (int?)bd.Quantity, cancellationToken) ?? 0;
-        var totalBookings = Math.Max(totalBookingsCount, totalPeopleBooked);
         var totalPools = await _readContext.Pools.CountAsync(cancellationToken);
-
-        var todayBookingsCount = await _readContext.Bookings
-            .CountAsync(b => b.BookingDate == today, cancellationToken);
-        var todayPeopleBooked = await _readContext.Bookings
-            .Where(b => b.BookingDate == today)
-            .SelectMany(b => b.BookingDetails)
-            .SumAsync(bd => (int?)bd.Quantity, cancellationToken) ?? 0;
-        var todayBookings = Math.Max(todayBookingsCount, todayPeopleBooked);
-
-        var todayWaitlist = await _readContext.WaitlistEntries
-            .Join(_readContext.PoolSlots,
-                w => w.PoolSlotId,
-                ps => ps.PoolSlotId,
-                (w, ps) => ps.SlotDate)
-            .CountAsync(sd => sd == today, cancellationToken);
 
         var thisMonthRevenue = await _readContext.Bookings
             .Where(b => (paidBookingStatuses.Contains(b.Status) || (b.Payment != null && (b.Payment.Status == "Success" || b.Payment.Status == "Completed"))) && b.CreatedAt >= startOfMonth)
@@ -485,9 +459,7 @@ public class AdminService : IAdminService
             {
                 TotalRevenue = totalRevenue,
                 TotalUsers = totalUsers,
-                TotalBookings = totalBookings,
                 TotalPools = totalPools,
-                TodayBookings = todayBookings + todayWaitlist,
                 ThisMonthRevenue = thisMonthRevenue,
                 NewUsersThisMonth = newUsersThisMonth
             },
