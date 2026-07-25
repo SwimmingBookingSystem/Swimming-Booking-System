@@ -142,6 +142,15 @@
                 return;
             }
 
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (date === todayStr) {
+                const nowTimeStr = new Date().toTimeString().split(' ')[0];
+                if (startTime <= nowTimeStr) {
+                    toastr.error('Thời gian bắt đầu ca bơi của ngày hôm nay phải sau thời điểm hiện tại.');
+                    return;
+                }
+            }
+
             const p = allPools.find(x => x.poolId == poolId);
             if(p) {
                 const checkStart = startTime.substring(0,5);
