@@ -79,7 +79,6 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
         }
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
-        var purchasedFromWaitlist = false;
         try
         {
             // Reload inside the transaction so webhook and return-url reconciliation
@@ -135,7 +134,6 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             {
                 waitlistEntry.Status = WaitlistStatus.Purchased;
                 _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
-                purchasedFromWaitlist = true;
             }
             _unitOfWork.Repository<Booking>().Update(booking);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -154,15 +152,6 @@ public sealed class ConfirmPaymentCommandHandler : IRequestHandler<ConfirmPaymen
             UserEmail = userProfile.Email,
             QrCodeData = booking.QrCodeData!
         }, cancellationToken);
-
-
-        if (purchasedFromWaitlist)
-        {
-            await _publishEndpoint.Publish(new SlotCapacityFreedEvent
-            {
-                PoolSlotId = booking.PoolSlotId
-            }, cancellationToken);
-        }
         return true;
     }
 }
