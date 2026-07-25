@@ -283,8 +283,19 @@ public class AdminService : IAdminService
         if (!updateResult.Succeeded)
             return ResultDto.Failure(updateResult.Errors.Select(e => e.Description));
 
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+        {
+            var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+            if (!removePasswordResult.Succeeded)
+                return ResultDto.Failure(removePasswordResult.Errors.Select(e => e.Description));
+
+            var addPasswordResult = await _userManager.AddPasswordAsync(user, dto.Password);
+            if (!addPasswordResult.Succeeded)
+                return ResultDto.Failure(addPasswordResult.Errors.Select(e => e.Description));
+        }
+
         // Handle pool assignment change
-        var currentAssignment = await _readContext.PoolStaffAssignments
+        var currentAssignment = await _writeContext.PoolStaffAssignments
             .FirstOrDefaultAsync(a => a.StaffId == userId, cancellationToken);
 
         if (dto.PoolId.HasValue)

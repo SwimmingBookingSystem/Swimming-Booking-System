@@ -130,7 +130,7 @@
             let html = '';
             bookings.forEach(b => {
                 const st = statusMap[b.status] || { label: b.status, cls: 'bg-secondary bg-opacity-10 text-secondary' };
-                const time = new Date(b.createdAt).toLocaleString('vi-VN');
+                const time = new Date(b.createdAt).toLocaleDateString('vi-VN');
                 html += `<tr>
                     <td data-label="Mã đặt chỗ" class="fw-medium">${b.bookingCode}</td>
                     <td data-label="Khách hàng">${b.customerName}</td>
