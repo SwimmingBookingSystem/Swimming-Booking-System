@@ -63,7 +63,7 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
                 var monthTotal = paymentsPeriod
                     .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Month == i)
                     .Sum(p => p.Amount);
-                dto.ChartData.Add(monthTotal / 1000000m);
+                dto.ChartData.Add(monthTotal);
                 dto.ChartLabels.Add($"Tháng {i}");
             }
         }
@@ -75,7 +75,7 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
                 var dailyTotal = paymentsPeriod
                     .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Day == i)
                     .Sum(p => p.Amount);
-                dto.ChartData.Add(dailyTotal / 1000000m);
+                dto.ChartData.Add(dailyTotal);
                 dto.ChartLabels.Add($"{i:00}/{today.Month:00}");
             }
         }
@@ -87,7 +87,7 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
                 var dailyTotal = paymentsPeriod
                     .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == date)
                     .Sum(p => p.Amount);
-                dto.ChartData.Add(dailyTotal / 1000000m);
+                dto.ChartData.Add(dailyTotal);
                 dto.ChartLabels.Add(date.ToString("dd/MM"));
             }
         }
