@@ -136,12 +136,12 @@
                                     window.REFRESH_TOKEN = res.refreshToken || window.REFRESH_TOKEN;
                                     location.reload();
                                 } else {
-                                    window.location.href = '/Auth/Login';
+                                    window.location.href = '/Auth/Logout';
                                 }
                             },
                             error: function() {
                                 window.IS_REFRESHING = false;
-                                window.location.href = '/Auth/Login';
+                                window.location.href = '/Auth/Logout';
                             }
                         });
                     } else if (!isTokenExpired(window.ACCESS_TOKEN)) {
