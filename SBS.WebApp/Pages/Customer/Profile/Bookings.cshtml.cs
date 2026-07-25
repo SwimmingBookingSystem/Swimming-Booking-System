@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+using SBS.WebApp.Models;
 using SBS.WebApp.Models.Profile;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -13,6 +13,7 @@ namespace SBS.WebApp.Pages.Customer.Profile;
 
 public class BookingsModel : PageModel
 {
+    private const int DefaultPageSize = 10;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
 
@@ -22,40 +23,50 @@ public class BookingsModel : PageModel
         _configuration = configuration;
     }
 
-    public List<CustomerBookingHistoryDto> Bookings { get; set; } = new List<CustomerBookingHistoryDto>();
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
+
+    public PagedResultDto<CustomerBookingHistoryDto> BookingPage { get; private set; } = new()
+    {
+        Page = 1,
+        PageSize = DefaultPageSize
+    };
 
     private HttpClient CreateClient()
     {
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(_configuration["ApiBaseUrl"] ?? "https://localhost:7179");
-        
+
         var token = User.FindFirst("AccessToken")?.Value;
         if (!string.IsNullOrEmpty(token))
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
-        
+
         return client;
     }
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!User.Identity?.IsAuthenticated == true || string.IsNullOrEmpty(User.FindFirst("AccessToken")?.Value))
+        if (User.Identity?.IsAuthenticated != true || string.IsNullOrEmpty(User.FindFirst("AccessToken")?.Value))
         {
             return RedirectToPage("/Auth/Login");
         }
 
+        PageNumber = Math.Max(1, PageNumber);
         var client = CreateClient();
-        var response = await client.GetAsync("/api/customer-bookings/history");
-        
+        var response = await client.GetAsync(
+            $"/api/customer-bookings/history?pageNumber={PageNumber}&pageSize={DefaultPageSize}");
+
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<List<CustomerBookingHistoryDto>>();
-            if (result != null)
+            var result = await response.Content.ReadFromJsonAsync<PagedResultDto<CustomerBookingHistoryDto>>();
+            if (result is not null)
             {
-                Bookings = result.OrderByDescending(b => b.CreatedAt).ToList();
+                BookingPage = result;
             }
         }
+
         return Page();
     }
 }

@@ -46,7 +46,8 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
         var poolSlotId = context.Message.PoolSlotId;
         _logger.LogInformation("Bắt đầu xử lý hàng chờ cho ca bơi {PoolSlotId}.", poolSlotId);
 
-        // Open one global transaction to lock the slot and process waitlists
+        // Open one global transaction to lock the slot and persist exactly one FIFO offer.
+        var transactionCommitted = false;
         await _unitOfWork.BeginTransactionAsync(context.CancellationToken);
         try
         {
@@ -58,7 +59,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 return;
             }
 
-            var utcNow = DateTime.Now;
+            var utcNow = DateTime.UtcNow;
             var (currentDate, currentTime) = BookingTimePolicy.GetVietnamDateAndTime(utcNow);
             if (BookingTimePolicy.IsBookingClosed(poolSlot.SlotDate, poolSlot.EndTime, currentDate, currentTime))
             {
@@ -134,7 +135,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                     break;
                 }
 
-                var offerNow = DateTime.Now;
+                var offerNow = DateTime.UtcNow;
                 var paymentDeadline = offerNow.AddMinutes(5) < bookingCutoffUtc
                     ? offerNow.AddMinutes(5)
                     : bookingCutoffUtc;
@@ -153,7 +154,7 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 {
                     UserId = waitlistEntry.UserId,
                     PoolSlotId = poolSlotId,
-                    BookingCode = $"WL{DateTime.Now:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
+                    BookingCode = $"WL{offerNow:yyyyMMddHHmmss}{waitlistEntry.UserId.ToString().Substring(0,4).ToUpper()}",
                     BookingDate = poolSlot.SlotDate,
                     Status = BookingStatus.PendingPayment,
                     PaymentDeadline = paymentDeadline,
@@ -177,10 +178,13 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 waitlistEntry.BookingId = booking.BookingId;
                 _unitOfWork.Repository<WaitlistEntry>().Update(waitlistEntry);
                 await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+                await _unitOfWork.CommitTransactionAsync(context.CancellationToken);
+                transactionCommitted = true;
 
                 _logger.LogInformation("Đã tạo booking {BookingId} cho lượt hàng chờ {WaitlistId}.", booking.BookingId, waitlistEntry.WaitlistEntryId);
-                
 
+                // Payment link and email are external side effects. The offer is durable
+                // before either call starts, so a delivery failure cannot roll it back.
                 // Generate PayOS Link
                 var paymentUrl = await _payOSService.CreatePaymentLinkAsync(
                     booking.BookingId, 
@@ -205,12 +209,17 @@ public class SlotCapacityFreedEventConsumer : IConsumer<SlotCapacityFreedEvent>
                 break;
             }
 
-            // Commit the global transaction
-            await _unitOfWork.CommitTransactionAsync(context.CancellationToken);
+            if (!transactionCommitted)
+            {
+                await _unitOfWork.CommitTransactionAsync(context.CancellationToken);
+            }
         }
         catch (Exception ex)
         {
-            await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
+            if (!transactionCommitted)
+            {
+                await _unitOfWork.RollbackTransactionAsync(context.CancellationToken);
+            }
             _logger.LogError(ex, "Xử lý hàng chờ thất bại cho ca bơi {PoolSlotId}.", poolSlotId);
             throw; // Rethrow to allow MassTransit to retry
         }

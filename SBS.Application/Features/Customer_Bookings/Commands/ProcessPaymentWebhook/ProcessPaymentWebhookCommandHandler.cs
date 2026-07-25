@@ -42,6 +42,8 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
             throw new InvalidPaymentWebhookException("Mã đơn hàng (orderCode) trả về từ Webhook không hợp lệ.");
         }
 
+        var utcNow = DateTime.UtcNow;
+
         // 2. Open Transaction for Idempotency and Updates
         var purchasedFromWaitlist = false;
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -71,7 +73,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                 .FirstOrDefaultAsync(w => w.BookingId == booking.BookingId, cancellationToken);
 
             if (waitlistEntry?.Status == WaitlistStatus.Offered &&
-                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= DateTime.Now))
+                (!waitlistEntry.Deadline.HasValue || waitlistEntry.Deadline <= utcNow))
             {
                 throw new InvalidOperationException(
                     "Quyền ưu tiên từ hàng chờ đã hết hạn. Vé đã được chuyển cho người tiếp theo.");
@@ -85,7 +87,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
 
             // 3. Update Booking and create Payment record
             booking.Status = BookingStatus.Paid;
-            booking.UpdatedAt = DateTime.Now;
+            booking.UpdatedAt = utcNow;
             
             // Generate simple QrCodeData token for Check-in module
             booking.QrCodeData = $"{booking.BookingCode}-{Guid.NewGuid()}";
@@ -96,7 +98,7 @@ public class ProcessPaymentWebhookCommandHandler : IRequestHandler<ProcessPaymen
                 PaymentMethod = "PayOS",
                 TransactionId = transactionId,
                 Amount = booking.TotalAmount,
-                PaymentDate = DateTime.Now,
+                PaymentDate = utcNow,
                 Status = "Success"
             };
 

@@ -10,6 +10,7 @@ public static class BookingStatus
     public const string Paid           = "Paid";
     public const string CheckIn        = "CheckIn";
     public const string Completed      = "Completed";
+    public const string Expired        = "Expired";
     public const string Cancelled      = "Cancelled";
     public const string Failed         = "Failed";
     public const string Refunded       = "Refunded";
@@ -21,6 +22,7 @@ public static class BookingStatus
         Paid           => "Đã thanh toán",
         CheckIn        => "Đã check-in",
         Completed      => "Hoàn thành",
+        Expired        => "Hết hạn",
         Cancelled      => "Đã hủy",
         Failed         => "Thất bại",
         Refunded       => "Đã hoàn tiền",

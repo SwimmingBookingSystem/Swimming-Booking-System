@@ -94,9 +94,11 @@ public class CustomerBookingsController : ControllerBase
     }
 
     [HttpGet("history")]
-    public async Task<ActionResult<List<CustomerBookingHistoryDto>>> GetBookingHistory()
+    public async Task<ActionResult<PagedResultDto<CustomerBookingHistoryDto>>> GetBookingHistory(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var result = await _mediator.Send(new GetCustomerBookingsQuery());
+        var result = await _mediator.Send(new GetCustomerBookingsQuery(pageNumber, pageSize));
         return Ok(result);
     }
 

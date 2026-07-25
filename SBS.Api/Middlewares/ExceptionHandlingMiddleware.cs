@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using SBS.Application.Common.Dtos.Manager;
 using SBS.Application.Common.ManagerExceptions;
 using System;
@@ -11,8 +12,13 @@ namespace SBS.Api.Middlewares;
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -105,16 +111,15 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            Console.WriteLine("=== UNHANDLED EXCEPTION ===");
-            Console.WriteLine(ex.ToString());
-            Console.WriteLine("===============================");
-            
-            context.Response.StatusCode  = 500;
+            _logger.LogError(ex, "Unhandled exception while processing {Method} {Path}.",
+                context.Request.Method,
+                context.Request.Path);
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ErrorResponse
             {
-                Message = "Lỗi máy chủ nội bộ (Xem chi tiết ở Errors).",
-                Errors  = new System.Collections.Generic.List<string> { ex.Message, ex.StackTrace ?? "" }
+                Message = "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau."
             });
         }
     }
