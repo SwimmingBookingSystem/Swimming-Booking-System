@@ -46,7 +46,7 @@ public class GenerateSlotsCommandValidator : AbstractValidator<GenerateSlotsComm
             .GreaterThanOrEqualTo(x => x.StartDate).WithMessage("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
             
         RuleFor(x => x.StartDate)
-            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Ngày bắt đầu không được trong quá khứ.");
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Now)).WithMessage("Ngày bắt đầu không được trong quá khứ.");
     }
 }
 
