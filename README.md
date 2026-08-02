@@ -211,16 +211,7 @@ Cuối cùng, thiết lập **Multiple Startup Projects** trong Visual Studio đ
 
 *(Bấm `F5` để khởi chạy).*
 
----
 
-## 📜 Quy tắc Lập trình (Coding Guidelines)
-
-Dự án áp dụng bộ quy tắc nội bộ (`rule.md`), tất cả các lập trình viên tham gia dự án **BẮT BUỘC** phải tuân thủ:
-
-1. **Không sửa trực tiếp file cấu hình dùng chung**: Mọi cấu hình Dependency Injection của module mới phải được viết trong `Extension Methods` (ví dụ `DependencyInjection.CustomerBookings.cs`) tại thư mục của Feature đó.
-2. **Không chứa Logic trong Controller**: Controllers của `SBS.Api` chỉ làm 1 việc duy nhất: Nhận HTTP Request -> Map sang Command/Query -> Gửi vào `IMediator` -> Trả về HTTP Response.
-3. **Frontend gọi API chuẩn xác**: `SBS.WebApp` (Razor Pages) tuyệt đối không reference trực tiếp tới `SBS.Application` hoặc gọi DB. Mọi luồng dữ liệu phải gọi thông qua `HttpClient` tới `SBS.Api`.
-4. **Phân trang dữ liệu**: Logic phân trang bằng JS phía client luôn kiểm tra `items.length > 0` thay vì lớn hơn tổng items mỗi trang để tránh mất thanh điều hướng khi chỉ có 1 trang dữ liệu.
 
 ---
 *Bản quyền thuộc về Nhóm phát triển Hệ thống SBS (Swimming Booking System)*
