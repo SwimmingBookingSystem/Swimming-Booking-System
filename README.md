@@ -52,19 +52,19 @@ Dự án áp dụng **Clean Architecture** kết hợp với **CQRS** (Command Q
 
 ```mermaid
 graph TD
-    WebApp[SBS.WebApp (Razor Pages)] -->|HTTP API| Api[SBS.Api (Controllers)]
-    Api -->|Send Command/Query| App[SBS.Application (MediatR)]
+    WebApp["SBS.WebApp (Razor Pages)"] -->|HTTP API| Api["SBS.Api (Controllers)"]
+    Api -->|Send Command/Query| App["SBS.Application (MediatR)"]
     
     subgraph Core
-        App --> Domain[SBS.Domain (Entities/Interfaces)]
+        App --> Domain["SBS.Domain (Entities/Interfaces)"]
     end
     
     subgraph Infrastructure
-        Infra[SBS.Infrastructure] --> Domain
+        Infra["SBS.Infrastructure"] --> Domain
         App -.->|Interfaces| Infra
-        Infra --> SQL[(SQL Server)]
-        Infra --> MQ[[RabbitMQ]]
-        Infra --> PayOS[payOS API]
+        Infra --> SQL[("SQL Server")]
+        Infra --> MQ[["RabbitMQ"]]
+        Infra --> PayOS["payOS API"]
     end
 ```
 
