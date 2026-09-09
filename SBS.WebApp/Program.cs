@@ -13,7 +13,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName)
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+        });
+}
+else
+{
+    builder.Services.AddHttpClient();
+}
 builder.Services.AddHealthChecks();
 
 // Đăng ký dịch vụ xác thực Cookie mã hóa tự động ở phía WebApp
